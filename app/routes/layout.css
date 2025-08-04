@@ -1,0 +1,139 @@
+#mobileMenuContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 0;
+  max-width: 80vw;
+  background: #1a1a2e;
+  overflow-x: hidden;
+  overflow-y: auto;
+  transition: width 0.4s ease;
+  z-index: 50;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.7);
+}
+#mobileMenuContainer.open {
+  width: 80vw;
+}
+/* Overlay behind sliding menu */
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  z-index: 40;
+}
+#overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+/* Scrollbar styling for mobile menu */
+#mobileMenuContainer::-webkit-scrollbar {
+  width: 6px;
+}
+#mobileMenuContainer::-webkit-scrollbar-thumb {
+  background-color: #6b46c1; /* purple-600 */
+  border-radius: 3px;
+}
+/* Hamburger button on left */
+#mobileMenuButton {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 60;
+}
+/* Hide default mobile menu container on md+ */
+@media (min-width: 768px) {
+  #mobileMenuContainer,
+  #overlay,
+  #mobileMenuButton {
+    display: none;
+  }
+}
+/* Smooth submenu toggle */
+#mobileSubMenu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+#mobileSubMenu.open {
+  max-height: 500px; /* enough to show all submenu items */
+}
+/* Rotate arrow */
+.rotate-180 {
+  transform: rotate(180deg);
+}
+/* Remove default focus outline but keep accessibility */
+button:focus-visible {
+  outline: 2px solid #6b46c1;
+  outline-offset: 2px;
+}
+a:focus-visible {
+  outline: 2px solid #6b46c1;
+  outline-offset: 2px;
+}
+/* Scroll body lock when menu open */
+body.menu-open {
+  overflow: hidden;
+}
+/* Logo font size smaller on xs */
+@media (max-width: 375px) {
+  .logo-text {
+    font-size: 1.5rem;
+  }
+}
+/* Navbar flex adjustments for mobile */
+@media (max-width: 767px) {
+  nav > div.flex.items-center.justify-between.h-16 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+  }
+  #logo-container {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  #user-icon-mobile {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: block;
+  }
+  #desktop-menu {
+    display: none;
+  }
+}
+/* Hide user icon on desktop */
+#user-icon-mobile {
+  display: none;
+}
+/* Close button styling */
+#mobileMenuCloseButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  z-index: 60;
+}
+#mobileMenuCloseButton:hover,
+#mobileMenuCloseButton:focus {
+  color: #a78bfa; /* purple-400 */
+  outline: none;
+}
+.active > a {
+  color: #f472b6; /* Ví dụ: text-pink-400 */
+  font-weight: bold;
+}
