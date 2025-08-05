@@ -67,6 +67,10 @@ const GenericItem: React.FC<GenericItemProps> = ({
   const centerRef = useRef({ x: 0, y: 0 });
   const [isResizing, setIsResizing] = useState(false);
   const startResize = useRef({ x: 0, y: 0, width: 0, height: 0 });
+   const [localX, setLocalX] = useState(item.x);
+    const [localY, setLocalY] = useState(item.y);
+    const [localWidth, setLocalWidth] = useState(item.width);
+    const [localRotation, setLocalRotation] = useState(item.rotation);
   const handleResizeMouseDown = (e: React.MouseEvent) => {
   e.stopPropagation();
   setIsResizing(true);
@@ -74,7 +78,7 @@ const GenericItem: React.FC<GenericItemProps> = ({
   startResize.current = {
     x: e.clientX,
     y: e.clientY,
-    width: item.width,
+    width: localWidth,
     height: item.height
   };
 };
@@ -88,19 +92,20 @@ const GenericItem: React.FC<GenericItemProps> = ({
     const newWidth = Math.max(50, startResize.current.width + dx);
     const newHeight = Math.max(50, startResize.current.height + dy);
     const fontSize = Math.min(newWidth, newHeight) * 1;
-    const newItem: LayoutItem = {
-      ...item,
-      width: newWidth,
-      height: newHeight,
-      size:fontSize
-    };
-    onResize?.(index, newItem);
+    setLocalWidth(newWidth)
   };
 
   const handleResizeMouseUp = () => {
     if (isResizing) {
       setIsResizing(false);
     }
+    const newItem: LayoutItem = {
+      ...item,
+      width: localWidth,
+      // height: newHeight,
+      size:0
+    };
+    onResize?.(index, newItem);
   };
 
   if (isResizing) {
@@ -114,35 +119,6 @@ const GenericItem: React.FC<GenericItemProps> = ({
   };
 }, [isResizing, index, item, onResize]);
 
-  // useEffect(() => {
-  //   const moveHandler = (e: MouseEvent) => {
-  //     if (!isDragging || !wrapperRef.current) return;
-
-  //     const containerRect = wrapperRef.current.offsetParent?.getBoundingClientRect();
-  //     if (!containerRect) return;
-
-  //     const mouseX = (e.clientX - containerRect.left) / zoomLevel;
-  //     const mouseY = (e.clientY - containerRect.top) / zoomLevel;
-
-  //     const newLeft = mouseX - dragOffset.current.x;
-  //     const newTop = mouseY - dragOffset.current.y;
-
-  //     // onDrag?.(index, newTop, newLeft);
-  //   };
-
-  //   const upHandler = () => setIsDragging(false);
-
-  //   if (isDragging) {
-  //     window.addEventListener('mousemove', moveHandler);
-  //     window.addEventListener('mouseup', upHandler);
-  //   }
-
-  //   return () => {
-  //     window.removeEventListener('mousemove', moveHandler);
-  //     window.removeEventListener('mouseup', upHandler);
-  //   };
-  // }, [isDragging, zoomLevel, onDrag]);
-
   const handleRotateMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsRotating(true);
@@ -155,7 +131,7 @@ const GenericItem: React.FC<GenericItemProps> = ({
     const dx = e.clientX - centerX;
     const dy = e.clientY - centerY;
     startAngleRef.current = Math.atan2(dy, dx);
-    initialRotation.current = item.rotation;
+    initialRotation.current = localRotation;
   };
 
   useEffect(() => {
@@ -165,10 +141,13 @@ const GenericItem: React.FC<GenericItemProps> = ({
       const dy = e.clientY - centerRef.current.y;
       const angleNow = Math.atan2(dy, dx);
       const newRotation = initialRotation.current + (angleNow - startAngleRef.current);
-      onRotate?.(index, newRotation);
+      setLocalRotation(newRotation)
     };
 
-    const rotateUp = () => setIsRotating(false);
+    const rotateUp = () => {
+      setIsRotating(false)
+      onRotate?.(index, localRotation);
+    };
 
     if (isRotating) {
       window.addEventListener('mousemove', rotateMove);
@@ -202,8 +181,8 @@ const handleDragMouseDown = (e: React.MouseEvent) => {
 
       // Lưu lại chênh lệch giữa chuột và vị trí hiện tại của bàn
       dragOffset.current = {
-        x: mouseX - item.x,
-        y: mouseY - item.y,
+        x: mouseX - localX,
+        y: mouseY - localY,
       };
     };
 useEffect(() => {
@@ -219,13 +198,15 @@ useEffect(() => {
       // Trừ đúng offset lúc mousedown
       const newLeft = mouseX - dragOffset.current.x;
       const newTop = mouseY - dragOffset.current.y;
-
-      onDrag?.(index, newTop, newLeft);
+      setLocalY(newTop)
+      setLocalX(newLeft)
+      // onDrag?.(index, newTop, newLeft);
       
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    onDrag?.(index,localX, localY);
   };
 
   if (isDragging) {
@@ -677,11 +658,11 @@ const iconMap: Record<string, React.ReactElement> = {
       ref={wrapperRef}
       className={`absolute item_save flex items-center justify-center `}
       style={{
-        top: item.y,
-        left: item.x,
-        width: item.width,
+        top: localY,
+        left: localX,
+        width: localWidth,
         // height: item.type === "sankhau" ? 0 : item.height,
-        transform: `rotate(${item.rotation}rad)`,
+        transform: `rotate(${localRotation}rad)`,
       }}
       onClick={(e) => onClick(index,e)}
        onMouseDown={handleDragMouseDown}

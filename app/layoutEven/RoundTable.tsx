@@ -32,61 +32,63 @@ const RoundTable: React.FC<RoundTableProps> = ({ table, index, selected,setNextT
   const startPos = useRef({ x: 0, y: 0, size: 0 });
   const [isRotating, setIsRotating] = useState(false);
   const centerRef = useRef({ x: 0, y: 0 });
-  const seatSize = 30;
-  const center = table.size / 2;
-  const radius = center + seatSize / 2;
+ 
   const [isDragging, setIsDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
   const [initialRotation, setInitialRotation] = useState(0);
   const startAngleRef = useRef(0);
+  const [localTop, setLocalTop] = useState(table.top);
+  const [localLeft, setLocalLeft] = useState(table.left);
+  const [localSize, setLocalSize] = useState(table.size);
+  const [localRotation, setLocalRotation] = useState(table.rotation);
   const getSeatCount = (size: number) => {
-  return Math.min(20, Math.max(2, Math.round(size / 10)));
+  return Math.min(20, Math.max(2, Math.round(size / 10)));};
+
+ const handleMouseDown = (e: React.MouseEvent) => {
+  e.stopPropagation();
+  setIsResizing(true);
+  startPos.current = {
+    x: e.clientX,
+    y: e.clientY,
+    size: localSize // dùng localSize thay vì table.size
+  };
 };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsResizing(true);
-    startPos.current = {
-      x: e.clientX,
-      y: e.clientY,
-      size: table.size
-    };
+ useEffect(() => {
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isResizing) return;
+
+    const dx = e.clientX - startPos.current.x;
+    const dy = e.clientY - startPos.current.y;
+    const delta = Math.max(dx, dy);
+    const newSize = Math.max(100, Math.min(200, startPos.current.size + delta));
+
+    setLocalSize(newSize); // ✅ local update
   };
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizing) return;
-
-      const dx = e.clientX - startPos.current.x;
-      const dy = e.clientY - startPos.current.y;
-      const delta = Math.max(dx, dy);
-      const newSize = Math.max(100, Math.min(200, startPos.current.size + delta));
-
-      const newTable = {
-        ...table,
-        size: newSize,
-        currentSeatCount: getSeatCount(newSize)
-      };
-
-      onResize(index, newTable);
-    };
-
-    const handleMouseUp = () => {
-      if (isResizing) {
-        setIsResizing(false);
-      }
-    };
-
+  const handleMouseUp = () => {
     if (isResizing) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-    }
+      setIsResizing(false);
 
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isResizing, table, index, onResize]);
+      const updatedTable = {
+        ...table,
+        size: localSize,
+        currentSeatCount: getSeatCount(localSize),
+      };
+      onResize(index, updatedTable); // ✅ chỉ gọi khi thả chuột
+    }
+  };
+
+  if (isResizing) {
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  }
+
+  return () => {
+    window.removeEventListener('mousemove', handleMouseMove);
+    window.removeEventListener('mouseup', handleMouseUp);
+  };
+}, [isResizing, localSize, table, index, onResize]);
  const handleRotateMouseDown = (e: React.MouseEvent) => {
   e.stopPropagation();
   setIsRotating(true);
@@ -103,7 +105,7 @@ const RoundTable: React.FC<RoundTableProps> = ({ table, index, selected,setNextT
   const startAngle = Math.atan2(dy, dx); // 🧠 Lưu lại góc chuột ban đầu
 
   startAngleRef.current = startAngle;
-  setInitialRotation(table.rotation); // Lưu lại rotation hiện tại
+  setInitialRotation(localRotation); // Lưu lại rotation hiện tại
 };
 
     useEffect(() => {
@@ -116,16 +118,17 @@ const handleMouseMove = (e: MouseEvent) => {
     const deltaAngle = currentAngle - startAngleRef.current;
 
     const newRotation = initialRotation + deltaAngle;
-
-    if (onRotate) {
-      onRotate(index, newRotation);
-    }
+    setLocalRotation(newRotation)
+   
   }
 };
 
   const handleMouseUp = () => {
     if (isRotating) {
       setIsRotating(false);
+    }
+     if (onRotate) {
+      onRotate(index, localRotation);
     }
   };
 
@@ -142,9 +145,12 @@ const handleMouseMove = (e: MouseEvent) => {
 
 
 const renderSeats = (idBT: number, inputSeatCount?: number) => {
-  const seatCount = inputSeatCount ?? table.currentSeatCount;
+   const seatCount = getSeatCount(localSize); ;
+    const seatSize = 30;
+    const center = localSize / 2;              // 👈 dùng localSize để tính vị trí trung tâm
+     const radius = center + seatSize / 2;    
   return Array.from({ length: seatCount }).map((_, i) => {
-    const angle = (2 * Math.PI / seatCount) * i + table.rotation;
+    const angle = (2 * Math.PI / seatCount) * i + localRotation;
     const x = center + radius * Math.cos(angle) - seatSize / 2;
     const y = center + radius * Math.sin(angle) - seatSize / 2;
     const seatId = `btron${idBT}${i}`;
@@ -236,14 +242,18 @@ useEffect(() => {
 
     const newLeft = mouseX - dragOffset.current.x;
     const newTop = mouseY - dragOffset.current.y;
-
-    if (onDrag) {
-      onDrag(index, newTop, newLeft);
-    }
+    setLocalLeft(newLeft);  // 🧠 local update
+    setLocalTop(newTop);
+    
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
+      if (onDrag) {
+       onDrag?.(index, localTop, localLeft);
+    }
+    // setLocalTop(localTop);
+    //  setLocalLeft(localLeft);
   };
 
   if (isDragging) {
@@ -266,10 +276,10 @@ useEffect(() => {
       id={`banghe_@${table.tableNumber}`}
       className={`table-wrapper data-indexnumber="${table.tableNumber}" item_banghe item_save absolute ${selected ? 'border-2 border-blue-400' : ''}`}
       style={{
-        top: table.top,
-        left: table.left,
-        width: table.size,
-        height: table.size,
+        top: localTop,
+        left: localLeft,
+        width: localSize,
+        height: localSize,
       }}
      onClick={(e) => onClick(index, e)}
         onMouseDown={handleDragMouseDown}
@@ -279,9 +289,9 @@ useEffect(() => {
       <div
         className="listBanTron list_save absolute bg-purple-200 border border-gray-400 rounded-full flex items-center justify-center text-lg font-bold text-gray-700"
         style={{
-          width: table.size,
-          height: table.size,
-          transform: `translate(-50%, -50%) rotate(${table.rotation}rad)`,
+          width: localSize,
+          height: localSize,
+          transform: `translate(-50%, -50%) rotate(${localRotation}rad)`,
           top: '50%',
           left: '50%',
         }}
@@ -293,8 +303,7 @@ useEffect(() => {
 
      <div className="rotate-handle rotatebantron hidden" onMouseDown={handleRotateMouseDown}></div>
 
-
-      {renderSeats(table.tableNumber,table.currentSeatCount)}
+      {renderSeats(table.tableNumber,getSeatCount(localSize))}
     </div>
   );
 };

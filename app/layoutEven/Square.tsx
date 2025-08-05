@@ -120,12 +120,18 @@ const SquareTableRender: React.FC<SquareTableRenderProps> = ({
   const startAngleRef = useRef<number>(0);
   const [isDragging, setIsDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
+   const [localTop, setLocalTop] = useState(table.top);
+    const [localLeft, setLocalLeft] = useState(table.left);
+    const [localWidth, setLocalWidth] = useState(table.width);
+    const [localHeight, setLocalHeight] = useState(table.height);
+    const [localRotation, setLocalRotation] = useState(table.rotation);
+     const [localSeat, setLocalSeat] = useState(table.currentSeatCount);
   const wrapperStyle = {
-    top: table.top,
-    left: table.left,
-    width: table.width,
-    height: table.height,
-    transform: `rotate(${table.rotation}rad)`,
+    top: localTop,
+    left: localLeft,
+    width: localWidth,
+    height: localHeight,
+    transform: `rotate(${localRotation}rad)`,
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -134,53 +140,60 @@ const SquareTableRender: React.FC<SquareTableRenderProps> = ({
     startPos.current = {
       x: e.clientX,
       y: e.clientY,
-      width: table.width,
-      height: table.height,
+      width: localWidth,
+      height: localHeight,
     };
   };
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizing) return;
+useEffect(() => {
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isResizing) return;
 
-      const dx = e.clientX - startPos.current.x;
-      const dy = e.clientY - startPos.current.y;
+    const dx = e.clientX - startPos.current.x;
+    const dy = e.clientY - startPos.current.y;
 
-      const newWidth = Math.max(80, Math.min(400, startPos.current.width + dx));
-      const newHeight = Math.max(40, Math.min(300, startPos.current.height + dy));
+    const newWidth = Math.max(80, Math.min(400, startPos.current.width + dx));
+    const newHeight = Math.max(40, Math.min(300, startPos.current.height + dy));
 
+    const seatCountTop = Math.floor(newWidth / (seatSize + seatGap));
+    const seatCountLeft = Math.floor(newHeight / (seatSize + seatGap));
+    const totalSeats = (seatCountTop + seatCountLeft) * 2;
 
-      const seatCountTop = Math.floor(newWidth / 36);
-      const seatCountLeft = Math.floor(newHeight / 36);
-      const totalSeats = (seatCountTop + seatCountLeft) * 2;
+    setLocalWidth(newWidth);
+    setLocalHeight(newHeight);
+    setLocalSeat(totalSeats); // cập nhật luôn số ghế cục bộ
+  };
 
+  const handleMouseUp = () => {
+    if (!isResizing) return;
 
-      const updatedTable: SquareTableData = {
-        ...table,
-        width: newWidth,
-        height: newHeight,
-        currentSeatCount: totalSeats,
-      };
+    setIsResizing(false);
 
-      onResize(index, updatedTable);
+    const seatCountTop = Math.floor(localWidth / (seatSize + seatGap));
+    const seatCountLeft = Math.floor(localHeight / (seatSize + seatGap));
+    const totalSeats = (seatCountTop + seatCountLeft) * 2;
+
+    const updatedTable: SquareTableData = {
+      ...table,
+      width: localWidth,
+      height: localHeight,
+      currentSeatCount: totalSeats,
     };
 
-    const handleMouseUp = () => {
-      if (isResizing) {
-        setIsResizing(false);
-      }
-    };
+    setLocalSeat(totalSeats);
+    onResize(index, updatedTable);
+  };
 
-    if (isResizing) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-    }
+  if (isResizing) {
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  }
 
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isResizing, index, onResize, table]);
+  return () => {
+    window.removeEventListener('mousemove', handleMouseMove);
+    window.removeEventListener('mouseup', handleMouseUp);
+  };
+}, [isResizing, localWidth, localHeight, index, onResize]);
 
   const createSeat = (x: number, y: number, id: string, guest?: Guest) => (
     <div
@@ -226,7 +239,7 @@ const SquareTableRender: React.FC<SquareTableRenderProps> = ({
     const startX = e.clientX - centerX;
     const startY = e.clientY - centerY;
 
-    const currentRotation = table.rotation || 0; // rotation đang lưu (đơn vị độ)
+    const currentRotation = localRotation || 0; // rotation đang lưu (đơn vị độ)
     const startAngle = Math.atan2(startY, startX) - (currentRotation * Math.PI / 180);
 
 
@@ -245,13 +258,12 @@ const SquareTableRender: React.FC<SquareTableRenderProps> = ({
       const deltaAngle = currentAngle - startAngleRef.current; // Chênh lệch so với lúc bắt đầu
 
       const deg = initialRotation + (deltaAngle * 3) / Math.PI; // Tổng góc mới = rotation ban đầu + delta
-      if (onRotate) {
-        onRotate(index, deg);
-      }
+      setLocalRotation(deg)
     };
 
     const handleMouseUp = () => {
       if (isRotating) setIsRotating(false);
+       onRotate?.(index, localRotation);
     };
 
     if (isRotating) {
@@ -285,8 +297,8 @@ const SquareTableRender: React.FC<SquareTableRenderProps> = ({
   
         // Lưu lại chênh lệch giữa chuột và vị trí hiện tại của bàn
         dragOffset.current = {
-          x: mouseX - table.left,
-          y: mouseY - table.top,
+          x: mouseX - localLeft,
+          y: mouseY - localTop,
         };
       };
   
@@ -302,13 +314,14 @@ const SquareTableRender: React.FC<SquareTableRenderProps> = ({
       // Trừ đúng offset lúc mousedown
       const newLeft = mouseX - dragOffset.current.x;
       const newTop = mouseY - dragOffset.current.y;
-
-      onDrag?.(index, newTop, newLeft, 1);
+      setLocalLeft(newLeft)
+      setLocalTop(newTop)
       
     };
 
     const handleMouseUp = () => {
       setIsDragging(false);
+      onDrag?.(index, localTop, localLeft, 1);
     };
 
     if (isDragging) {
@@ -322,8 +335,17 @@ const SquareTableRender: React.FC<SquareTableRenderProps> = ({
     };
   }, [isDragging, zoomLevel, index, onDrag]);
 
-
-  const seatElements = renderSeatsBV(table, guests, createSeat, table.currentSeatCount);
+ const localTable: SquareTableData = {
+      ...table,
+      width: localWidth,
+      height:localHeight,
+      currentSeatCount: localSeat,
+      top: localTop,
+      left: localLeft,
+      rotation: localRotation,
+    
+    };
+  const seatElements = renderSeatsBV(localTable, guests, createSeat, localTable.currentSeatCount);
 
   return (
     <div

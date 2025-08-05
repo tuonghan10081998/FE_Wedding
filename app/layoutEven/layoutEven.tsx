@@ -178,6 +178,7 @@ const saveLayoutToJSON = ():string => {
   });
   };
   const handleRotate = (index: number, newRotation: number) => {
+  
     setTables((prev) => {
       const updated = [...prev];
       updated[index] = { ...updated[index], rotation: newRotation };
@@ -222,6 +223,7 @@ const saveLayoutToJSON = ():string => {
 };
 
 const handleDragSquare = (index: number, top: number, left: number, type: number) => {
+  console.log(index,top,left)
   if (type === 1) {
     setTablesSquare((prev) => {
       const current = prev[index];
@@ -255,7 +257,6 @@ const handleDragItem = (index: number, top: number, left: number) => {
     const currentItem = prev[index];
     if (!currentItem) return prev;
 
-    // Nếu không có thay đổi vị trí thì không update
     if (currentItem.x === left && currentItem.y === top) {
       return prev;
     }
@@ -344,7 +345,6 @@ const handleDragItem = (index: number, top: number, left: number) => {
   };
     const hanldleRenderSeatInput = (seat:number) => {
       setSeatInput(seat)
-      console.log(seatCheck)
       if(seatCheck === 0){
         setTables(prevTables =>
           prevTables.map(table =>
