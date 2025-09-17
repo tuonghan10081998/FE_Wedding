@@ -21,7 +21,7 @@
   bottom: 5px;
   cursor: nwse-resize;
   border-radius: 4px;
-  z-index: 10;
+  z-index: 200;
   font-size: 27px;
   color: #888888;
 }
@@ -42,7 +42,7 @@
   border-radius: 50%;
   font-size: 14px;
   cursor: grab;
-  z-index: 20;
+  z-index: 200;
   left: 0;
   bottom: -12px;
   transform: translate(-50%, -50%);
@@ -57,8 +57,8 @@
 }
 
 #tableContainer {
-  height: calc(100vh - 65px);
-  border: 1px solid #ccc;
+  height: calc(100vh - 110px);
+  border: unset;
   overflow: hidden;
   position: relative;
   width: calc(100vw - 300px);
@@ -68,6 +68,7 @@
   background-size: 40px 40px;
   transition: background-size 0.2s ease;
   border-radius: 6px;
+  margin-top: 40px;
 }
 
 .stage {
@@ -265,4 +266,62 @@
   width: 300px;
   border: 1px solid #ccc;
   border-radius: 7px;
+  margin-top: 40px;
+}
+.zindexitem {
+  z-index: 99999999;
+}
+.seat .fa-solid {
+  font-size: 21px;
+}
+.activeSelect {
+  background-color: #55cc55 !important;
+}
+#tableContainer {
+  will-change: transform;
+  transform: translateZ(0);
+  cursor: grab;
+}
+.text_num {
+  background-color: #e98c8c !important;
+  color: #fff;
+}
+::-webkit-scrollbar {
+  width: 2px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+button.close-btn {
+  width: 30px;
+  height: 30px;
+  backdrop-filter: blur(8px);
+  background-color: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+button.close-btn:hover {
+  background-color: #e53e3e; /* Tailwind red-600 */
+  color: white;
+  box-shadow: 0 6px 16px rgba(229, 62, 62, 0.6);
+}
+.css-1nmdiq5-menu {
+  z-index: 9999 !important;
+}
+@media print {
+  #tableContainer {
+    background-image: none !important;
+  }
 }

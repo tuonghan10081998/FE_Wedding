@@ -1,61 +1,43 @@
-import React, { useRef, useEffect, useState } from 'react';
-export interface BenchTableData {
-  tableNumber: number;
-  shape: 'bench';
-  width: number;
-  height: number;
-  top: number;
-  left: number;
-  rotation: number;
-  currentSeatCount: number;
-    sourceType: number;
-}
-
-interface Guest {
-  id: number;
-  seatId: string;
-}
+import React, { useRef, useEffect, useState, useCallback } from 'react';
+import type { Guest, UnifiedTableData } from '../layoutEven/layoutEven';
+import Badge from '~/layoutEven/ItemSVGUser';
+import BadgeMan from '~/layoutEven/ItemSVGUserMan';
 
 interface BenchTableRenderProps {
-  table: BenchTableData;
+  table: UnifiedTableData;
   index: number;
   selected: boolean;
-  guests: any[];
+  guests: Guest[];
   zoomLevel?: number;
-  onGuestSeatChange?: (guestId: number, newSeatId: string | null) => void;
-  onResize: (index: number, newTable: BenchTableData) => void;
+  onGuestSeatChange?: (guestId: string, newSeatID: string | null) => void;
+  onResize: (index: number, newTable: UnifiedTableData) => void;
   onRotate?: (index: number, newRotation: number) => void;
   onDrag?: (index: number, newTop: number, newLeft: number, type: number) => void;
-  onClick: (index: number,event:React.MouseEvent) => void;
+  onClick: (index: number, event: React.MouseEvent) => void;
+  isActive: boolean;
 }
 
-const seatSize = 26;
-const seatGap = 4; // Tổng mỗi ghế: 30 (26 + 4)
+const seatSize = 35;
+const seatGap = 4;
 
 function renderBenchSeats(
-  table: BenchTableData,
+  table: UnifiedTableData,
   guests: Guest[],
-  createSeat: (x: number, y: number, seatId: string, guest?: Guest) => React.JSX.Element
+  createSeat: (x: number, y: number, seatID: string, guest?: Guest) => React.JSX.Element
 ) {
   const seatElements: React.JSX.Element[] = [];
-
-  const w = table.width;
-  const maxSeatsPerRow = Math.floor(w / (seatSize + seatGap)); // Ví dụ: 150 / 30 = 5 ghế
-  const totalSeats = Math.min(table.currentSeatCount, maxSeatsPerRow);
-
+  const w = table.width ?? 195;
+  const count = Math.min(table.currentSeatCount ?? 0, Math.floor(w / (seatSize + seatGap)));
   const idPrefix = `bench${table.tableNumber}`;
   let seatIndex = 1;
 
-  // Tính vị trí ghế sao cho căn giữa theo chiều ngang
-  const totalSeatWidth = totalSeats * seatSize + (totalSeats - 1) * seatGap;
-  const startX = (w - totalSeatWidth) / 2;
-
-  for (let i = 0; i < totalSeats; i++) {
-    const x = startX + i * (seatSize + seatGap);
-    const y = 2; // Ghế đặt phía trên
-    const seatId = `${idPrefix}_${seatIndex++}`;
-    const guest = guests.find(g => g.seatId === seatId);
-    seatElements.push(createSeat(x, y, seatId, guest));
+  for (let i = 0; i < count; i++) {
+    const ratio = count === 1 ? 0.5 : i / (count - 1);
+    const x = ratio * (w - seatSize);
+    const y = 2;
+    const seatID = `${idPrefix}_${seatIndex++}`;
+    const guest = guests.find(g => g.seatID === seatID);
+    seatElements.push(createSeat(x, y, seatID, guest));
   }
 
   return seatElements;
@@ -69,9 +51,10 @@ const BenchTableRender: React.FC<BenchTableRenderProps> = ({
   onGuestSeatChange,
   onResize,
   onRotate,
-  zoomLevel,
+  zoomLevel = 1,
   onDrag,
-  onClick
+  onClick,
+  isActive
 }) => {
   const [isResizing, setIsResizing] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
@@ -82,12 +65,26 @@ const BenchTableRender: React.FC<BenchTableRenderProps> = ({
   const dragOffset = useRef({ x: 0, y: 0 });
   const centerRef = useRef({ x: 0, y: 0 });
   const startAngleRef = useRef<number>(0);
-  const [initialRotation, setInitialRotation] = useState(table.rotation);
- const [localTop, setLocalTop] = useState(table.top);
+  const currentPosition = useRef({ top: table.top, left: table.left });
+  const currentRotate = useRef({ rotation: table.rotation });
+
+  const [localTop, setLocalTop] = useState(table.top);
   const [localLeft, setLocalLeft] = useState(table.left);
-  const [localSize, setLocalSize] = useState(table.width);
+  const [localSize, setLocalSize] = useState(table.width ?? 150);
   const [localRotation, setLocalRotation] = useState(table.rotation);
-   const [localSeat, setLocalSeat] = useState(table.currentSeatCount);
+  const [localSeat, setLocalSeat] = useState(table.currentSeatCount);
+
+  // Sync với props khi table thay đổi
+  useEffect(() => {
+    setLocalTop(table.top);
+    setLocalLeft(table.left);
+    setLocalSize(table.width ?? 150);
+    setLocalRotation(table.rotation);
+    setLocalSeat(table.currentSeatCount);
+    currentPosition.current = { top: table.top, left: table.left };
+    currentRotate.current = { rotation: table.rotation };
+  }, [table]);
+
   const wrapperStyle = {
     top: localTop,
     left: localLeft,
@@ -96,7 +93,7 @@ const BenchTableRender: React.FC<BenchTableRenderProps> = ({
     transform: `rotate(${localRotation}rad)`,
   };
 
-  const createSeat = (x: number, y: number, id: string, guest?: Guest) => (
+  const createSeat = useCallback((x: number, y: number, id: string, guest?: Guest) => (
     <div
       key={id}
       id={id}
@@ -106,79 +103,109 @@ const BenchTableRender: React.FC<BenchTableRenderProps> = ({
         left: x,
         width: seatSize,
         height: seatSize,
-        backgroundColor: guest ? '#facc15' : '#fff',
+        backgroundColor: guest ? '#fafffcc15' : '#fff',
       }}
     >
       <div
         draggable
-        onDragStart={(e) => e.dataTransfer.setData('guestId', guest?.id.toString() || '')}
+        onDragStart={(e) => {
+          e.dataTransfer.setData('guestId', guest?.guestID?.toString() || '');
+        }}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => {
+          e.preventDefault();
           const guestIdStr = e.dataTransfer.getData('guestId');
-          const guestId = parseInt(guestIdStr, 10);
-          if (!isNaN(guestId) && !guests.some((g) => g.seatId === id)) {
-            onGuestSeatChange?.(guestId, id);
+          if (guestIdStr && !guests.some((g) => g.seatID === id)) {
+            onGuestSeatChange?.(guestIdStr, id);
           }
         }}
         className="cursor-move fa-user usercutomer"
       >
-        {guest ? '👤' : id.replace(`bench${table.tableNumber}_`, '')}
+        {guest ? (
+          <div className="flex flex-col items-center justify-center text-[10px] leading-tight">
+            {guest.gender === "Nữ" ? (
+              <Badge 
+                text={guest.name} 
+                rotate={-90}
+                centerX={0} 
+                viewbox="-21 -67 95 85" 
+                height={55}
+                centerY={0} 
+              />
+            ) : (
+              <BadgeMan 
+                text={guest.name} 
+                rotate={-90}
+                centerX={0} 
+                viewbox="-21 -67 95 85" 
+                height={55}
+                centerY={0} 
+              />
+            )}
+          </div>
+        ) : (
+          id.replace(`bench${table.tableNumber}_`, '')
+        )}
       </div>
     </div>
-  );
+  ), [guests, onGuestSeatChange, table.tableNumber]);
 
-  const handleResizeMouseDown = (e: React.MouseEvent) => {
+  const handleResizeMouseDown = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setIsResizing(true);
     startPos.current = {
       x: e.clientX,
       y: e.clientY,
       width: localSize,
-      height: table.height,
+      height: table.height ?? 10,
     };
-  };
+  }, [localSize, table.height]);
 
-  const handleRotateMouseDown = (e: React.MouseEvent) => {
+  const handleRotateMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     const rect = wrapperRef.current?.getBoundingClientRect();
     if (!rect) return;
+    
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     centerRef.current = { x: centerX, y: centerY };
+    
     const dx = e.clientX - centerX;
     const dy = e.clientY - centerY;
-    startAngleRef.current = Math.atan2(dy, dx) - table.rotation;
-    setInitialRotation(table.rotation);
+    startAngleRef.current = Math.atan2(dy, dx) - localRotation;
+    
     setIsRotating(true);
-  };
+  }, [localRotation]);
 
-  const handleDragMouseDown = (e: React.MouseEvent) => {
-  if (
-    (e.target as HTMLElement).classList.contains('resizer') ||
-    (e.target as HTMLElement).classList.contains('rotate-handle') ||
-    (e.target as HTMLElement).classList.contains('fa-user')
-  ) return;
+  const handleDragMouseDown = useCallback((e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (
+      target.classList.contains('resizer') ||
+      target.classList.contains('rotate-handle') ||
+      target.classList.contains('fa-user') ||
+      target.closest('.seat')
+    ) {
+      return;
+    }
 
-      e.stopPropagation();
-      setIsDragging(true);
+    e.stopPropagation();
+    setIsDragging(true);
 
-      const rect = wrapperRef.current?.getBoundingClientRect();
-      const containerRect = wrapperRef.current?.offsetParent?.getBoundingClientRect();
-      if (!rect || !containerRect) return;
+    const rect = wrapperRef.current?.getBoundingClientRect();
+    const containerRect = wrapperRef.current?.offsetParent?.getBoundingClientRect();
+    if (!rect || !containerRect) return;
 
-      // Ghi lại chính xác vị trí chuột (so với container)
-      const mouseX = (e.clientX - containerRect.left) / (zoomLevel || 1);
-      const mouseY = (e.clientY - containerRect.top) / (zoomLevel || 1);
+    const mouseX = (e.clientX - containerRect.left) / zoomLevel;
+    const mouseY = (e.clientY - containerRect.top) / zoomLevel;
 
-      // Lưu lại chênh lệch giữa chuột và vị trí hiện tại của bàn
-      dragOffset.current = {
-        x: mouseX - localLeft,
-        y: mouseY - localTop,
-      };
+    dragOffset.current = {
+      x: mouseX - localLeft,
+      y: mouseY - localTop,
     };
+  }, [localLeft, localTop, zoomLevel]);
 
-    useEffect(() => {
+  useEffect(() => {
     const handleMove = (e: MouseEvent) => {
       if (isResizing) {
         const dx = e.clientX - startPos.current.x;
@@ -187,6 +214,7 @@ const BenchTableRender: React.FC<BenchTableRenderProps> = ({
 
         setLocalSize(newWidth);
         setLocalSeat(newSeatCount);
+        return;
       }
 
       if (isRotating && wrapperRef.current) {
@@ -194,57 +222,65 @@ const BenchTableRender: React.FC<BenchTableRenderProps> = ({
         const dy = e.clientY - centerRef.current.y;
         const angle = Math.atan2(dy, dx);
         const newRotation = angle - startAngleRef.current;
-        setLocalRotation(newRotation); // local update
+        
+        setLocalRotation(newRotation);
+        currentRotate.current = { rotation: newRotation };
+        return;
       }
 
       if (isDragging && wrapperRef.current) {
         const containerRect = wrapperRef.current.offsetParent?.getBoundingClientRect();
         if (!containerRect) return;
 
-        const mouseX = (e.clientX - containerRect.left) / (zoomLevel || 1);
-        const mouseY = (e.clientY - containerRect.top) / (zoomLevel || 1);
+        const mouseX = (e.clientX - containerRect.left) / zoomLevel;
+        const mouseY = (e.clientY - containerRect.top) / zoomLevel;
         const newLeft = mouseX - dragOffset.current.x;
         const newTop = mouseY - dragOffset.current.y;
 
         setLocalLeft(newLeft);
         setLocalTop(newTop);
+        currentPosition.current = { top: newTop, left: newLeft };
+        return;
       }
     };
 
     const handleUp = () => {
       if (isResizing) {
         setIsResizing(false);
-
-        const updatedTable: BenchTableData = {
+        const updatedTable: UnifiedTableData = {
           ...table,
           width: localSize,
           currentSeatCount: localSeat,
         };
-
         onResize(index, updatedTable);
+        return;
       }
 
       if (isRotating) {
         setIsRotating(false);
-        onRotate?.(index, localRotation);
+        onRotate?.(index, currentRotate.current.rotation);
+        return;
       }
 
       if (isDragging) {
         setIsDragging(false);
-        onDrag?.(index, localTop, localLeft, 2);
+        onDrag?.(index, currentPosition.current.top, currentPosition.current.left, 2);
+        return;
       }
     };
 
-    window.addEventListener('mousemove', handleMove);
-    window.addEventListener('mouseup', handleUp);
+    if (isResizing || isRotating || isDragging) {
+      window.addEventListener('mousemove', handleMove);
+      window.addEventListener('mouseup', handleUp);
 
-    return () => {
-      window.removeEventListener('mousemove', handleMove);
-      window.removeEventListener('mouseup', handleUp);
-    };
+      return () => {
+        window.removeEventListener('mousemove', handleMove);
+        window.removeEventListener('mouseup', handleUp);
+      };
+    }
   }, [
     isResizing,
-    isRotating,
+    isRotating, 
     isDragging,
     index,
     onResize,
@@ -252,49 +288,63 @@ const BenchTableRender: React.FC<BenchTableRenderProps> = ({
     onDrag,
     localSize,
     localSeat,
-    localRotation,
-    localTop,
-    localLeft,
     table,
     zoomLevel,
   ]);
-    const localTable: BenchTableData = {
-      ...table,
-      width: localSize,
-      currentSeatCount: localSeat,
-      top: localTop,
-      left: localLeft,
-      rotation: localRotation,
-    };
-    const seatElements = renderBenchSeats(localTable, guests, createSeat);
+
+  const localTable: UnifiedTableData = {
+    ...table,
+    width: localSize,
+    currentSeatCount: localSeat,
+    top: localTop,
+    left: localLeft,
+    rotation: localRotation,
+  };
+
+  const seatElements = renderBenchSeats(localTable, guests, createSeat);
 
   return (
     <div
       id={`banghe_@${table.tableNumber}`}
-      className={`table-wrapper item_banghe absolute cursor-pointer item_save ${selected ? 'border-2 border-blue-500' : ''}`}
+      className={`table-wrapper item_banghe absolute cursor-pointer ${
+        selected ? "zindexitem border-2 border-blue-500" : ""
+      } item_save`}
       style={wrapperStyle}
       data-indexsave={index}
       data-type="bench"
-      onMouseDown={handleDragMouseDown}
+      data-indexnumber={table.tableNumber}
       ref={wrapperRef}
-      onClick={(e) => onClick(index,e)}
+      onClick={(e) => onClick(index, e)}
     >
       <div
-        className="list_save itemgd absolute bg-green-300 border border-gray-400 rounded-md flex items-center justify-center text-lg font-bold text-gray-800"
+        onMouseDown={handleDragMouseDown}
+        className={`list_save itemgd absolute ${
+          isActive ? "activeSelect" : ""
+        } bg-green-300 border border-gray-400 rounded-md flex items-center justify-center text-lg text-gray-800`}
         style={{
           top: 1,
           width: localSize,
-          height: table.height,
-        //   transform: `translate(-50%, -50%) rotate(${table.rotation}rad)`,
+          height: 12,
+          fontWeight: '600',
+          zIndex: 100,
         }}
       >
-        {index + 1}
+        {table.nameTable}
       </div>
 
       {seatElements}
 
-      <div className="resizer resizer-gd" onMouseDown={handleResizeMouseDown}><i style={{fontSize:"17px"}} className="fa-solid fa-circle-right"></i></div>
-      <div className="rotate-handle rotate-gd" onMouseDown={handleRotateMouseDown}></div>
+      <div 
+        className="resizer resizer-gd" 
+        onMouseDown={handleResizeMouseDown}
+      >
+        <i style={{ fontSize: "17px" }} className="fa-solid fa-circle-right"></i>
+      </div>
+      
+      <div 
+        className="rotate-handle rotate-gd" 
+        onMouseDown={handleRotateMouseDown}
+      ></div>
     </div>
   );
 };

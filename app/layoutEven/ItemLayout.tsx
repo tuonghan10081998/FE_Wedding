@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
 export interface LayoutItem {
@@ -15,18 +15,19 @@ export interface LayoutItem {
   sourceType: number;
   nameItem?: string;
 }
+
 interface GenericItemProps {
   item: LayoutItem;
   index: number;
   selected: boolean;
   zoomLevel?: number;
-  onClick: (index: number,event: React.MouseEvent) => void;
+  onClick: (index: number, event: React.MouseEvent) => void;
   onRotate?: (index: number, newRotation: number) => void;
   onDrag?: (index: number, newTop: number, newLeft: number) => void;
-  onResize?:(index:number,newTable:LayoutItem)=> void;
-  onDelete?:(item:any,source:number) => void ;
+  onResize?: (index: number, newTable: LayoutItem) => void;
+  onDelete?: (item: any, source: number) => void;
+  isActive: boolean;
 }
-
 
 const GenericItem: React.FC<GenericItemProps> = ({
   item,
@@ -37,93 +38,79 @@ const GenericItem: React.FC<GenericItemProps> = ({
   onRotate,
   onDrag,
   onResize,
-  onDelete
+  onDelete,
+  isActive
 }) => {
-    const [contextMenu, setContextMenu] = useState<{
-      visible: boolean;
-      x: number;
-      y: number;
-      item: any;
-      source: number;
-    } | null>(null);
+  const [contextMenu, setContextMenu] = useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    item: any;
+    source: number;
+  } | null>(null);
+
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const initialRotation = useRef(0);
+  const startAngleRef = useRef(0);
+  const centerRef = useRef({ x: 0, y: 0 });
+  const startResize = useRef({ x: 0, y: 0, width: 0, height: 0 });
   const dragOffset = useRef({ x: 0, y: 0 });
+  const currentPosition = useRef({ y: item.y, x: item.x });
+  const currentRotate = useRef({ rotation: item.rotation });
+  const currentSize = useRef({ width: item.width, height: item.height });
+
+  const [isDragging, setIsDragging] = useState(false);
+  const [isRotating, setIsRotating] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+
+  const [localX, setLocalX] = useState(item.x);
+  const [localY, setLocalY] = useState(item.y);
+  const [localWidth, setLocalWidth] = useState(item.width);
+  const [localRotation, setLocalRotation] = useState(item.rotation);
+
+  // Sync với props khi item thay đổi
   useEffect(() => {
-    const handleClickOutside = () => {
-      if (contextMenu?.visible) {
-        setContextMenu(null);
-      }
-    };
+    setLocalX(item.x);
+    setLocalY(item.y);
+    setLocalWidth(item.width);
+    setLocalRotation(item.rotation);
+    currentPosition.current = { y: item.y, x: item.x };
+    currentRotate.current = { rotation: item.rotation };
+    currentSize.current = { width: item.width, height: item.height };
+    initialRotation.current = item.rotation;
+  }, [item]);
+
+  const handleClickOutside = useCallback(() => {
+    if (contextMenu?.visible) {
+      setContextMenu(null);
+    }
+  }, [contextMenu]);
+
+  useEffect(() => {
     window.addEventListener('click', handleClickOutside);
     return () => {
       window.removeEventListener('click', handleClickOutside);
     };
-  }, [contextMenu]);
-  
-  const [isRotating, setIsRotating] = useState(false);
-  const initialRotation = useRef(0);
-  const startAngleRef = useRef(0);
-  const centerRef = useRef({ x: 0, y: 0 });
-  const [isResizing, setIsResizing] = useState(false);
-  const startResize = useRef({ x: 0, y: 0, width: 0, height: 0 });
-   const [localX, setLocalX] = useState(item.x);
-    const [localY, setLocalY] = useState(item.y);
-    const [localWidth, setLocalWidth] = useState(item.width);
-    const [localRotation, setLocalRotation] = useState(item.rotation);
-  const handleResizeMouseDown = (e: React.MouseEvent) => {
-  e.stopPropagation();
-  setIsResizing(true);
+  }, [handleClickOutside]);
 
-  startResize.current = {
-    x: e.clientX,
-    y: e.clientY,
-    width: localWidth,
-    height: item.height
-  };
-};
- useEffect(() => {
-  const handleResizeMouseMove = (e: MouseEvent) => {
-    if (!isResizing) return;
+  const handleResizeMouseDown = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsResizing(true);
 
-    const dx = e.clientX - startResize.current.x;
-    const dy = e.clientY - startResize.current.y;
-
-    const newWidth = Math.max(50, startResize.current.width + dx);
-    const newHeight = Math.max(50, startResize.current.height + dy);
-    const fontSize = Math.min(newWidth, newHeight) * 1;
-    setLocalWidth(newWidth)
-  };
-
-  const handleResizeMouseUp = () => {
-    if (isResizing) {
-      setIsResizing(false);
-    }
-    const newItem: LayoutItem = {
-      ...item,
+    startResize.current = {
+      x: e.clientX,
+      y: e.clientY,
       width: localWidth,
-      // height: newHeight,
-      size:0
+      height: item.height
     };
-    onResize?.(index, newItem);
-  };
+  }, [localWidth, item.height]);
 
-  if (isResizing) {
-    window.addEventListener('mousemove', handleResizeMouseMove);
-    window.addEventListener('mouseup', handleResizeMouseUp);
-  }
-
-  return () => {
-    window.removeEventListener('mousemove', handleResizeMouseMove);
-    window.removeEventListener('mouseup', handleResizeMouseUp);
-  };
-}, [isResizing, index, item, onResize]);
-
-  const handleRotateMouseDown = (e: React.MouseEvent) => {
+  const handleRotateMouseDown = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setIsRotating(true);
     const rect = wrapperRef.current?.getBoundingClientRect();
     if (!rect) return;
+    
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     centerRef.current = { x: centerX, y: centerY };
@@ -132,119 +119,144 @@ const GenericItem: React.FC<GenericItemProps> = ({
     const dy = e.clientY - centerY;
     startAngleRef.current = Math.atan2(dy, dx);
     initialRotation.current = localRotation;
-  };
+  }, [localRotation]);
 
-  useEffect(() => {
-    const rotateMove = (e: MouseEvent) => {
-      if (!isRotating) return;
-      const dx = e.clientX - centerRef.current.x;
-      const dy = e.clientY - centerRef.current.y;
-      const angleNow = Math.atan2(dy, dx);
-      const newRotation = initialRotation.current + (angleNow - startAngleRef.current);
-      setLocalRotation(newRotation)
-    };
-
-    const rotateUp = () => {
-      setIsRotating(false)
-      onRotate?.(index, localRotation);
-    };
-
-    if (isRotating) {
-      window.addEventListener('mousemove', rotateMove);
-      window.addEventListener('mouseup', rotateUp);
+  const handleDragMouseDown = useCallback((e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (
+      target.classList.contains('resizer') ||
+      target.classList.contains('rotate-handle') ||
+      target.closest('.handle')
+    ) {
+      return;
     }
 
-    return () => {
-      window.removeEventListener('mousemove', rotateMove);
-      window.removeEventListener('mouseup', rotateUp);
+    e.stopPropagation();
+    setIsDragging(true);
+
+    const rect = wrapperRef.current?.getBoundingClientRect();
+    const containerRect = wrapperRef.current?.offsetParent?.getBoundingClientRect();
+    if (!rect || !containerRect) return;
+
+    const mouseX = (e.clientX - containerRect.left) / zoomLevel;
+    const mouseY = (e.clientY - containerRect.top) / zoomLevel;
+
+    dragOffset.current = {
+      x: mouseX - localX,
+      y: mouseY - localY,
     };
-  }, [isRotating, onRotate]);
-// drapdrop
-const handleDragMouseDown = (e: React.MouseEvent) => {
-  if (
-    (e.target as HTMLElement).classList.contains('resizer') ||
-    (e.target as HTMLElement).classList.contains('rotate-handle') 
-  ) {
-    return;
-  }
+  }, [localX, localY, zoomLevel]);
 
-        e.stopPropagation();
-      setIsDragging(true);
-
-      const rect = wrapperRef.current?.getBoundingClientRect();
-      const containerRect = wrapperRef.current?.offsetParent?.getBoundingClientRect();
-      if (!rect || !containerRect) return;
-
-      // Ghi lại chính xác vị trí chuột (so với container)
-      const mouseX = (e.clientX - containerRect.left) / (zoomLevel || 1);
-      const mouseY = (e.clientY - containerRect.top) / (zoomLevel || 1);
-
-      // Lưu lại chênh lệch giữa chuột và vị trí hiện tại của bàn
-      dragOffset.current = {
-        x: mouseX - localX,
-        y: mouseY - localY,
-      };
-    };
-useEffect(() => {
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!isDragging || !wrapperRef.current) return;
-
-   const containerRect = wrapperRef.current.offsetParent?.getBoundingClientRect();
-      if (!containerRect) return;
-
-      const mouseX = (e.clientX - containerRect.left) / (zoomLevel || 1);
-      const mouseY = (e.clientY - containerRect.top) / (zoomLevel || 1);
-
-      // Trừ đúng offset lúc mousedown
-      const newLeft = mouseX - dragOffset.current.x;
-      const newTop = mouseY - dragOffset.current.y;
-      setLocalY(newTop)
-      setLocalX(newLeft)
-      // onDrag?.(index, newTop, newLeft);
-      
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    onDrag?.(index,localX, localY);
-  };
-
-  if (isDragging) {
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-  }
-
-  return () => {
-    window.removeEventListener('mousemove', handleMouseMove);
-    window.removeEventListener('mouseup', handleMouseUp);
-  };
-}, [isDragging, zoomLevel, index, onDrag]);
- const handleRightClick = (
-  e: React.MouseEvent,
-  item: any,
-  source: 1 | 2 | 3 | 4
-) => {
-  e.preventDefault();
-  setContextMenu({
-    visible: true,
-    x: e.pageX,
-    y: e.pageY,
-    item,
-    source:1,
-  });
-};
-const renderIcon = (item: LayoutItem,sourceType: number) => {
-  const icon = iconMap[item.type] || iconMap.default;
-  if (React.isValidElement(icon) && icon.type === 'svg') {
-    return React.cloneElement(icon, {
-      fill: item.color,
-      onContextMenu: handleRightClick, // 💥 Thêm vào đây
+  const handleRightClick = useCallback((e: React.MouseEvent, item: any, source: 1 | 2 | 3 | 4) => {
+    e.preventDefault();
+    setContextMenu({
+      visible: true,
+      x: e.pageX,
+      y: e.pageY,
+      item,
+      source: 1,
     });
-  }
+  }, []);
 
-  return icon; // fallback
-};
-const scaleFactor = 3;
+  const renderIcon = useCallback((item: LayoutItem, sourceType: number) => {
+    const icon = iconMap[item.type] || iconMap.default;
+    if (React.isValidElement(icon) && icon.type === 'svg') {
+      return React.cloneElement(icon as React.ReactElement<any>, {
+        fill: item.color,
+        onContextMenu: (e: React.MouseEvent) => handleRightClick(e, item, 1),
+      });
+    }
+    return icon;
+  }, [handleRightClick]);
+
+  useEffect(() => {
+    const handleMove = (e: MouseEvent) => {
+      if (isResizing) {
+        const dx = e.clientX - startResize.current.x;
+        const dy = e.clientY - startResize.current.y;
+
+        const newWidth = Math.max(50, startResize.current.width + dx);
+        const newHeight = Math.max(50, startResize.current.height + dy);
+
+        setLocalWidth(newWidth);
+        currentSize.current = { width: newWidth, height: newHeight };
+        return;
+      }
+
+      if (isRotating) {
+        const dx = e.clientX - centerRef.current.x;
+        const dy = e.clientY - centerRef.current.y;
+        const angleNow = Math.atan2(dy, dx);
+        const newRotation = initialRotation.current + (angleNow - startAngleRef.current);
+        
+        setLocalRotation(newRotation);
+        currentRotate.current = { rotation: newRotation };
+        return;
+      }
+
+      if (isDragging && wrapperRef.current) {
+        const containerRect = wrapperRef.current.offsetParent?.getBoundingClientRect();
+        if (!containerRect) return;
+
+        const mouseX = (e.clientX - containerRect.left) / zoomLevel;
+        const mouseY = (e.clientY - containerRect.top) / zoomLevel;
+
+        const newLeft = mouseX - dragOffset.current.x;
+        const newTop = mouseY - dragOffset.current.y;
+        
+        setLocalY(newTop);
+        setLocalX(newLeft);
+        currentPosition.current = { y: newTop, x: newLeft };
+        return;
+      }
+    };
+
+    const handleUp = () => {
+      if (isResizing) {
+        setIsResizing(false);
+        const newItem: LayoutItem = {
+          ...item,
+          width: currentSize.current.width,
+          size: 0
+        };
+        onResize?.(index, newItem);
+        return;
+      }
+
+      if (isRotating) {
+        setIsRotating(false);
+        onRotate?.(index, currentRotate.current.rotation);
+        return;
+      }
+
+      if (isDragging) {
+        setIsDragging(false);
+        onDrag?.(index, currentPosition.current.y, currentPosition.current.x);
+        return;
+      }
+    };
+
+    if (isResizing || isRotating || isDragging) {
+      window.addEventListener('mousemove', handleMove);
+      window.addEventListener('mouseup', handleUp);
+
+      return () => {
+        window.removeEventListener('mousemove', handleMove);
+        window.removeEventListener('mouseup', handleUp);
+      };
+    }
+  }, [
+    isResizing,
+    isRotating,
+    isDragging,
+    index,
+    item,
+    onResize,
+    onRotate,
+    onDrag,
+    zoomLevel,
+  ]);
+
 const iconMap: Record<string, React.ReactElement> = {
      sankhau : (
          <svg viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg" >
@@ -284,16 +296,24 @@ const iconMap: Record<string, React.ReactElement> = {
         <use transform="translate(33.45 10.15)" xlinkHref="#fan-blade" />
         <use transform="scale(-1) rotate(-54.97 -74.49 30.858)" xlinkHref="#fan-blade" />
         <use transform="rotate(-114.971 21.523 19.645) scale(.99997)" xlinkHref="#fan-blade" />
+         <g className="handle resizer resize-handle" transform="translate(50,60)" onMouseDown={handleResizeMouseDown}style={{ cursor: 'nwse-resize' }} >
+            <circle r="6" fill="#666" />
+            <path d="M -3 -1.5 L 0 5 L 3 -1.5" fill="white" transform="scale(1)"/>
+          </g>
       </svg>
 
      ) ,
     phaohoa:(
       <svg  viewBox="40 42 70 70" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="75" cy="75" r="" stroke="rgba(160, 83, 178, 1)" strokeWidth="2" strokeDasharray="5,5" />
+          <circle cx="75" cy="75" stroke="rgba(160, 83, 178, 1)" strokeWidth="2" strokeDasharray="5,5" fill="none" />
           <g transform="translate(40 40)">
           <path d="M47.1 8.05q1.25.55 2.45 1.25 1.5.9 3 2 1.7 1.3 3.3 2.9 8.65 8.65 8.65 20.85 0 12.2-8.65 20.85-3.5 3.5-7.6 5.6-1.45.75-3 1.3-1.25.45-2.5.8-.9.2-1.85.4-2.85.55-5.9.55-2.95 0-5.75-.5-.15 0-.25-.05-1.35-.25-2.65-.65-.7-.2-1.35-.45-1.65-.6-3.25-1.4-2.6-1.35-4.95-3.25-1.5-1.2-2.65-2.35-3.8-3.8-5.9-8.25Q5.5 41.9 5.5 35.05q0-12.2 8.65-20.85 2.95-2.95 6.35-4.9.6-.35 1.25-.7.55-.3 1.15-.55M44.35 24L43 22.7h10.9l-.85 9.85-1.3-1.55-7.3 7.85-5.05 5.35-5.1-5.15L24 49.25l-2.4-2.5 10.2-10.2 7.6-7.6L44.35 24l7.4 7m-7.4-7l.1 14.85m-5-26.05l-.1-.3-3.6-2.45-3.95 2.75 1.35-4.45-3.7-2.85 4.6-.1L35.6 1l1.65 4.4 4.6.1-3.7 2.85 1.2 4.15"
             fill="none" stroke="#7f5959" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
              /> </g>
+              <g className="handle resizer resize-handle" transform="translate(50,60)" onMouseDown={handleResizeMouseDown}style={{ cursor: 'nwse-resize' }} >
+            <circle r="6" fill="#666" />
+            <path d="M -3 -1.5 L 0 5 L 3 -1.5" fill="white" transform="scale(1)"/>
+          </g>
       </svg>
 
     ),
@@ -337,6 +357,10 @@ const iconMap: Record<string, React.ReactElement> = {
           <path id="soundPath" fill="none" stroke="#333" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M28.3 3.15q.85-.45 1.8-.8.75-.25 1.5-.45.55-.15 1.1-.25 1.7-.35 3.55-.35 1.75 0 3.45.3.1 0 .15.05.8.15 1.6.4.4.1.8.25 1 .35 1.95.85m3.4 4.6q1.25.55 2.45 1.25 1.5.9 3 2 1.7 1.3 3.3 2.9Q65 22.55 65 34.75q0 12.2-8.65 20.85-3.5 3.5-7.6 5.6-1.15.6-2.3 1.05-.35.15-.7.25-1.25.45-2.5.8-.9.2-1.85.4-2.85.55-5.9.55-2.95 0-5.75-.5-.15 0-.25-.05-1.35-.25-2.65-.65-.7-.2-1.35-.45-.45-.15-.9-.35-1.2-.45-2.35-1.05-2.6-1.35-4.95-3.25-1.5-1.2-2.65-2.35-3.8-3.8-5.9-8.25l-.7-1.6q-.3-.7-.55-1.45Q6 39.8 6 34.75q0-5.1 1.5-9.55.25-.75.55-1.5 2.15-5.35 6.6-9.8Q17.6 10.95 21 9q.6-.35 1.25-.7.55-.3 1.15-.55m5.3 20.1L40.9 15.6v13.65q1.4.35 2.5 1.45 1.7 1.8 1.7 4.25 0 2.5-1.7 4.2-1.1 1.1-2.5 1.5V53.6l-4.45-3.8-8-8v.45h-5.3V27.4h5.3v14.4m12.45-1.15v-11.4m-9.15-22.3q.5-.25 1.05-.45.4-.15.85-.25.3-.05.6-.15.95-.2 2-.2 1 0 1.95.2h.1q.45.1.9.25.2.05.45.15.55.2 1.1.45m-6.65 3.9q.2-.1.5-.2.2-.1.4-.15.15-.05.3-.05.45-.1.95-.1.5 0 .95.1h.05q.25.05.45.1.1.05.2.05.3.1.55.25M21.85 34.9H17.2" />
         </defs>
         <use href="#soundPath" />
+         <g className="handle resizer resize-handle" transform="translate(50,60)" onMouseDown={handleResizeMouseDown}style={{ cursor: 'nwse-resize' }} >
+            <circle r="6" fill="#666" />
+            <path d="M -3 -1.5 L 0 5 L 3 -1.5" fill="white" transform="scale(1)"/>
+          </g>
       </svg>
     ),
     den:(
@@ -348,6 +372,10 @@ const iconMap: Record<string, React.ReactElement> = {
           <path id="icon-door" fill="none" stroke="#333" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M47.1 8.5q1.25.55 2.45 1.25 1.5.9 3 2 1.7 1.3 3.3 2.9Q64.5 23.3 64.5 35.5q0 12.2-8.65 20.85-3.45 3.45-7.4 5.5Q42.35 65 35 65q-4.55 0-8.65-1.2-2.5-.75-4.8-1.95-3.5-1.8-6.55-4.65l-.85-.85q-3.8-3.8-5.9-8.25Q5.5 42.35 5.5 35.5q0-12.2 8.65-20.85.4-.4.85-.8 2.6-2.45 5.5-4.1.6-.35 1.25-.7.55-.3 1.15-.55m22 14.7l4-3.9m-3.5 14.05v.2q-.05 4.2-3.1 7.2-.3.3-.5.6-2.4 1.7-2.85 5.55-.35 1.15-1.55 1.15h-5.25q-1.35.15-1.8-1.25-.1-3.4-2.25-5.3-.45-.35-.75-.75-3.05-3-3.1-7.2v-.2q0-4.4 3.1-7.55 3.1-3.05 7.45-3.05 4.4 0 7.5 3.05 3.1 3.15 3.1 7.55zm9.6.2h-5.4M35.1 8.25V1.5M40 8.25V4.3m-9.75 3.95V4.3M24.5 23.15l-3.4-3.4M35 18.9v-5.15m-14.4 19.8h-5.25m15.55 17.9h7.6m.05 3H31m1.7 2.95h3.9" />
            </defs>
          <use href="#icon-door" /></svg> </g>
+          <g className="handle resizer resize-handle" transform="translate(50,60)" onMouseDown={handleResizeMouseDown}style={{ cursor: 'nwse-resize' }} >
+            <circle r="6" fill="#666" />
+            <path d="M -3 -1.5 L 0 5 L 3 -1.5" fill="white" transform="scale(1)"/>
+          </g>
     </svg>
     ),
     wc:(
@@ -356,6 +384,10 @@ const iconMap: Record<string, React.ReactElement> = {
         <defs>
         <path id="toilet_icon" fill="none" stroke="#333" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M58.7 14.8q0 1.45-1 2.4-1.05 1.05-2.45 1.05-1.45 0-2.45-1.05-1-.95-1-2.4 0-1.4 1-2.45 1-1 2.45-1 1.4 0 2.45 1 1 1.05 1 2.45zM46.35 37.85V27.4l.1-.9q.75-5.55 5.45-5.4h6.5q3.3-.1 4.65 2.6.6 1.15.8 2.8l.1.9v10.65m-44-23.4q0 1.45-1 2.45-1 1-2.4 1-1.45 0-2.5-1-1-1-1-2.45 0-1.4 1-2.45 1.05-.95 2.5-.95 1.4 0 2.4.95 1 1.05 1 2.45zM26.9 36.2l-2.85-10q-1.6-5.05-4.5-4.95h-6.1q-2.9-.1-4.5 4.95l-2.85 10m7.15-9.7L8.2 45h16.85L19.6 26.5m39.75.4v31.4M51 26.9v31.4M36.7 10.95v47.8m-23.75.2V45m7.45.35V59.1"></path>
           </defs><use href="#toilet_icon"></use>
+           <g className="handle resizer resize-handle" transform="translate(50,60)" onMouseDown={handleResizeMouseDown}style={{ cursor: 'nwse-resize' }} >
+            <circle r="6" fill="#666" />
+            <path d="M -3 -1.5 L 0 5 L 3 -1.5" fill="white" transform="scale(1)"/>
+          </g>
         </svg>
 
     ),
@@ -364,6 +396,10 @@ const iconMap: Record<string, React.ReactElement> = {
            <path fill="none"  stroke="#333" strokeLinecap="round"strokeLinejoin="round"  strokeWidth="1.5"
              d="M7.35 62h54.9q2.55-.35 3.35-1.7.75-1.4-.1-3.2L38.35 10.5Q36.8 7.85 34.85 8q-1.45-.1-3.25 2.5l-27 46.1q-.9 2.1-.15 3.6.6 1.2 2.9 1.8zM35 22.5h.05q.85 0 1.45.6.65.65.65 1.5v21.3q0 .85-.65 1.45-.6.65-1.45.65H35q-.85 0-1.5-.65-.6-.6-.6-1.45V24.6q0-.85.6-1.5.65-.6 1.5-.6zm2.3 30.85q0 .95-.7 1.6-.65.7-1.6.7-.95 0-1.65-.7-.65-.65-.65-1.6 0-.95.65-1.65.7-.65 1.65-.65t1.6.65q.7.7.7 1.65z"
            ></path>
+            <g className="handle resizer resize-handle" transform="translate(50,60)" onMouseDown={handleResizeMouseDown}style={{ cursor: 'nwse-resize' }} >
+            <circle r="6" fill="#666" />
+            <path d="M -3 -1.5 L 0 5 L 3 -1.5" fill="white" transform="scale(1)"/>
+          </g>
          </svg>
 
     ),
@@ -372,6 +408,10 @@ const iconMap: Record<string, React.ReactElement> = {
            <path fill="none"  stroke="#333" strokeLinecap="round" strokeLinejoin="round"  strokeWidth="1.5"
              d="M30.05 47.85q-2.5-1.35-3.35-3.65V27.15q1.05-5.6 4.65-5.2h7.55q2.15.45 2.85 3.25l2.15 11.95h4.95q2.65.85 3.55 4.6l4 11.75q1.2 3.75-2.2 5.35-3.55 1.5-5.6-1.8l-3.3-9.2H30.05zM41.4 11.5q0 2.9-2.1 4.9-2 2.1-4.85 2.1-2.95 0-4.95-2.1-2.05-2-2.05-4.9 0-2.85 2.05-4.95 2-2 4.95-2 2.85 0 4.85 2 2.1 2.1 2.1 4.95zm-4.45 39.7q-.15 3.55-2.65 6.05-2.65 2.65-6.4 2.65-3.8 0-6.45-2.65-2.6-2.65-2.6-6.4 0-3.8 2.6-6.45 1.45-1.45 3.15-2.05M14.95 24.6h8v13.1q-2.75.95-5 3.2Q13.9 45.05 13.9 51q0 5.9 4.05 10Q22.1 65.05 28 65.05T37.95 61q4-3.9 4.2-9.45"
              />
+              <g className="handle resizer resize-handle" transform="translate(50,60)" onMouseDown={handleResizeMouseDown}style={{ cursor: 'nwse-resize' }} >
+            <circle r="6" fill="#666" />
+            <path d="M -3 -1.5 L 0 5 L 3 -1.5" fill="white" transform="scale(1)"/>
+          </g>
            </svg>
     ),
     maydieuhoa:(
@@ -379,6 +419,10 @@ const iconMap: Record<string, React.ReactElement> = {
         <path fill="none"  stroke="#333"   strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"
           d="M47.1 8.2q1.25.55 2.45 1.25 1.5.9 3 2 1.7 1.3 3.3 2.9Q64.5 23 64.5 35.2q0 12.2-8.65 20.85-.8.8-1.6 1.5Q46.1 64.7 35 64.7q-4.55 0-8.65-1.2-5.8-1.75-10.6-5.95-.8-.7-1.6-1.5-3.8-3.8-5.9-8.25Q5.5 42.05 5.5 35.2q0-12.2 8.65-20.85 2.95-2.95 6.35-4.9.6-.35 1.25-.7.55-.3 1.15-.55m22.35 21.55l.1-.4-.45.25.35.15 6.65 2.8m.25 12.75l-6.7-3.95h-.05l.6 7.85m5.65-23.65l-6.3 3.8.7-7.55m-.6 19.55l6.35-3M29.75 6.95L35.4 1.3l5.5 5.5m-5.75 17.5l.25-.2-5.6-4.15m5.6-4.15v8.3l5.5-4.35M28.8 51.9l6.6-5.1V35.45l-.2-.1-9.75 5.85-2.1 8.4m1.05-27.5l.75 7.35 10.05 5.9.2-.1V24.1m9.5 5.5l-9.5 5.65v.2l10 5.9m-20.25-11.9l-6.5 3.2m-.75 13l7.55-4.45-7.4-2.55m.25-13.25l6.85 4.05M41.8 51.7l-6.4-4.9v7.85"
                   />
+                   <g className="handle resizer resize-handle" transform="translate(50,60)" onMouseDown={handleResizeMouseDown}style={{ cursor: 'nwse-resize' }} >
+            <circle r="6" fill="#666" />
+            <path d="M -3 -1.5 L 0 5 L 3 -1.5" fill="white" transform="scale(1)"/>
+          </g>
         </svg>
     ),
     nuoc:(
@@ -386,6 +430,10 @@ const iconMap: Record<string, React.ReactElement> = {
         <path  fill="none" stroke="#333"  strokeLinecap="round"  strokeLinejoin="round" strokeWidth="1.5"
           d="M40.7 1.15q2 3.8 0 5.25-1.2 1-1.35 2.25-.1 1.1.65 2.4.15.3.35.65m6.75-3.55q1.25.55 2.45 1.25 1.5.9 3 2 .75.55 1.45 1.2.95.8 1.85 1.7 3.8 3.8 5.95 8.25 2.7 5.75 2.7 12.6 0 12.2-8.65 20.85Q47.2 64.65 35 64.65q-4.55 0-8.65-1.2-6.25-1.9-11.35-6.6l-.85-.85q-3.8-3.8-5.9-8.25Q5.5 42 5.5 35.15q0-12.2 8.65-20.85.4-.4.85-.8 2.6-2.45 5.5-4.1.6-.35 1.25-.7.55-.3 1.15-.55m26.05 30.9q0 5.6-3.95 9.55-4 4-9.6 4t-9.6-4q-3.95-3.95-3.95-9.55 0-5.65 3.95-9.6.6-.6 1.25-1.1 6-5.15 4.4-11.1 5.3 2.75 7.65 8.7.2.6.6 2.1.35 1.55.55 3.25.15 1.7.85 1.6.7-.15 1.55-1.65.8-1.55 1.35-2.7.5.4 1 .9 3.95 3.95 3.95 9.6zM36 1.65q2 3.8 0 5.25-.95.8-1.25 1.75-.4 1.3.55 2.9.15.3.35.65M31.3 1.4q2 3.8 0 5.25-1.1.9-1.3 2-.25 1.2.6 2.65.15.3.35.65"
         />
+         <g className="handle resizer resize-handle" transform="translate(50,60)" onMouseDown={handleResizeMouseDown}style={{ cursor: 'nwse-resize' }} >
+            <circle r="6" fill="#666" />
+            <path d="M -3 -1.5 L 0 5 L 3 -1.5" fill="white" transform="scale(1)"/>
+          </g>
       </svg>
     ),
     losuoi:(
@@ -396,6 +444,10 @@ const iconMap: Record<string, React.ReactElement> = {
            />
          </defs>
          <use xlinkHref="#Layer0_0_1_STROKES_water" />
+          <g className="handle resizer resize-handle" transform="translate(50,60)" onMouseDown={handleResizeMouseDown}style={{ cursor: 'nwse-resize' }} >
+            <circle r="6" fill="#666" />
+            <path d="M -3 -1.5 L 0 5 L 3 -1.5" fill="white" transform="scale(1)"/>
+          </g>
        </svg>
     ),
     mic:(
@@ -406,18 +458,30 @@ const iconMap: Record<string, React.ReactElement> = {
           />
         </defs>
         <use xlinkHref="#mic-path" />
+         <g className="handle resizer resize-handle" transform="translate(50,60)" onMouseDown={handleResizeMouseDown}style={{ cursor: 'nwse-resize' }} >
+            <circle r="6" fill="#666" />
+            <path d="M -3 -1.5 L 0 5 L 3 -1.5" fill="white" transform="scale(1)"/>
+          </g>
       </svg>
     ),
     maytaokhoi:(
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 70" stroke="#333"strokeWidth="1.5"strokeLinecap="round" strokeLinejoin="round">
            <path d="M47.1 8.1q1.25.55 2.45 1.25 1.5.9 3 2 1.7 1.3 3.3 2.9Q64.5 22.9 64.5 35.1q0 12.2-8.65 20.85-3.5 3.5-7.6 5.6-1.45.75-3 1.3-1.25.45-2.5.8-.9.2-1.85.4-2.85.55-5.9.55-2.95 0-5.75-.5-.15 0-.25-.05-1.35-.25-2.65-.65-.7-.2-1.35-.45-1.65-.6-3.25-1.4-2.6-1.35-5.25-3.45-1.2-1-2.35-2.15-3.8-3.8-5.9-8.25Q5.5 41.95 5.5 35.1q0-12.2 8.65-20.85 2.95-2.95 6.35-4.9.6-.35 1.25-.7.55-.3 1.15-.55M27.55 31q-1 .35-2.15.35-2.25 0-3.9-1.65t-1.65-3.95q0-2.25 1.65-3.9t3.9-1.65q1.45 0 2.65.6.45-.8 1.15-1.55l.15-.15.1-.1q1-1 2.25-1.55 1.55-.7 3.35-.7t3.35.7q1.3.6 2.35 1.65l.15.15q.6.65 1.05 1.4.15.15.25.4.4-.25.85-.35.05-.05.1-.05.7-.2 1.5-.2t1.6.2q1.25.4 2.3 1.45l.1.05q.25.25.45.6 1.1 1.4 1.1 3.3 0 1.85-1.1 3.35-.2.25-.45.5l-.1.05q-1.55 1.6-3.7 1.65h-.2q-1.05 0-1.95-.3M34 11.35q7-.05 8-4.2 1-4.2-3.8-5.35-4.85-1.15-8.4 1.15-2.65 2.4.65 4 3.25 1.55 6.7-1.15m-2 21.85V47.2M28.9 27.1q3.85 3.85 3.05 19.35m9.2-19.6q-.8.55-1.3 2.4-1.5 4.6-1.3 17.5m-7.4 3.7h8v5.35h-8v-5.35z" />
-         </svg>
+         <g className="handle resizer resize-handle" transform="translate(50,60)" onMouseDown={handleResizeMouseDown}style={{ cursor: 'nwse-resize' }} >
+            <circle r="6" fill="#666" />
+            <path d="M -3 -1.5 L 0 5 L 3 -1.5" fill="white" transform="scale(1)"/>
+          </g>
+        </svg>
     ),
     banhkem:(
        <svg
         xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 70"
         stroke="#333" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" >
         <path d="M28.85 19.7l.15 5.1v.1q-.15.2-.15.35 0 .4.6.75.45.2 1.25.4 1.9.5 4.6.5 2.7 0 4.6-.5 1.95-.45 1.95-1.15 0-.2-.2-.35V20q-.45.45-1.75.75-1.9.5-4.6.5-2.7 0-4.6-.5-.8-.2-1.25-.4-.6-.35-.6-.65v-.05q0-.45.6-.75.45-.25 1.25-.45 1.9-.5 4.6-.5 2.7 0 4.6.5 1.95.45 1.95 1.15 0 .2-.2.4M47.1 7.85q1.25.55 2.45 1.25 1.5.9 3 2 1.7 1.3 3.3 2.9 8.65 8.65 8.65 20.85 0 12.2-8.65 20.85-3.5 3.5-7.6 5.6-1.45.75-3 1.3-1.25.45-2.5.8-.9.2-1.85.4-2.85.55-5.9.55-2.95 0-5.75-.5-.15 0-.25-.05-1.35-.25-2.65-.65-.7-.2-1.35-.45-1.65-.6-3.25-1.4-2.6-1.35-5.25-3.45-1.2-1-2.35-2.15-3.8-3.8-5.9-8.25Q5.5 41.7 5.5 34.85q0-12.2 8.65-20.85 2.95-2.95 6.35-4.9.6-.35 1.25-.7.55-.3 1.15-.55M41.65 24.9q.6.1 1.2.25 2.6.65 3.1 1.55.15.2.15.4 0 .25-.15.5V35H46q3.55.85 4.25 2.1m-4.3-10.4v.9q-.5.85-3.1 1.5-3.25.8-7.85.8t-7.85-.8q-1.35-.35-2.15-.75-.75-.4-1-.85v8.7q.25.45 1 .85.8.35 2.15.7 3.25.85 7.85.85t7.85-.85q3.25-.8 3.25-1.95 0-.25-.15-.45V35m-25.5 15q.25.65 1.35 1.15 1 .55 2.9 1 4.45 1.1 10.7 1.1 6.25 0 10.6-1.1 4.45-1.05 4.45-2.65 0-.3-.2-.6V38.3q-.7 1.2-4.25 2.1-4.35 1.1-10.6 1.1t-10.7-1.1q-1.9-.5-2.9-1-1.1-.5-1.35-1.15V49M24 27.5q-.05-.15-.05-.4 0-.15.05-.35.25-.45 1-.85.8-.4 2.15-.75.8-.25 1.85-.35m-5 1.95v.75m-3.55 9.7q.25-.6 1.35-1.15.8-.5 2.2-.8m0 .95q-.05-.2-.05-.4 0-.25.05-.35m4.65-25l15.1-9.05q-.7 7.4-7.45 7.3" />
+         <g className="handle resizer resize-handle" transform="translate(50,60)" onMouseDown={handleResizeMouseDown}style={{ cursor: 'nwse-resize' }} >
+            <circle r="6" fill="#666" />
+            <path d="M -3 -1.5 L 0 5 L 3 -1.5" fill="white" transform="scale(1)"/>
+          </g>
       </svg>
     ),
     hopqua:(
@@ -428,6 +492,10 @@ const iconMap: Record<string, React.ReactElement> = {
           />
         </defs>
         <use xlinkHref="#gift_icon" />
+         <g className="handle resizer resize-handle" transform="translate(50,60)" onMouseDown={handleResizeMouseDown}style={{ cursor: 'nwse-resize' }} >
+            <circle r="6" fill="#666" />
+            <path d="M -3 -1.5 L 0 5 L 3 -1.5" fill="white" transform="scale(1)"/>
+          </g>
       </svg>
     ),
     camdien:(
@@ -438,6 +506,10 @@ const iconMap: Record<string, React.ReactElement> = {
           />
         </defs>
         <use xlinkHref="#outlet_icon" />
+         <g className="handle resizer resize-handle" transform="translate(50,60)" onMouseDown={handleResizeMouseDown}style={{ cursor: 'nwse-resize' }} >
+            <circle r="6" fill="#666" />
+            <path d="M -3 -1.5 L 0 5 L 3 -1.5" fill="white" transform="scale(1)"/>
+          </g>
       </svg>
     ),
     dj:(
@@ -652,20 +724,19 @@ const iconMap: Record<string, React.ReactElement> = {
     )
 };
 
-
   return (
     <div
       ref={wrapperRef}
-      className={`absolute item_save flex items-center justify-center `}
+      className={`absolute ${selected ? "zindexitem" : ""} item_save flex items-center justify-center`}
       style={{
         top: localY,
         left: localX,
         width: localWidth,
-        // height: item.type === "sankhau" ? 0 : item.height,
         transform: `rotate(${localRotation}rad)`,
+        background: `${isActive ? "#55CC55" : ""}`,
       }}
-      onClick={(e) => onClick(index,e)}
-       onMouseDown={handleDragMouseDown}
+      onClick={(e) => onClick(index, e)}
+      onMouseDown={handleDragMouseDown}
       data-type={item.type}
     >
       <div
@@ -673,9 +744,7 @@ const iconMap: Record<string, React.ReactElement> = {
         style={{ width: '100%', height: '100%' }}
       >
         {renderIcon(item, item.sourceType)}
-       
       </div>
-     
     </div>
   );
 };

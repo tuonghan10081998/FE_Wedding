@@ -5,8 +5,9 @@ interface TableFormProps {
   tableShape: string;
   seatInputMaxSize: number;
   seatInput:string  | number;
-  onChange?:(val:number) => void;
-   onDelete:(e:React.MouseEvent) => void;
+  onChangeInput?: (val: any) => void;
+  onDelete:(e:React.MouseEvent) => void;
+  onChangeName:(val: string) => void;
 }
 
 const TableForm: React.FC<TableFormProps> = ({
@@ -14,31 +15,39 @@ const TableForm: React.FC<TableFormProps> = ({
   tableShape,
   seatInputMaxSize,
   seatInput,
-  onChange,
-  onDelete
+  onChangeInput,
+  onDelete,
+  onChangeName
 }) => {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-
-    if (val === '') {
-      return;
+    if (val === "") {
+        onChangeInput?.("");
+        return;
     }
     const parsed = parseInt(val);
-    if (!isNaN(parsed)) {
-       if (!isNaN(parsed) && parsed <= seatInputMaxSize && parsed >= 0) {
-              onChange?.(parsed)
-       }
+    if (!isNaN(parsed) && parsed <= seatInputMaxSize) {
+        onChangeInput?.(parsed);
     }
-  };
-
+};
+const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  onChangeName(e.target.value);
+};
   return (
     <div className="space-y-4">
        <div className="bg-white shadow-md rounded-lg max-w-sm w-full p-6 space-y-6">
           <h2 className="text-2xl font-semibold text-gray-800 border-b pb-2">Thông tin bàn</h2>
           <div className="space-y-3 text-gray-700">
-            <div className="flex justify-between">
-              <span className="font-medium">Tên bàn:</span>
-              <span id="tableName" className="text-gray-900">{tableName}</span>
+            <div className="flex justify-between items-center">
+              <label  className="font-medium">Tên bàn:</label>
+              <input
+                id="nameTableInput"
+                type="text"
+                 value={tableName}
+                  onChange={handleNameChange}
+                className="border border-gray-300 rounded-md w-40 text-center py-1 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                aria-label="Tên"
+              />
             </div>
             <div className="flex justify-between">
               <span className="font-medium">Loại bàn:</span>

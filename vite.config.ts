@@ -8,7 +8,9 @@ export default defineConfig({
     devSourcemap:true
   },
   server:{
+     host: '0.0.0.0',
       port:3000
   },
   plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
+  
 });

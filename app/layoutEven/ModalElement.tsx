@@ -11,16 +11,16 @@ const ModalElement: React.FC<ModalEllement> = ({ onClose, onAddItem,onAddTable }
 
   return (
    <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black bg-opacity-50"
+      className="fixed top-27 right-0 z-20 w-[570px] h-full"
       onClick={onClose}
     >
       <div
-        className="bg-white w-full h-full max-h-screen overflow-hidden shadow-lg relative"
+        className="bg-white  max-h-screen overflow-hidden shadow-lg relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header cố định */}
         <div className="sticky top-0 z-10 bg-white border-b p-4 flex justify-between items-center">
-          <h2 className="text-xl font-bold">📌 Modal Header</h2>
+          <h2 className="text-xl font-bold">📌 Chọn Element</h2>
           <button
             className="text-gray-500 hover:text-black text-2xl font-bold"
             onClick={onClose}
@@ -30,7 +30,8 @@ const ModalElement: React.FC<ModalEllement> = ({ onClose, onAddItem,onAddTable }
         </div>
 
         {/* Body có thể cuộn */}
-        <div className="overflow-y-auto h-[calc(100vh-64px)] p-4">
+        <div className="overflow-y-auto h-[calc(100vh-180px)] p-4"
+        onWheel={(e) => e.stopPropagation()} onMouseDown ={(e) => e.stopPropagation()}>
          <div className="">
           <div className="icon-container">
             <div className="mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
