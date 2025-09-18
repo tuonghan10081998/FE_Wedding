@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
 export interface LayoutItem {
@@ -15,19 +15,19 @@ export interface LayoutItem {
   sourceType: number;
   nameItem?: string;
 }
-
 interface GenericItemProps {
   item: LayoutItem;
   index: number;
   selected: boolean;
   zoomLevel?: number;
-  onClick: (index: number, event: React.MouseEvent) => void;
+  onClick: (index: number,event: React.MouseEvent) => void;
   onRotate?: (index: number, newRotation: number) => void;
   onDrag?: (index: number, newTop: number, newLeft: number) => void;
-  onResize?: (index: number, newTable: LayoutItem) => void;
-  onDelete?: (item: any, source: number) => void;
-  isActive: boolean;
+  onResize?:(index:number,newTable:LayoutItem)=> void;
+  onDelete?:(item:any,source:number) => void ;
+  isActive:boolean
 }
+
 
 const GenericItem: React.FC<GenericItemProps> = ({
   item,
@@ -41,76 +41,94 @@ const GenericItem: React.FC<GenericItemProps> = ({
   onDelete,
   isActive
 }) => {
-  const [contextMenu, setContextMenu] = useState<{
-    visible: boolean;
-    x: number;
-    y: number;
-    item: any;
-    source: number;
-  } | null>(null);
-
+    const [contextMenu, setContextMenu] = useState<{
+      visible: boolean;
+      x: number;
+      y: number;
+      item: any;
+      source: number;
+    } | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const initialRotation = useRef(0);
-  const startAngleRef = useRef(0);
-  const centerRef = useRef({ x: 0, y: 0 });
-  const startResize = useRef({ x: 0, y: 0, width: 0, height: 0 });
-  const dragOffset = useRef({ x: 0, y: 0 });
-  const currentPosition = useRef({ y: item.y, x: item.x });
-  const currentRotate = useRef({ rotation: item.rotation });
-  const currentSize = useRef({ width: item.width, height: item.height });
-
   const [isDragging, setIsDragging] = useState(false);
-  const [isRotating, setIsRotating] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
-
-  const [localX, setLocalX] = useState(item.x);
-  const [localY, setLocalY] = useState(item.y);
-  const [localWidth, setLocalWidth] = useState(item.width);
-  const [localRotation, setLocalRotation] = useState(item.rotation);
-
-  // Sync với props khi item thay đổi
+  const dragOffset = useRef({ x: 0, y: 0 });
   useEffect(() => {
-    setLocalX(item.x);
-    setLocalY(item.y);
-    setLocalWidth(item.width);
-    setLocalRotation(item.rotation);
-    currentPosition.current = { y: item.y, x: item.x };
-    currentRotate.current = { rotation: item.rotation };
-    currentSize.current = { width: item.width, height: item.height };
-    initialRotation.current = item.rotation;
-  }, [item]);
-
-  const handleClickOutside = useCallback(() => {
-    if (contextMenu?.visible) {
-      setContextMenu(null);
-    }
-  }, [contextMenu]);
-
-  useEffect(() => {
+    const handleClickOutside = () => {
+      if (contextMenu?.visible) {
+        setContextMenu(null);
+      }
+    };
     window.addEventListener('click', handleClickOutside);
     return () => {
       window.removeEventListener('click', handleClickOutside);
     };
-  }, [handleClickOutside]);
+  }, [contextMenu]);
+  
+  const [isRotating, setIsRotating] = useState(false);
+  const initialRotation = useRef(0);
+  const startAngleRef = useRef(0);
+  const centerRef = useRef({ x: 0, y: 0 });
+  const [isResizing, setIsResizing] = useState(false);
+  const startResize = useRef({ x: 0, y: 0, width: 0, height: 0 });
+  const [localX, setLocalX] = useState(item.x);
+  const [localY, setLocalY] = useState(item.y);
+  const [localWidth, setLocalWidth] = useState(item.width);
+  const [localRotation, setLocalRotation] = useState(item.rotation);
+  const currentPosition = useRef({ y: item.y, x: item.x });
+  const currentRotate = useRef({rotation:item.rotation})
+ const currentSize = useRef({ width: item.width, height: item.height });
+  const handleResizeMouseDown = (e: React.MouseEvent) => {
+  e.stopPropagation();
+  setIsResizing(true);
 
-  const handleResizeMouseDown = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsResizing(true);
+  startResize.current = {
+    x: e.clientX,
+    y: e.clientY,
+    width: localWidth,
+    height: item.height
+  };
+};
+ useEffect(() => {
+  const handleResizeMouseMove = (e: MouseEvent) => {
+    if (!isResizing) return;
 
-    startResize.current = {
-      x: e.clientX,
-      y: e.clientY,
-      width: localWidth,
-      height: item.height
+    const dx = e.clientX - startResize.current.x;
+    const dy = e.clientY - startResize.current.y;
+
+    const newWidth = Math.max(50, startResize.current.width + dx);
+    const newHeight = Math.max(50, startResize.current.height + dy);
+    const fontSize = Math.min(newWidth, newHeight) * 1;
+    setLocalWidth(newWidth)
+     currentSize.current = { width: newWidth, height: newHeight };
+  };
+
+  const handleResizeMouseUp = () => {
+    if (isResizing) {
+      setIsResizing(false);
+    }
+    const newItem: LayoutItem = {
+      ...item,
+     width: currentSize.current.width,
+      size:0
     };
-  }, [localWidth, item.height]);
+    onResize?.(index, newItem);
+  };
 
-  const handleRotateMouseDown = useCallback((e: React.MouseEvent) => {
+  if (isResizing) {
+    window.addEventListener('mousemove', handleResizeMouseMove);
+    window.addEventListener('mouseup', handleResizeMouseUp);
+  }
+
+  return () => {
+    window.removeEventListener('mousemove', handleResizeMouseMove);
+    window.removeEventListener('mouseup', handleResizeMouseUp);
+  };
+}, [isResizing, index, item, onResize]);
+
+  const handleRotateMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsRotating(true);
     const rect = wrapperRef.current?.getBoundingClientRect();
     if (!rect) return;
-    
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     centerRef.current = { x: centerX, y: centerY };
@@ -119,144 +137,120 @@ const GenericItem: React.FC<GenericItemProps> = ({
     const dy = e.clientY - centerY;
     startAngleRef.current = Math.atan2(dy, dx);
     initialRotation.current = localRotation;
-  }, [localRotation]);
-
-  const handleDragMouseDown = useCallback((e: React.MouseEvent) => {
-    const target = e.target as HTMLElement;
-    if (
-      target.classList.contains('resizer') ||
-      target.classList.contains('rotate-handle') ||
-      target.closest('.handle')
-    ) {
-      return;
-    }
-
-    e.stopPropagation();
-    setIsDragging(true);
-
-    const rect = wrapperRef.current?.getBoundingClientRect();
-    const containerRect = wrapperRef.current?.offsetParent?.getBoundingClientRect();
-    if (!rect || !containerRect) return;
-
-    const mouseX = (e.clientX - containerRect.left) / zoomLevel;
-    const mouseY = (e.clientY - containerRect.top) / zoomLevel;
-
-    dragOffset.current = {
-      x: mouseX - localX,
-      y: mouseY - localY,
-    };
-  }, [localX, localY, zoomLevel]);
-
-  const handleRightClick = useCallback((e: React.MouseEvent, item: any, source: 1 | 2 | 3 | 4) => {
-    e.preventDefault();
-    setContextMenu({
-      visible: true,
-      x: e.pageX,
-      y: e.pageY,
-      item,
-      source: 1,
-    });
-  }, []);
-
-  const renderIcon = useCallback((item: LayoutItem, sourceType: number) => {
-    const icon = iconMap[item.type] || iconMap.default;
-    if (React.isValidElement(icon) && icon.type === 'svg') {
-      return React.cloneElement(icon as React.ReactElement<any>, {
-        fill: item.color,
-        onContextMenu: (e: React.MouseEvent) => handleRightClick(e, item, 1),
-      });
-    }
-    return icon;
-  }, [handleRightClick]);
+  };
 
   useEffect(() => {
-    const handleMove = (e: MouseEvent) => {
-      if (isResizing) {
-        const dx = e.clientX - startResize.current.x;
-        const dy = e.clientY - startResize.current.y;
-
-        const newWidth = Math.max(50, startResize.current.width + dx);
-        const newHeight = Math.max(50, startResize.current.height + dy);
-
-        setLocalWidth(newWidth);
-        currentSize.current = { width: newWidth, height: newHeight };
-        return;
-      }
-
-      if (isRotating) {
-        const dx = e.clientX - centerRef.current.x;
-        const dy = e.clientY - centerRef.current.y;
-        const angleNow = Math.atan2(dy, dx);
-        const newRotation = initialRotation.current + (angleNow - startAngleRef.current);
-        
-        setLocalRotation(newRotation);
-        currentRotate.current = { rotation: newRotation };
-        return;
-      }
-
-      if (isDragging && wrapperRef.current) {
-        const containerRect = wrapperRef.current.offsetParent?.getBoundingClientRect();
-        if (!containerRect) return;
-
-        const mouseX = (e.clientX - containerRect.left) / zoomLevel;
-        const mouseY = (e.clientY - containerRect.top) / zoomLevel;
-
-        const newLeft = mouseX - dragOffset.current.x;
-        const newTop = mouseY - dragOffset.current.y;
-        
-        setLocalY(newTop);
-        setLocalX(newLeft);
-        currentPosition.current = { y: newTop, x: newLeft };
-        return;
-      }
+    const rotateMove = (e: MouseEvent) => {
+      if (!isRotating) return;
+      const dx = e.clientX - centerRef.current.x;
+      const dy = e.clientY - centerRef.current.y;
+      const angleNow = Math.atan2(dy, dx);
+      const newRotation = initialRotation.current + (angleNow - startAngleRef.current);
+      setLocalRotation(newRotation)
+      currentRotate.current = {rotation :newRotation }
     };
 
-    const handleUp = () => {
-      if (isResizing) {
-        setIsResizing(false);
-        const newItem: LayoutItem = {
-          ...item,
-          width: currentSize.current.width,
-          size: 0
-        };
-        onResize?.(index, newItem);
-        return;
-      }
-
-      if (isRotating) {
-        setIsRotating(false);
-        onRotate?.(index, currentRotate.current.rotation);
-        return;
-      }
-
-      if (isDragging) {
-        setIsDragging(false);
-        onDrag?.(index, currentPosition.current.y, currentPosition.current.x);
-        return;
-      }
+    const rotateUp = () => {
+      setIsRotating(false)
+      onRotate?.(index, currentRotate.current.rotation);
+      
     };
 
-    if (isResizing || isRotating || isDragging) {
-      window.addEventListener('mousemove', handleMove);
-      window.addEventListener('mouseup', handleUp);
-
-      return () => {
-        window.removeEventListener('mousemove', handleMove);
-        window.removeEventListener('mouseup', handleUp);
-      };
+    if (isRotating) {
+      window.addEventListener('mousemove', rotateMove);
+      window.addEventListener('mouseup', rotateUp);
     }
-  }, [
-    isResizing,
-    isRotating,
-    isDragging,
-    index,
-    item,
-    onResize,
-    onRotate,
-    onDrag,
-    zoomLevel,
-  ]);
 
+    return () => {
+      window.removeEventListener('mousemove', rotateMove);
+      window.removeEventListener('mouseup', rotateUp);
+    };
+  }, [isRotating, onRotate]);
+// drapdrop
+const handleDragMouseDown = (e: React.MouseEvent) => {
+  if (
+    (e.target as HTMLElement).classList.contains('resizer') ||
+    (e.target as HTMLElement).classList.contains('rotate-handle') 
+  ) {
+    return;
+  }
+
+        e.stopPropagation();
+      setIsDragging(true);
+
+      const rect = wrapperRef.current?.getBoundingClientRect();
+      const containerRect = wrapperRef.current?.offsetParent?.getBoundingClientRect();
+      if (!rect || !containerRect) return;
+
+      // Ghi lại chính xác vị trí chuột (so với container)
+      const mouseX = (e.clientX - containerRect.left) / (zoomLevel || 1);
+      const mouseY = (e.clientY - containerRect.top) / (zoomLevel || 1);
+
+      // Lưu lại chênh lệch giữa chuột và vị trí hiện tại của bàn
+      dragOffset.current = {
+        x: mouseX - localX,
+        y: mouseY - localY,
+      };
+    };
+useEffect(() => {
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging || !wrapperRef.current) return;
+
+   const containerRect = wrapperRef.current.offsetParent?.getBoundingClientRect();
+      if (!containerRect) return;
+
+      const mouseX = (e.clientX - containerRect.left) / (zoomLevel || 1);
+      const mouseY = (e.clientY - containerRect.top) / (zoomLevel || 1);
+
+      // Trừ đúng offset lúc mousedown
+      const newLeft = mouseX - dragOffset.current.x;
+      const newTop = mouseY - dragOffset.current.y;
+      setLocalY(newTop)
+      setLocalX(newLeft)
+      // onDrag?.(index, newTop, newLeft);
+       currentPosition.current = { y: newTop, x: newLeft };
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    onDrag?.(index,currentPosition.current.y, currentPosition.current.x);
+  };
+
+  if (isDragging) {
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  }
+
+  return () => {
+    window.removeEventListener('mousemove', handleMouseMove);
+    window.removeEventListener('mouseup', handleMouseUp);
+  };
+}, [isDragging, zoomLevel, index, onDrag]);
+ const handleRightClick = (
+  e: React.MouseEvent,
+  item: any,
+  source: 1 | 2 | 3 | 4
+) => {
+  e.preventDefault();
+  setContextMenu({
+    visible: true,
+    x: e.pageX,
+    y: e.pageY,
+    item,
+    source:1,
+  });
+};
+const renderIcon = (item: LayoutItem, sourceType: number) => {
+  const icon = iconMap[item.type] || iconMap.default;
+  if (React.isValidElement(icon) && icon.type === 'svg') {
+    return React.cloneElement(icon as React.ReactElement<any>, {
+      fill: item.color,
+      onContextMenu: (e: React.MouseEvent) => handleRightClick(e, item, 1),
+    });
+  }
+  return icon;
+};
+const scaleFactor = 3;
 const iconMap: Record<string, React.ReactElement> = {
      sankhau : (
          <svg viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg" >
@@ -724,19 +718,21 @@ const iconMap: Record<string, React.ReactElement> = {
     )
 };
 
+
   return (
     <div
       ref={wrapperRef}
-      className={`absolute ${selected ? "zindexitem" : ""} item_save flex items-center justify-center`}
+      className={`absolute ${selected ? "zindexitem" : ""} item_save flex items-center justify-center `}
       style={{
         top: localY,
         left: localX,
         width: localWidth,
+        // height: item.type === "sankhau" ? 0 : item.height,
         transform: `rotate(${localRotation}rad)`,
-        background: `${isActive ? "#55CC55" : ""}`,
+        background:`${isActive ? "#55CC55" : ""}`,
       }}
-      onClick={(e) => onClick(index, e)}
-      onMouseDown={handleDragMouseDown}
+      onClick={(e) => onClick(index,e)}
+       onMouseDown={handleDragMouseDown}
       data-type={item.type}
     >
       <div
@@ -744,7 +740,9 @@ const iconMap: Record<string, React.ReactElement> = {
         style={{ width: '100%', height: '100%' }}
       >
         {renderIcon(item, item.sourceType)}
+       
       </div>
+     
     </div>
   );
 };

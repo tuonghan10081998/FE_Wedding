@@ -208,7 +208,7 @@ const getDataProject = async () => {
       setTables([]);
       setLayoutItems([]);
       setLayoutContainer({ x: 0, y: 0, zoomLevel: 0.7 });
-       setGuests([])
+      setGuests([])
       zoomRef.current = 0.7;
       offsetRef.current = { x: 0, y: 0 };
       setNextTableNumber(1)
@@ -290,6 +290,8 @@ const getDataProject = async () => {
         setLayoutContainer(normalizedLayoutContainer);
         zoomRef.current = normalizedLayoutContainer.zoomLevel;
         offsetRef.current = { x: normalizedLayoutContainer.x, y: normalizedLayoutContainer.y };
+        setlayoutBackZoom(normalizedLayoutContainer.zoomLevel)
+        setZoomLevel(normalizedLayoutContainer.zoomLevel)
       });
       
     }
@@ -297,15 +299,16 @@ const getDataProject = async () => {
     console.error(error);
   }
 };
-const GetGuest = async () => {
+const GetGuest = async (projectid:string) => {
     if (isUser == "" || isProjectID === "0") return;
-    const url = `${import.meta.env.VITE_API_URL}/api/Guest/prroject/${isProjectID}`;
+    const url = `${import.meta.env.VITE_API_URL}/api/Guest/prroject/${projectid}`;
     try {
       const response = await fetch(url);
       if (!response.ok) throw new Error(`Response status: ${response.status}`);
 
       const data = await response.json();
-      setGuests(data)
+      if(data.length > 0)
+         setGuests(data)
     } catch (error) {
         console.error(error);
     }
@@ -317,27 +320,25 @@ useEffect(() => {
     });
   });
 }, [tables, layoutItems]);
-  useEffect(() => {
-       const resetAndFetch = async () => {
-        setTables([]);
-        setLayoutItems([]);
-        setLayoutContainer({ x: 0, y: 0, zoomLevel: 0.7 });
-        setGuests([])
-        
-        zoomRef.current = 0.7;
-        offsetRef.current = { x: 0, y: 0 };
-
-        if (isProjectID !== "0") {
-          // ✅ Đợi một chút để state reset hoàn toàn
-          await new Promise(resolve => setTimeout(resolve, 10));
-          await getDataProjectID(isProjectID);
-          await GetGuest()
-        }
-      };
+useEffect(() => {
+     const resetAndFetch = async () => {
+      setTables([]);
+      setLayoutItems([]);
+      setLayoutContainer({ x: 0, y: 0, zoomLevel: 0.7 });
       
-      resetAndFetch();
-   
-  },[isProjectID])
+      zoomRef.current = 0.7;
+      offsetRef.current = { x: 0, y: 0 };
+      if (isProjectID !== "0") {
+        // ✅ Đợi một chút để state reset hoàn toàn
+        await new Promise(resolve => setTimeout(resolve, 10));
+        await getDataProjectID(isProjectID);
+         await GetGuest(isProjectID)
+      }
+    };
+    
+    resetAndFetch();
+ 
+},[isProjectID])
    
   const handleSaveLayout = () => {
   
@@ -396,6 +397,7 @@ useEffect(() => {
             phone: x.phone,
             tableID: x.tableID ?? "", // nếu bạn lưu table là string
             seatID: x.seatID ?? "",
+            seatName:x.seatName,
             isConfirm: 0,
             partnerCount: 0,
             groupName:`${x.groupInfo?.groupName}`,
@@ -408,9 +410,9 @@ useEffect(() => {
             gender:x.gender ,
             tableName:x.tableName                               // lấy id đã generateUUID
       }));
-       PostGuest(arrSaveGuest)
+       PostGuest(arrSaveGuest,projectid)
   }
-  const PostGuest = async (save: any) => {
+const PostGuest = async (save: any,projectid:string) => {
     const request = new Request(`${import.meta.env.VITE_API_URL}/api/Guest`, {
       method:  "POST",
       headers: {
@@ -422,7 +424,7 @@ useEffect(() => {
     let response = await fetch(request);
     let data = await response.json();
     if (response.status === 201 || response.status === 200) {
-        await GetGuest()
+        // setGuests(data)
 
     }
      
@@ -646,7 +648,7 @@ const handleCtrlClickITem = (item: LayoutItem, event: React.MouseEvent,checkClic
   }
 };
  const toLocalX = (px: number) => (px - offsetRef.current.x) / zoomRef.current;
-const toLocalY = (px: number) => (px - offsetRef.current.y) / zoomRef.current;
+  const toLocalY = (px: number) => (px - offsetRef.current.y) / zoomRef.current;
 
  const handleConfirmModal = (
   row: number | string,
@@ -1260,7 +1262,7 @@ useEffect(() => {
               }}
               className="absolute top-[3px] right-[115px] cursor-pointer p-1 px-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
-              <i className="fas fa-save fa-lg"></i>
+              <i className="fas fa-save fa-lg me-1"></i>
             </button>
             <LayoutModal
               isOpen={isModalSaveOpen}
@@ -1283,9 +1285,10 @@ useEffect(() => {
                   setModalOpen(false)
                  setModalOpenKH(false)
               }}
-              className="absolute top-[3px] left-[65px] cursor-pointer p-1 px-3 rounded-lg bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+              className="absolute top-[3px] left-[180px] cursor-pointer p-1 px-3 rounded-lg bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
             >
-              <i className="fas fa-layer-group fa-lg"></i>
+              <i className="fas fa-layer-group fa-lg me-1"></i>
+              Thêm nhiều
             </button>
             <ModalSelect
               isOpen={isModalSelectOpen}
@@ -1293,9 +1296,7 @@ useEffect(() => {
              onConfirm={(row: number | string, layout: string, type: string, seatCount: number | string,checkRow:string,position:string) => handleConfirmModal(row,layout,type,seatCount,checkRow,position)}
             />
           </>
-          
             <>
-            
              <button
               type="button"
               aria-label="Export PDF"
@@ -1306,9 +1307,10 @@ useEffect(() => {
                 }
                  handleExportPDF()
               }}
-              className="absolute top-[3px] left-[195px] cursor-pointer p-1 px-3 rounded-lg  bg-pink-600 text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
+              className="absolute top-[3px] left-[456px] cursor-pointer p-1 px-3 rounded-lg  bg-pink-600 text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
             >
-              <i className="fas fa-file-pdf fa-lg"></i>
+              <i className="fas fa-file-pdf fa-lg me-1"></i>
+              Xuất Layout
             </button>    
            
           </>
@@ -1334,7 +1336,8 @@ useEffect(() => {
                 aria-label="Add Single Element"
                 className="bg-yellow-600 cursor-pointer p-1 px-3 rounded-lg text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
               >
-                <i className="fas fa-plus fa-lg"></i>
+                <i className="fas fa-plus fa-lg me-1"></i>
+                Thêm đối tượng
               </button>
             </div>
              <>
@@ -1345,7 +1348,7 @@ useEffect(() => {
                 className="absolute top-[3px] right-[5px] flex items-center space-x-2 cursor-pointer p-1 px-3 rounded-lg bg-gray-700 text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-1 transition font-semibold select-none"
                 title="Select Project"
               >
-                <i className="fas fa-folder-open fa-lg"></i>
+                <i className="fas fa-folder-open fa-lg me-1"></i>
                 <span className="whitespace-nowrap font-roboto font-normal">Dự án</span>
            
             </button>
@@ -1371,7 +1374,7 @@ useEffect(() => {
                 setModalOpen(false)
                  setModalOpenKH(true)
           }} 
-            className="absolute top-[3px] left-[130px]">
+            className="absolute top-[3px] left-[322px]">
             {isModalOpenKH && (
                   <ModalCustomer
                     onClose={() => setModalOpenKH(false)}
@@ -1390,7 +1393,8 @@ useEffect(() => {
                 aria-label="Customer List"
                 className="cursor-pointer p-1 px-3 rounded-lg bg-purple-600 text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
               >
-                <i className="fas fa-users fa-lg"></i>
+                <i className="fas fa-users fa-lg me-1"></i>
+                Khách mời
               </button>
             </div>
       </div>

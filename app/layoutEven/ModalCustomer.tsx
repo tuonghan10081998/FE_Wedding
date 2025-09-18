@@ -34,7 +34,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({ onClose, table,
     setSelectedOption(filterOptions[0])
   },[data])
   const [selectedOption, setSelectedOption] = useState<SingleValue<OptionType>>();
-  const [filters, setFilters] = useState({ name: '', phone: '', gender: '', nhom: '', tableName: '' });
+  const [filters, setFilters] = useState({ name: '', phone: '', gender: '', groupName: '', tableName: '' });
   const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
   const [editingGuest, setEditingGuest] = useState<Guest | undefined>(undefined);
   const [listData,setListData] = useState<Guest[]>([])
@@ -50,8 +50,8 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({ onClose, table,
      const tableFilter = table.filter(x => x.groupInfo?.parentID === parseInt(selectedOption?.value ?? "0"))
 
     const sortedTable = [...tableFilter].sort((a, b) => {
-    const maNhomA = Number(a.nhom) || 0;
-    const maNhomB = Number(b.nhom) || 0;
+    const maNhomA = Number(a.sort) || 0;
+    const maNhomB = Number(b.sort) || 0;
     return maNhomA - maNhomB;
   });
 
@@ -59,7 +59,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({ onClose, table,
     const matchName = guest.name.toLowerCase().includes(filters.name.toLowerCase());
     const matchPhone = guest.phone.includes(filters.phone);
     const matchGender = guest.gender?.toLowerCase().includes(filters.gender?.toLowerCase());
-    const matchNhom = filters.nhom === '' || guest.nhom.toString().includes(filters.nhom);
+    const matchNhom = filters.groupName === '' || guest.groupInfo?.groupName?.toString().includes(filters.groupName);
     const matchBan = filters.tableName === '' || (guest.tableName ?? '').toLowerCase().includes(filters.tableName.toLowerCase());
 
     return matchName && matchPhone && matchGender && matchNhom && matchBan;
@@ -171,7 +171,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({ onClose, table,
             <input
               type="text"
               name="nhom"
-              value={filters.nhom}
+              value={filters.groupName}
               onChange={handleFilterChange}
               className="w-full px-2 py-1 text-sm border-none focus:outline-none font-normal"
             />
@@ -207,7 +207,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({ onClose, table,
                     {guest.gender}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {guest.nhom}
+                    {guest.groupInfo?.groupName}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                     {guest.tableName}

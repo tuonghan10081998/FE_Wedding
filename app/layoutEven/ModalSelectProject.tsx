@@ -123,7 +123,7 @@ const ModalSelectProject: React.FC<ModalSelectProjectProps> = ({ isOpen, onClose
             onClick={handleConfirm}
             type="button"
             aria-label="Confirm"
-            className="flex items-center space-x-2 px-3 h-10 rounded-lg bg-teal-600 text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1 transition font-semibold select-none"
+            className="flex items-center space-x-2 px-3 h-10 rounded-lg bg-pink-600 text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-1 transition font-semibold select-none"
             title="Confirm"
           >
             <i className="fas fa-check fa-lg"></i>
