@@ -22,7 +22,7 @@ const LayoutModalDelete: React.FC<LayoutModalDeleteProps> = ({ isOpen, onClose, 
         <div className="bg-white rounded-lg shadow-lg w-96 p-6">
          
           <p className="mt-4 text-gray-700 leading-relaxed mb-6" >
-            Bạn có chắc chắn xoá  <span className="text-red-500 text-[18px] font-bold">{invitationname ??""}</span> này ! 
+            Bạn có chắc chắn xoá thiệp:  <span className="text-red-500 text-[18px] font-bold">{invitationname ??""}</span> này ! 
         </p>
           <div className="flex justify-end gap-2"> 
           <button
@@ -39,7 +39,7 @@ const LayoutModalDelete: React.FC<LayoutModalDeleteProps> = ({ isOpen, onClose, 
             type="button"
           >
             <i className="fas fa-trash-alt mr-2"></i>
-            Delete
+            Xóa
           </button>
           </div>
         </div>

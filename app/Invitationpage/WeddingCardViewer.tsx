@@ -8,6 +8,7 @@ import ModalSaveNameInvitation from "~/Invitationpage/ModalSaveNameInvitation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import type { InvitationProps } from "~/Invitationpage/Invitation";
+import { useNavigate } from "react-router-dom"; 
 interface WeddingCardViewerProps {
   views: React.ReactNode[];
   checkForm?:number
@@ -19,7 +20,7 @@ interface WeddingCardViewerProps {
 }
 
 const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,data,isUserID,dataInvatitionEdit,setCheckSave,isCheckSave }) => {
-
+ const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [showModal, setShowModal] = useState(false);
@@ -184,9 +185,12 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
     let response = await fetch(request);
     let data = await response.json();
      if (response.status === 201 || response.status === 200) {
-         !isCheckUpdate &&  resetForm()
+        //  !isCheckUpdate &&  resetForm()
          toast.success(` ${isCheckUpdate ? "Cập nhật" : "Lưu"} thiệp thành công`)
          setCheckSave(!isCheckSave)
+         console.log(data.invitationID)
+       isCheckUpdate &&  navigate(`/layout/InvitationCard?thiep=${checkForm}&xt=0&id=${isInvitation}&customer=&selectxt=true`);
+        !isCheckUpdate && navigate(`/layout/InvitationCard?thiep=${checkForm}&xt=0&id=${data.invitationID}&customer=&selectxt=true`);
      }
   };
      const resetForm = () => {

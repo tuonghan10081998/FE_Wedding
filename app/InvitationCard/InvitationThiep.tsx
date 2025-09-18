@@ -28,6 +28,7 @@ const InvitationCard: React.FC = () => {
     const xt = searchParams.get("xt");
     const select = searchParams.get("select");
     const id = searchParams.get("id");
+    const xemthiepsave = searchParams.get("selectxt");
     const [isInvatition,setInvatition] = useState<string>("")
     const [views, setViews] = useState<React.ReactNode[]>(() => {
       switch (thiep) {
@@ -76,7 +77,7 @@ const InvitationCard: React.FC = () => {
         <i className="fas fa-arrow-left text-2xl"></i>
       </button>
     )}
-    <InvitionCard  views={views} data={data}/>
+    <InvitionCard  views={views} data={data}  checkxttruoc={xemthiepsave === "true"} />
     </div>
   );
 };

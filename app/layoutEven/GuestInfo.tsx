@@ -62,7 +62,7 @@ const GuestInfoModal: React.FC<GuestInfoModalProps> = ({  table,onClickSeat ,onD
             Nhóm 
           </label>
           <p className="text-gray-700 text-lg border border-gray-300 rounded-md px-3 py-2 bg-white">
-            {table.nhom}
+            {table.groupInfo?.groupName}
           </p>
         </div>
 

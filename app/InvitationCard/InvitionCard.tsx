@@ -1,13 +1,15 @@
 import React, { useState ,useEffect} from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
+import { useNavigate } from "react-router-dom"; 
 interface InvitionCardProps {
   views: React.ReactNode[];
   data: any;
+  checkxttruoc:boolean
 }
 
-const InvitionCard: React.FC<InvitionCardProps> = ({ views, data }) => {
-    const [isOpen, setIsOpen] = useState(false);
+const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = false }) => {
+     const navigate = useNavigate();
+    const [isOpen, setIsOpen] = useState(checkxttruoc);
     const [isRSVPOpen, setIsRSVPOpen] = useState(false);
     
     // RSVP Form states
@@ -18,7 +20,11 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data }) => {
     const [rsvpMessage, setRsvpMessage] = useState("");
 
     const handleOpen = () => setIsOpen(true);
-    const handleClose = () => setIsOpen(false);
+    const handleClose = () => {
+         if(checkxttruoc)
+          navigate(`/layout/Invitation`);
+        else setIsOpen(false)
+    };
     const handleRSVPOpen = () => setIsRSVPOpen(true);
     const handleRSVPClose = () => setIsRSVPOpen(false);
     

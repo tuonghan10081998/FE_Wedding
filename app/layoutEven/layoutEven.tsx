@@ -1187,29 +1187,32 @@ const handleAddSeatOnTable = (customerid:string,checkSeatID:boolean)=>{
     return
   }
   var guestItem = guests.find(x => x.seatID === multiSelectedSeat)
+ 
   if(guestItem){
      toast.error("Ghế này đã có người ngồi!");
      return
   }
   setGuests((prev) =>
-  prev.map((guest) => {
+   prev.map((guest) => {
+   
     if (guest.guestID === customerid) {
       // tìm được đúng customer
       const seatInfo = getSeatInfo(multiSelectedSeat);
       const seatTextNew =getSeatText(multiSelectedSeat)
-
       if (seatInfo) {
         return {
           ...guest,
-          seatId: multiSelectedSeat,
-          maTable: seatInfo.maBan,
-          ban: seatInfo.seatText,
-          tenGhe:seatTextNew ?? ""
+          seatID: multiSelectedSeat,
+          tableID: seatInfo.maBan,
+          tableName: seatInfo.seatText,
+          seatName:seatTextNew ?? ""
         };
       }
       return { ...guest, seatId: multiSelectedSeat };
     }
+    console.log(guest)
     return guest;
+    
   })
 
   );
@@ -1260,9 +1263,10 @@ useEffect(() => {
                   }
                 setIsModalSaveOpen(true)
               }}
-              className="absolute top-[3px] right-[115px] cursor-pointer p-1 px-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="absolute top-[3px] left-[593px] cursor-pointer p-1 px-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               <i className="fas fa-save fa-lg me-1"></i>
+              Lưu layout
             </button>
             <LayoutModal
               isOpen={isModalSaveOpen}
@@ -1288,7 +1292,7 @@ useEffect(() => {
               className="absolute top-[3px] left-[180px] cursor-pointer p-1 px-3 rounded-lg bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
             >
               <i className="fas fa-layer-group fa-lg me-1"></i>
-              Thêm nhiều
+              Tạo layout
             </button>
             <ModalSelect
               isOpen={isModalSelectOpen}
@@ -1307,7 +1311,7 @@ useEffect(() => {
                 }
                  handleExportPDF()
               }}
-              className="absolute top-[3px] left-[456px] cursor-pointer p-1 px-3 rounded-lg  bg-pink-600 text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
+              className="absolute top-[3px] left-[450px] cursor-pointer p-1 px-3 rounded-lg  bg-pink-600 text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
             >
               <i className="fas fa-file-pdf fa-lg me-1"></i>
               Xuất Layout
@@ -1345,11 +1349,11 @@ useEffect(() => {
                 type="button"
                 aria-label="Select Project"
                 onClick={() => setIsModalSaveOpenProject(true)}
-                className="absolute top-[3px] right-[5px] flex items-center space-x-2 cursor-pointer p-1 px-3 rounded-lg bg-gray-700 text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-1 transition font-semibold select-none"
+                className="absolute top-[3px] left-[726px] flex items-center space-x-2 cursor-pointer p-1 px-3 rounded-lg bg-gray-700 text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-1 transition font-semibold select-none"
                 title="Select Project"
               >
                 <i className="fas fa-folder-open fa-lg me-1"></i>
-                <span className="whitespace-nowrap font-roboto font-normal">Dự án</span>
+                <span className="whitespace-nowrap font-roboto font-normal">{isProjectID === "" ? "Dự án" : isProjectName}</span>
            
             </button>
              <ModalSelectProject
@@ -1362,9 +1366,7 @@ useEffect(() => {
               handleConfirmXN={(projectid:string) => handleConfirm(projectid)}
             />
              </>
-            <p className=" absolute left-1/2 top-5 -translate-x-1/2 -translate-y-1/2 text-gray-700 leading-relaxed " >
-            <span className="text-red-500 text-[18px] font-bold">{isProjectName}</span>
-         </p>
+          
           <div onClick={() => {
              if( isProjectID == "" ) {
               toast.error("Vui lòng tạo dự án mới !");
@@ -1374,7 +1376,7 @@ useEffect(() => {
                 setModalOpen(false)
                  setModalOpenKH(true)
           }} 
-            className="absolute top-[3px] left-[322px]">
+            className="absolute top-[3px] left-[315px]">
             {isModalOpenKH && (
                   <ModalCustomer
                     onClose={() => setModalOpenKH(false)}
