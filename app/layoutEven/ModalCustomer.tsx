@@ -17,12 +17,13 @@ interface ModalCustomerProps {
   data?:GroupGuest[]
   setParentGroup:(v:string) => void
   setGuest: (data: Guest[]) => void;
+  onResetGhe:() => void
 }
 interface OptionType {
   value: string;
   label: string;
 }
-const ModalCustomer: React.FC<ModalCustomerProps> = ({ onClose, table,
+const ModalCustomer: React.FC<ModalCustomerProps> = ({ onResetGhe,onClose, table,
   onAddSeat,onClickSeat,onDelete,handleDataImported,data,setParentGroup,setGuest}) => {
     const filterOptions: OptionType[] = [
         ...(data?.map((card) => ({
@@ -254,35 +255,50 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({ onClose, table,
 
         {/* Footer */}
         <div className="p-4 border-t flex justify-between">
-           <label className="flex cursor-pointer items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-sm rounded-md px-4 py-2">
-             <ExcelImporter                    
-                  startColumn="A"                   
-                  startRow={3}                   
-                  onDataImported={handleDataImported}                   
-                  className="hidden"                  
-                />          
-                  <i className="fas fa-file-excel fa-lg"></i>     
-                  <span>Import EX</span>               
-              </label>
-            <button
-              onClick={() => {
-                setEditingGuest(undefined);
-                setIsGuestModalOpen(true);
-              }}
-              className="flex items-center space-x-2 px-4 h-12 rounded-lg bg-blue-600 text-white hover:bg-blue-700 font-semibold"
-            >
-              <i className="fas fa-user-plus"></i>
-            </button>
-           <button
-             onClick={() => onAddSeat()}
-              type="button"
-              aria-label="Confirm"
-              className="flex items-center space-x-2 px-4 h-12 rounded-lg bg-teal-600 text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1 transition font-semibold select-none"
-              title="Confirm"
-            >
-              <i className="fas fa-check fa-lg"></i>
-              <span className="whitespace-nowrap"> Xác nhận</span>
-         </button>
+              <div className='flex gap-[7px]'>
+                 <label className="flex cursor-pointer items-center space-x-2 bg-pink-600 hover:bg-pink-700 text-white font-semibold text-sm rounded-md px-4 py-2">
+                  <ExcelImporter                    
+                        startColumn="A"                   
+                        startRow={3}                   
+                        onDataImported={handleDataImported}                   
+                        className="hidden"                  
+                      />          
+                        <i className="fas fa-file-excel fa-lg"></i>     
+                        <span>Import EX</span>               
+                    </label>
+                  <button
+                    onClick={() => {
+                      setEditingGuest(undefined);
+                      setIsGuestModalOpen(true);
+                    }}
+                    className="flex items-center space-x-2 px-4 h-12 rounded-lg bg-pink-600 text-white hover:bg-pink-700 font-semibold"
+                  >
+                    <i className="fas fa-user-plus me-1"></i>
+                    Thêm khách mời
+                 </button>
+              </div>
+              <div className='flex gap-[7px]'>
+                 <button
+                       onClick={() => onResetGhe()}
+                          type="button"
+                          aria-label="Confirm"
+                          className="flex items-center space-x-2 px-4 h-12 rounded-lg bg-pink-600 text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-1 transition font-semibold select-none"
+                          title="Confirm"
+                        >
+                         <i className="fa-solid fa-rotate-right"></i>
+                          <span className="whitespace-nowrap"> Reset ghế</span>
+                    </button>
+                   <button
+                        onClick={() => onAddSeat()}
+                          type="button"
+                          aria-label="Confirm"
+                          className="flex items-center space-x-2 px-4 h-12 rounded-lg bg-pink-600 text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-1 transition font-semibold select-none"
+                          title="Confirm"
+                        >
+                          <i className="fas fa-check fa-lg"></i>
+                          <span className="whitespace-nowrap"> Chia tự động</span>
+                    </button>
+              </div>
          
         </div>
       </div>

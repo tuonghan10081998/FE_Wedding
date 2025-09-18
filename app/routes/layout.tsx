@@ -15,6 +15,8 @@ const Layout: React.FC = () => {
   const currentPath = location.pathname;
   const isActive = (path: string) => currentPath === path;
   const [isOpen, setIsOpen] = useState(false);
+    const [isUser, setUser] = useState<string | null>(null);
+    const [isUserName, setUserName] = useState<string | null>("");
   const navigate = useNavigate();
   useEffect(() => {
     const handleResize = () => {
@@ -25,6 +27,30 @@ const Layout: React.FC = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+   useEffect(() => {
+      const storedUser = localStorage.getItem("userInvitation");
+      console.log(storedUser)
+       !storedUser && navigate("/");
+      setUser(storedUser);
+  }, []);
+   const getDataUser = async () => {
+    if (isUser == "") return;
+    const url = `${import.meta.env.VITE_API_URL}/api/User`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Response status: ${response.status}`);
+
+      const data = await response.json();
+      var dataUser = data.find((x:any) => x.mail === isUser)
+      setUserName(dataUser.userName)
+      
+    } catch (error) {
+        console.error(error);
+    }
+  };
+    useEffect(() => {
+      isUser && getDataUser()
+    },[isUser])
   const handleLogOut= () => {
     console.log(1)
       localStorage.removeItem("userInvitation");
@@ -125,7 +151,7 @@ const Layout: React.FC = () => {
               </ul>
 
               {/* User Avatar */}
-               <button  onClick={() => setIsOpen(!isOpen)} className="relative block  from-pink-500 to-purple-600 text-white px-6 py-2 rounded-full hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
+               <button  onClick={() => setIsOpen(!isOpen)} className="relative flex justify-center items-center gap-[7px] from-pink-500 to-purple-600 text-white px-6 py-2 rounded-full hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
                 <img
                  
                   className="rounded-full border-2 border-purple-600"
@@ -134,6 +160,7 @@ const Layout: React.FC = () => {
                   src="https://storage.googleapis.com/a1aa/image/6d06e5fb-9656-43f0-52d4-6719f873aab5.jpg"
                   alt="User"
                 />
+               {isUserName}
                   {isOpen && (
                <div
                  className="absolute  right-0 top-12 bg-gray-800 rounded-lg shadow-xl 

@@ -908,6 +908,22 @@ const handleMouseMove = (moveEvent: MouseEvent) => {
   window.addEventListener("mousemove", handleMouseMove);
   window.addEventListener("mouseup", handleMouseUp);
 };
+const handleResetSeat = () => {
+  const newGuests = guests.map(guest => {
+    if (guest.groupInfo?.parentID === parseInt(isParentGroup)) {
+      return {
+        ...guest,
+        seatID: "",
+        tableID: "",
+        tableName: "",
+        seatName: ""
+      };
+    }
+    return guest;
+  });
+
+  setGuests(newGuests);
+};
   const handleAssignGuestsToSeats = () => {
     const newGuests = [...guests];
     const newGuestsFilter = newGuests.filter(x => x.groupInfo?.parentID === parseInt(isParentGroup))
@@ -1349,7 +1365,7 @@ useEffect(() => {
                 type="button"
                 aria-label="Select Project"
                 onClick={() => setIsModalSaveOpenProject(true)}
-                className="absolute top-[3px] left-[726px] flex items-center space-x-2 cursor-pointer p-1 px-3 rounded-lg bg-gray-700 text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-1 transition font-semibold select-none"
+                className="absolute top-[3px] right-[3px] flex items-center space-x-2 cursor-pointer p-1 px-3 rounded-lg bg-gray-700 text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-1 transition font-semibold select-none"
                 title="Select Project"
               >
                 <i className="fas fa-folder-open fa-lg me-1"></i>
@@ -1388,6 +1404,7 @@ useEffect(() => {
                     data={isDataParentGroup}
                     setParentGroup={setParentGroup}
                     setGuest={handleSetGuest}
+                    onResetGhe={handleResetSeat}
                    />
                 )}
               <button
