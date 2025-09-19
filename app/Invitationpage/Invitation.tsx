@@ -223,7 +223,7 @@ const handleEditCard = (invitationData: InvitationProps) => {
     console.log(invitationData)
 };
   return (
-    <div className="min-h-screen bg-gray-100 p-6 flex flex-col justify-center items-center">
+    <div className="min-h-screen bg-gray-100 p-6 flex flex-col">
        <ToastContainer position="top-right" autoClose={2000} theme="colored" />
 
     {/* <div className="flex gap-3 justify-center mt-4" style={{position: "fixed",
@@ -252,42 +252,50 @@ const handleEditCard = (invitationData: InvitationProps) => {
       <p className="text-gray-600 text-lg">Danh sách các thiệp mà bạn đã tạo</p>
     </div>
 
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center mb-8">
-      {dataInvatition.map((inva, index) => {
-        let layoutData: any = null;
-        try {
-          if (typeof inva.layout === 'string') {
+    {dataInvatition.length === 0 ? (
+      <div className="text-center  mb-18">
+        <p className="text-2xl font-[roboto] text-pink-600 ">
+          Bạn chưa có thiệp nào cả. Hãy bắt đầu tạo một tấm thiệp thật đẹp nhé! 💌
+        </p>
+      </div>
+       ) : (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center mb-8">
+        {dataInvatition.map((inva, index) => {
+          let layoutData: any = null;
+          try {
+            if (typeof inva.layout === 'string') {
               layoutData = JSON.parse(inva.layout);
             } else {
               layoutData = inva.layout;
             }
-        } catch (error) {
-          console.error("Parse layout error:", error);
-          return null;
-        }
+          } catch (error) {
+            console.error("Parse layout error:", error);
+            return null;
+          }
 
-       
-        const card = cards.find(c => c.checkForm === layoutData?.checkForm);
+          const card = cards.find(c => c.checkForm === layoutData?.checkForm);
 
-        return (
-          <WeddingCardCreate
-            key={inva.invitationID}
-            title={inva.name || `Thiệp đã tạo ${index + 1}`}
-            images={card?.images ?? []}
-            onPreview= {() => {
-              navigate(`/layout/InvitationCard?thiep=${layoutData?.checkForm}&xt=0&id=${inva.invitationID}`);
-
-            }}
-            onDelete= {() => {
-              handleDeleteInvitation(inva.invitationID)
-            }}
-            onCreateCard={() =>
-              handleCreateCard(layoutData?.checkForm, inva.invitationID)
-            }
-          />
-        );
-      })}
-    </div>
+          return (
+            <WeddingCardCreate
+              key={inva.invitationID}
+              title={inva.name || `Thiệp đã tạo ${index + 1}`}
+              images={card?.images ?? []}
+              onPreview={() => {
+                navigate(
+                  `/layout/InvitationCard?thiep=${layoutData?.checkForm}&xt=0&id=${inva.invitationID}`
+                );
+              }}
+              onDelete={() => {
+                handleDeleteInvitation(inva.invitationID);
+              }}
+              onCreateCard={() =>
+                handleCreateCard(layoutData?.checkForm, inva.invitationID)
+              }
+            />
+          );
+        })}
+      </div>
+    )}
       {/* Title Section */}
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold text-gray-800 mb-2">Thiệp Mẫu</h1>
