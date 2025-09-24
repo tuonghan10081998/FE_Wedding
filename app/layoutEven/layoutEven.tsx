@@ -669,7 +669,6 @@ const handleDataImported = (result: ImportResult): void => {
      const maxTableNumber = guests.length > 0
           ? Math.max(...guests.map(t => t.sort ?? 0)) + 1
           : 1;
-    console.log(selectedParentGroup)
     const guestsTable = importData.map((row, index) => {
       return {
         guestID: uuidv4(),
@@ -681,7 +680,7 @@ const handleDataImported = (result: ImportResult): void => {
         groupID: typeof row[4] === 'number' ? row[4] : 0,
         qr: generateQR(`${Date.now()}-${Math.floor(Math.random() * 10000)}`, row[1] || ""),
         groupInfo:{
-          parentID:parseInt(selectedParentGroup),
+          parentID:parseInt(isParentGroup),
           groupName: `${row[4]}`  ,
         },
         mail:row[5] ?? "",
@@ -1055,10 +1054,12 @@ const handleResetSeat = () => {
 
 const handleAssignGuestsToSeats = () => {
   const newGuests = [...guests];
-  const newGuestsFilter = newGuests.filter(x => x.groupInfo?.parentID === parseInt(selectedParentGroup));
+  console.log(guests)
+  const newGuestsFilter = newGuests.filter(x => x.groupInfo?.parentID === parseInt(isParentGroup));
 
   const unassignedGuests = newGuestsFilter.filter((g) => !g.seatID);
   var tableSetNameTable = tables
+  console.log(unassignedGuests)
   // Nhóm khách theo groupName
   const guestsByGroup = unassignedGuests.reduce((acc, guest) => {
     const groupName = guest.groupInfo?.groupName || 'default';
@@ -1068,7 +1069,7 @@ const handleAssignGuestsToSeats = () => {
     acc[groupName].push(guest);
     return acc;
   }, {} as Record<string, typeof unassignedGuests>);
-
+  console.log(guestsByGroup)
   const tableElements = Array.from(document.querySelectorAll('.item_banghe'));
   const tablesWithNumbers = tableElements.map((el) => {
     const id = el.id;
@@ -1107,7 +1108,6 @@ const handleAssignGuestsToSeats = () => {
         
         // Kiểm tra xem ghế đã có người ngồi chưa
         const isSeatTaken = newGuests.some((g) => g.seatID === seatID);
-        
         // Chỉ phân bố nếu:
         // 1. Ghế chưa có người
         // 2. Bàn chưa được nhóm khác sử dụng
@@ -1323,7 +1323,6 @@ const handleAddItem = async (
       sourceType: 4,
       nameItem,
     };
-    console.log(newItem)
     setLayoutItems((prev) => [...prev, newItem]);
     setNextTableNumberItem((prev) => prev + 1);
 

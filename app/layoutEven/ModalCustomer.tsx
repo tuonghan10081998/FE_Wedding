@@ -5,6 +5,7 @@ import ExcelImporter from '~/layoutEven/ImportExCustomer';
 import Select from "react-select";
 import type { SingleValue } from "react-select";
 import GuestModal from "./GuestModal";
+import ModalResetSeat from '~/layoutEven/ModalResetSeat';
 interface ModalCustomerProps {
   onClose: () => void;
   table: Guest[];
@@ -35,7 +36,8 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({ onResetGhe,onClose, table
 
   const [selectedOption, setSelectedOption] = useState<SingleValue<OptionType>>();
   const [filters, setFilters] = useState({ name: '', phone: '', gender: '', groupName: '', tableName: '' });
-  const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
+  const [isGuestModalOpen, setIsGuestModalOpen] = useState<boolean>(false);
+   const [isResetModal, setResetModal] = useState<boolean>(false);
   const [editingGuest, setEditingGuest] = useState<Guest | undefined>(undefined);
   const [listData,setListData] = useState<Guest[]>([])
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -279,7 +281,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({ onResetGhe,onClose, table
               </div>
               <div className='flex gap-[7px]'>
                  <button
-                       onClick={() => onResetGhe()}
+                       onClick={() => setResetModal(true)}
                           type="button"
                           aria-label="Confirm"
                           className="flex items-center space-x-2 px-4 h-12 rounded-lg bg-pink-600 text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-1 transition font-semibold select-none"
@@ -313,6 +315,14 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({ onResetGhe,onClose, table
         initialData={editingGuest}
         table={table}
       />
+      {isResetModal && (
+        <ModalResetSeat 
+          isOpen={isResetModal}
+          onClose={() =>setResetModal(false)}
+          onComfirm={() => onResetGhe()}
+        />
+
+      )}
     </div>
   );
 };
