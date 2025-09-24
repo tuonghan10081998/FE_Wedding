@@ -68,25 +68,54 @@ const GenericItem: React.FC<GenericItemProps> = ({
   const startAngleRef = useRef(0);
   const centerRef = useRef({ x: 0, y: 0 });
   const [isResizing, setIsResizing] = useState(false);
+  const [resizeType, setResizeType] = useState<'both' | 'width' | 'height'>('both');
   const startResize = useRef({ x: 0, y: 0, width: 0, height: 0 });
   const [localX, setLocalX] = useState(item.x);
   const [localY, setLocalY] = useState(item.y);
   const [localWidth, setLocalWidth] = useState(item.width);
+   const [localHeight, setLocalHeight] = useState(item.height)
   const [localRotation, setLocalRotation] = useState(item.rotation);
   const currentPosition = useRef({ y: item.y, x: item.x });
   const currentRotate = useRef({rotation:item.rotation})
  const currentSize = useRef({ width: item.width, height: item.height });
+  
   const handleResizeMouseDown = (e: React.MouseEvent) => {
-  e.stopPropagation();
-  setIsResizing(true);
+    e.stopPropagation();
+    setIsResizing(true);
+    setResizeType('both');
 
-  startResize.current = {
-    x: e.clientX,
-    y: e.clientY,
-    width: localWidth,
-    height: item.height
+    startResize.current = {
+      x: e.clientX,
+      y: e.clientY,
+      width: localWidth,
+      height: localHeight
+    };
   };
-};
+
+  const handleWidthResizeMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsResizing(true);
+    setResizeType('width');
+    startResize.current = {
+      x: e.clientX,
+      y: e.clientY,
+      width: localWidth,
+      height: localHeight,
+    };
+  };
+
+  const handleHeightResizeMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsResizing(true);
+    setResizeType('height');
+    startResize.current = {
+      x: e.clientX,
+      y: e.clientY,
+      width: localWidth,
+      height: localHeight,
+    };
+  };
+
  useEffect(() => {
   const handleResizeMouseMove = (e: MouseEvent) => {
     if (!isResizing) return;
@@ -94,23 +123,34 @@ const GenericItem: React.FC<GenericItemProps> = ({
     const dx = e.clientX - startResize.current.x;
     const dy = e.clientY - startResize.current.y;
 
-    const newWidth = Math.max(50, startResize.current.width + dx);
-    const newHeight = Math.max(50, startResize.current.height + dy);
-    const fontSize = Math.min(newWidth, newHeight) * 1;
-    setLocalWidth(newWidth)
-     currentSize.current = { width: newWidth, height: newHeight };
+    let newWidth = localWidth;
+    let newHeight = localHeight;
+
+    if (resizeType === 'both') {
+      newWidth = Math.max(50, startResize.current.width + dx);
+      newHeight = Math.max(50, startResize.current.height + dy);
+    } else if (resizeType === 'width') {
+      newWidth = Math.max(50, startResize.current.width + dx);
+    } else if (resizeType === 'height') {
+      newHeight = Math.max(50, startResize.current.height + dy);
+    }
+
+    setLocalWidth(newWidth);
+    setLocalHeight(newHeight);
+    currentSize.current = { width: newWidth, height: newHeight };
   };
 
   const handleResizeMouseUp = () => {
     if (isResizing) {
       setIsResizing(false);
+      const newItem: LayoutItem = {
+        ...item,
+        width: currentSize.current.width,
+        height: currentSize.current.height,
+        size: 0
+      };
+      onResize?.(index, newItem);
     }
-    const newItem: LayoutItem = {
-      ...item,
-     width: currentSize.current.width,
-      size:0
-    };
-    onResize?.(index, newItem);
   };
 
   if (isResizing) {
@@ -122,7 +162,7 @@ const GenericItem: React.FC<GenericItemProps> = ({
     window.removeEventListener('mousemove', handleResizeMouseMove);
     window.removeEventListener('mouseup', handleResizeMouseUp);
   };
-}, [isResizing, index, item, onResize]);
+}, [isResizing, resizeType, index, item, onResize, localWidth, localHeight]);
 
   const handleRotateMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -253,17 +293,103 @@ const renderIcon = (item: LayoutItem, sourceType: number) => {
 const scaleFactor = 3;
 const iconMap: Record<string, React.ReactElement> = {
      sankhau : (
-         <svg viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg" >
-          <path d="M0,50 A50,50 0 0 1 100,50" />
-          <text x="50" y="30" textAnchor="middle" alignmentBaseline="middle" fontSize="10" fill="white">stage</text>
-          <g className="handle rotateSvg" transform="translate(7, 43)" onMouseDown={handleRotateMouseDown} style={{ cursor: 'pointer' }}>
-            <circle r="4" fill="#ff9900" />
+       
+         <svg
+            viewBox="0 0 320 160"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+      <defs>
+        <radialGradient id="stageGradient" cx="50%" cy="30%" r="80%">
+          <stop offset="0%" style={{ stopColor: "#FEF3C7", stopOpacity: 1 }} />
+          <stop offset="70%" style={{ stopColor: "#FBBF24", stopOpacity: 1 }} />
+          <stop offset="100%" style={{ stopColor: "#D97706", stopOpacity: 1 }} />
+        </radialGradient>
+
+        <linearGradient id="shadowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style={{ stopColor: "#9CA3AF", stopOpacity: 0.3 }} />
+          <stop offset="50%" style={{ stopColor: "#6B7280", stopOpacity: 0.5 }} />
+          <stop offset="100%" style={{ stopColor: "#9CA3AF", stopOpacity: 0.3 }} />
+        </linearGradient>
+      </defs>
+
+      <ellipse cx="160" cy="145" rx="140" ry="8" fill="url(#shadowGradient)" />
+
+      <path
+        d="M 40 130 A 120 120 0 0 1 280 130 L 280 120 A 130 130 0 0 0 40 120 Z"
+        fill="url(#stageGradient)"
+        stroke="#B45309"
+        strokeWidth="2"
+        strokeDasharray="12,4"
+      />
+
+      <path
+        d="M 45 133 A 115 115 0 0 1 275 133"
+        fill="none"
+        stroke="#FEF3C7"
+        strokeWidth="1.5"
+        opacity="0.8"
+      />
+
+      <text
+        x="160"
+        y="138"
+        fontFamily="system-ui, -apple-system, sans-serif"
+        fontSize="16"
+        fontWeight="700"
+        textAnchor="middle"
+        fill="#92400E"
+        letterSpacing="1px"
+      >
+      </text>
+
+      <path
+        d="M 30 120 Q 35 130 40 140 L 40 120"
+        fill="#DC2626"
+        opacity="0.8"
+      />
+      <path
+        d="M 290 120 Q 285 130 280 140 L 280 120"
+        fill="#DC2626"
+        opacity="0.8"
+      />
+
+      <g transform="translate(80,20)">
+        <rect x="-3" y="0" width="6" height="12" fill="#374151" rx="1" />
+        <circle cx="0" cy="18" r="5" fill="#abbb28" opacity="0.6" />
+        <path
+          d="M -10 25 L 10 25 L 5 110 L -5 110 Z"
+          fill="#FEF3C7"
+          opacity="0.2"
+        />
+      </g>
+
+      <g transform="translate(160,15)">
+        <rect x="-4" y="0" width="8" height="15" fill="#374151" rx="1" />
+        <circle cx="0" cy="22" r="6" fill="#abbb28" opacity="0.7" />
+        <path
+          d="M -12 30 L 12 30 L 8 115 L -8 115 Z"
+          fill="#FEF3C7"
+          opacity="0.25"
+        />
+      </g>
+
+      <g transform="translate(240,20)">
+        <rect x="-3" y="0" width="6" height="12" fill="#374151" rx="1" />
+        <circle cx="0" cy="18" r="5" fill="#abbb28" opacity="0.6" />
+        <path
+          d="M -10 25 L 10 25 L 5 110 L -5 110 Z"
+          fill="#FEF3C7"
+          opacity="0.2"
+        />
+      </g>
+          <g className="handle rotateSvg" transform="translate(37, 143)" onMouseDown={handleRotateMouseDown} style={{ cursor: 'pointer' }}>
+            <circle r="10" fill="#ff9900" />
           </g>
-          <g className="handle resizer resize-handle" transform="translate(92, 43)" onMouseDown={handleResizeMouseDown} style={{ cursor: 'nwse-resize' }}>
-            <circle r="4" fill="#666" />
+          <g className="handle resizer resize-handle" transform="translate(282, 143)" onMouseDown={handleResizeMouseDown} style={{ cursor: 'nwse-resize' }}>
+            <circle r="10" fill="#666" />
             <path d="M -3 -1.5 L 0 4 L 3 -1.5" fill="white" />
           </g>
-        </svg>
+    </svg>
       ),
      quat:(
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 70">
@@ -715,19 +841,332 @@ const iconMap: Record<string, React.ReactElement> = {
             <path d="M -3 -1.5 L 0 4 L 3 -1.5" fill="white" />
           </g>  
       </svg>
+    ),
+    hd1: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 80">
+        {/* Gradient definition for red arrow */}
+        <defs>
+          <linearGradient id="redGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style={{stopColor:"#DC2626", stopOpacity:1}} />
+            <stop offset="100%" style={{stopColor:"#EF4444", stopOpacity:1}} />
+          </linearGradient>
+          
+          {/* Shadow filter */}
+          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="1" dy="2" stdDeviation="2" floodOpacity="0.3"/>
+          </filter>
+        </defs>
+        
+        {/* Dashed line path leading to arrow */}
+        <path d="M 10 40 L 200 40" 
+              stroke="#DC2626" 
+              strokeWidth="3" 
+              strokeDasharray="8,5" 
+              fill="none"/>
+        
+        {/* Arrow head */}
+        <path d="M 200 40 
+                L 220 40 
+                L 220 25 
+                L 250 40 
+                L 220 55 
+                L 220 40" 
+              fill="url(#redGradient)" 
+              stroke="#B91C1C" 
+              strokeWidth="2" 
+              filter="url(#shadow)"/>
+        
+        {/* Arrow highlight */}
+        <path d="M 202 38 
+                L 218 38 
+                L 218 30 
+                L 242 40 
+                L 218 50 
+                L 218 42" 
+              fill="none" 
+              stroke="rgba(255,255,255,0.5)" 
+              strokeWidth="1"/>
+        
+        {/* Small dot at the start */}
+        <circle cx="10" cy="40" r="4" fill="#DC2626" filter="url(#shadow)"/>
+        <circle cx="10" cy="40" r="2" fill="rgba(255,255,255,0.8)"/>
+        
+        {/* Direction indicator text */}
+        <text x="130" y="25" fontFamily="Arial, sans-serif" fontSize="12" fill="#DC2626" textAnchor="middle" fontWeight="bold">
+          Hướng đi
+        </text>
+
+        {/* Rotate handle */}
+        <g className="handle rotateSvg" transform="translate(10, 40)" onMouseDown={handleRotateMouseDown} style={{ cursor: 'pointer' }}>
+          <circle r="10" fill="#ff9900" />
+        </g>
+        
+        {/* Resize handle */}
+        <g className="handle resizer resize-handle" transform="translate(240, 40)" onMouseDown={handleResizeMouseDown} style={{ cursor: 'nwse-resize' }}>
+          <circle r="10" fill="#666" />
+          <path d="M -3 -1.5 L 0 4 L 3 -1.5" fill="white" />
+        </g>
+      </svg>
+    ),
+    hd2:(
+       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80">
+      {/* Gradient definition for red arrow */}
+      <defs>
+        <linearGradient id="redGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style={{ stopColor: "#DC2626", stopOpacity: 1 }} />
+          <stop offset="100%" style={{ stopColor: "#EF4444", stopOpacity: 1 }} />
+        </linearGradient>
+
+        {/* Shadow filter */}
+        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="1" dy="2" stdDeviation="2" floodOpacity="0.3" />
+        </filter>
+      </defs>
+
+      {/* Dashed line path leading to arrow - REVERSED */}
+      <path
+        d="M 290 40 L 80 40"
+        stroke="#DC2626"
+        strokeWidth="3"
+        strokeDasharray="8,5"
+        fill="none"
+      />
+
+      {/* Arrow head - REVERSED */}
+      <path
+        d="M 80 40
+           L 60 40
+           L 60 25
+           L 30 40
+           L 60 55
+           L 60 40"
+        fill="url(#redGradient)"
+        stroke="#B91C1C"
+        strokeWidth="2"
+        filter="url(#shadow)"
+      />
+
+      {/* Arrow highlight - REVERSED */}
+      <path
+        d="M 78 38
+           L 62 38
+           L 62 30
+           L 38 40
+           L 62 50
+           L 62 42"
+        fill="none"
+        stroke="rgba(255,255,255,0.5)"
+        strokeWidth="1"
+      />
+
+      {/* Small dot at the start - MOVED TO RIGHT */}
+      <circle cx="290" cy="40" r="4" fill="#DC2626" filter="url(#shadow)" />
+      <circle cx="290" cy="40" r="2" fill="rgba(255,255,255,0.8)" />
+
+      {/* Direction indicator text */}
+      <text
+        x="170"
+        y="25"
+        fontFamily="Arial, sans-serif"
+        fontSize="12"
+        fill="#DC2626"
+        textAnchor="middle"
+        fontWeight="bold"
+      >
+        Hướng đi
+      </text>
+      {/* Rotate handle */}
+        <g className="handle rotateSvg" transform="translate(40, 40) " onMouseDown={handleRotateMouseDown} style={{ cursor: 'pointer' }}>
+          <circle r="10" fill="#ff9900" />
+        </g>
+        
+        {/* Resize handle */}
+        <g className="handle resizer resize-handle" transform="translate(290, 40)" onMouseDown={handleResizeMouseDown} style={{ cursor: 'nwse-resize' }}>
+          <circle r="10" fill="#666" />
+          <path d="M -3 -1.5 L 0 4 L 3 -1.5" fill="white" />
+        </g>
+      
+    </svg>
+
+    ),
+    hd3:(
+       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 80">
+        {/* Gradient definition for red arrow */}
+        <defs>
+          <linearGradient id="redGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style={{stopColor:"#DC2626", stopOpacity:1}} />
+            <stop offset="100%" style={{stopColor:"#EF4444", stopOpacity:1}} />
+          </linearGradient>
+          
+          {/* Shadow filter */}
+          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="1" dy="2" stdDeviation="2" floodOpacity="0.3"/>
+          </filter>
+        </defs>
+        
+        {/* Dashed line path leading to arrow */}
+        <path d="M 10 40 L 200 40" 
+              stroke="#DC2626" 
+              strokeWidth="3" 
+              strokeDasharray="8,5" 
+              fill="none"/>
+        
+        {/* Arrow head */}
+        <path d="M 200 40 
+                L 220 40 
+                L 220 25 
+                L 250 40 
+                L 220 55 
+                L 220 40" 
+              fill="url(#redGradient)" 
+              stroke="#B91C1C" 
+              strokeWidth="2" 
+              filter="url(#shadow)"/>
+        
+        {/* Arrow highlight */}
+        <path d="M 202 38 
+                L 218 38 
+                L 218 30 
+                L 242 40 
+                L 218 50 
+                L 218 42" 
+              fill="none" 
+              stroke="rgba(255,255,255,0.5)" 
+              strokeWidth="1"/>
+        
+        {/* Small dot at the start */}
+        <circle cx="10" cy="40" r="4" fill="#DC2626" filter="url(#shadow)"/>
+        <circle cx="10" cy="40" r="2" fill="rgba(255,255,255,0.8)"/>
+        
+        {/* Direction indicator text */}
+        <text x="130" y="25" fontFamily="Arial, sans-serif" fontSize="12" fill="#DC2626" textAnchor="middle" fontWeight="bold">
+          Hướng đi
+        </text>
+
+        {/* Rotate handle */}
+        <g className="handle rotateSvg" transform="translate(240, 40)" onMouseDown={handleRotateMouseDown} style={{ cursor: 'pointer' }}>
+          <circle r="10" fill="#ff9900" />
+        </g>
+        
+        {/* Resize handle */}
+        <g className="handle resizer resize-handle" transform="translate(10, 40)" onMouseDown={handleResizeMouseDown} style={{ cursor: 'nwse-resize' }}>
+          <circle r="10" fill="#666" />
+          <path d="M -3 -1.5 L 0 4 L 3 -1.5" fill="white" />
+        </g>
+      </svg>
+
+    ),
+    hd4:(
+     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80">
+      {/* Gradient definition for red arrow */}
+      <defs>
+        <linearGradient id="redGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style={{ stopColor: "#DC2626", stopOpacity: 1 }} />
+          <stop offset="100%" style={{ stopColor: "#EF4444", stopOpacity: 1 }} />
+        </linearGradient>
+
+        {/* Shadow filter */}
+        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="1" dy="2" stdDeviation="2" floodOpacity="0.3" />
+        </filter>
+      </defs>
+
+      {/* Dashed line path leading to arrow - REVERSED */}
+      <path
+        d="M 290 40 L 80 40"
+        stroke="#DC2626"
+        strokeWidth="3"
+        strokeDasharray="8,5"
+        fill="none"
+      />
+
+      {/* Arrow head - REVERSED */}
+      <path
+        d="M 80 40
+           L 60 40
+           L 60 25
+           L 30 40
+           L 60 55
+           L 60 40"
+        fill="url(#redGradient)"
+        stroke="#B91C1C"
+        strokeWidth="2"
+        filter="url(#shadow)"
+      />
+
+      {/* Arrow highlight - REVERSED */}
+      <path
+        d="M 78 38
+           L 62 38
+           L 62 30
+           L 38 40
+           L 62 50
+           L 62 42"
+        fill="none"
+        stroke="rgba(255,255,255,0.5)"
+        strokeWidth="1"
+      />
+
+      {/* Small dot at the start - MOVED TO RIGHT */}
+      <circle cx="290" cy="40" r="4" fill="#DC2626" filter="url(#shadow)" />
+      <circle cx="290" cy="40" r="2" fill="rgba(255,255,255,0.8)" />
+
+      {/* Direction indicator text */}
+      <text
+        x="170"
+        y="25"
+        fontFamily="Arial, sans-serif"
+        fontSize="12"
+        fill="#DC2626"
+        textAnchor="middle"
+        fontWeight="bold"
+      >
+        Hướng đi
+      </text>
+       <g className="handle rotateSvg" transform="translate(290, 40)" onMouseDown={handleRotateMouseDown} style={{ cursor: 'pointer' }}>
+          <circle r="10" fill="#ff9900" />
+        </g>
+        
+        {/* Resize handle */}
+        <g className="handle resizer resize-handle" transform="translate(40, 40)" onMouseDown={handleResizeMouseDown} style={{ cursor: 'nwse-resize' }}>
+          <circle r="10" fill="#666" />
+          <path d="M -3 -1.5 L 0 4 L 3 -1.5" fill="white" />
+        </g>
+      
+    </svg>
+
+    ),
+   sanh1: (
+      <div className="rectangle w-full h-full border-2 border-dashed border-gray-400 bg-gray-200 relative">
+        {/* Rotate Handle */}
+        <div 
+          className="handle rotateSvg absolute top-[-9px] left-[-9px] w-5 h-5 bg-orange-500 rounded-full cursor-pointer" 
+          onMouseDown={handleRotateMouseDown}
+        />
+        
+        {/* Resize Handle (góc - resize cả width và height) */}
+        <div 
+          className="handle resizer resize-handle absolute !bottom-[-6px] right-4 w-5 h-5 bg-gray-600 rounded-full cursor-nw-resize flex items-center justify-center" 
+          onMouseDown={handleResizeMouseDown}
+        >
+          <div className="w-0 h-0 border-l-2 border-r-2 border-b-2 border-white border-l-transparent border-r-transparent" />
+        </div>
+
+      
+       
+      </div>
     )
 };
-
 
   return (
     <div
       ref={wrapperRef}
-      className={`absolute ${selected ? "zindexitem" : ""} item_save flex items-center justify-center `}
+      className={`absolute ${selected ? "" : ""} item_save flex items-center justify-center `}
       style={{
         top: localY,
         left: localX,
         width: localWidth,
-        // height: item.type === "sankhau" ? 0 : item.height,
+        height: item.type === "sanh1" ? localHeight : 0, // Sử dụng localHeight cho sanh1
         transform: `rotate(${localRotation}rad)`,
         background:`${isActive ? "#55CC55" : ""}`,
       }}

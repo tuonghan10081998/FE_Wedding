@@ -1,9 +1,7 @@
 import React, { useState,useEffect } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
-import type { Guest } from '../layoutEven/layoutEven';
-import type { GroupGuest } from '../layoutEven/layoutEven';
+import type { Guest,GroupGuest,ImportResult } from '../layoutEven/layoutEven';
 import ExcelImporter from '~/layoutEven/ImportExCustomer';
-import type {ImportResult} from '../layoutEven/layoutEven'
 import Select from "react-select";
 import type { SingleValue } from "react-select";
 import GuestModal from "./GuestModal";
@@ -18,44 +16,44 @@ interface ModalCustomerProps {
   setParentGroup:(v:string) => void
   setGuest: (data: Guest[]) => void;
   onResetGhe:() => void
+  selectedValue: string;
+  onSelectedChange: (v: string) => void;
 }
 interface OptionType {
   value: string;
   label: string;
 }
 const ModalCustomer: React.FC<ModalCustomerProps> = ({ onResetGhe,onClose, table,
-  onAddSeat,onClickSeat,onDelete,handleDataImported,data,setParentGroup,setGuest}) => {
+  onAddSeat,onClickSeat,onDelete,handleDataImported,data,setParentGroup,setGuest,selectedValue,onSelectedChange}) => {
     const filterOptions: OptionType[] = [
         ...(data?.map((card) => ({
-          value: card.parentID ?? "",
+          value: card.parentID.toString() ?? "",
           label: card.parentName,
         })) ?? []),
       ];
- useEffect(() =>{
-    setSelectedOption(filterOptions[0])
-  },[data])
+
+
   const [selectedOption, setSelectedOption] = useState<SingleValue<OptionType>>();
   const [filters, setFilters] = useState({ name: '', phone: '', gender: '', groupName: '', tableName: '' });
   const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
   const [editingGuest, setEditingGuest] = useState<Guest | undefined>(undefined);
   const [listData,setListData] = useState<Guest[]>([])
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+  const { name, value } = e.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
-    };
-    useEffect(() => {
-      selectedOption && setParentGroup(selectedOption.value ?? "")
-    },[selectedOption])
+  };
+  useEffect(() => {
+     selectedOption && setParentGroup(selectedOption.value ?? "")
+  },[selectedOption])
   useEffect(() => {
   if (!table) return;
-     const tableFilter = table.filter(x => x.groupInfo?.parentID === parseInt(selectedOption?.value ?? "0"))
+     const tableFilter = table.filter(x => x.groupInfo?.parentID === parseInt(selectedValue ?? "0"))
 
     const sortedTable = [...tableFilter].sort((a, b) => {
     const maNhomA = Number(a.sort) || 0;
     const maNhomB = Number(b.sort) || 0;
     return maNhomA - maNhomB;
   });
-
   const filteredTable = sortedTable.filter((guest) => {
     const matchName = guest.name.toLowerCase().includes(filters.name.toLowerCase());
     const matchPhone = guest.phone.includes(filters.phone);
@@ -66,7 +64,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({ onResetGhe,onClose, table
     return matchName && matchPhone && matchGender && matchNhom && matchBan;
   });
   setListData(filteredTable);
-}, [table, filters,selectedOption]);
+}, [table, filters,selectedValue]);
   const handleSaveGuest = (guest: Guest) => {
     const maxTableNumber = table.length > 0
       ? Math.max(...table.map(t => t.sort ?? 0)) + 1
@@ -92,10 +90,12 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({ onResetGhe,onClose, table
           <div className="flex gap-4">
              <div className="flex  gap-4 items-center">
             <div className="">Chọn bên</div>
-            <Select
+           <Select
               options={filterOptions}
-              value={selectedOption}
-              onChange={(option: SingleValue<OptionType>) => setSelectedOption(option)}
+              value={filterOptions.find(opt => opt.value === selectedValue)}
+              onChange={(option: SingleValue<OptionType>) =>
+                onSelectedChange(option?.value ?? "")
+              }
               className="mb-0 w-[200px]"
               classNamePrefix="react-select"
               isSearchable={true}
@@ -128,9 +128,9 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({ onResetGhe,onClose, table
                 <th className="px-6 py-3 text-center text-xs font-semibold text-white whitespace-nowrap tracking-wider">
                    Nhóm
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-semibold text-white whitespace-nowrap tracking-wider">
+                {/* <th className="px-6 py-3 text-center text-xs font-semibold text-white whitespace-nowrap tracking-wider">
                   Bàn
-                </th>
+                </th> */}
                   <th className="px-6 py-3 text-center text-xs font-semibold text-white whitespace-nowrap tracking-wider">
                   Ghế
                 </th>
@@ -177,7 +177,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({ onResetGhe,onClose, table
               className="w-full px-2 py-1 text-sm border-none focus:outline-none font-normal"
             />
           </th>
-          <th className="px-6 py-2 border border-gray-300">
+          {/* <th className="px-6 py-2 border border-gray-300">
             <input
               type="text"
               name="ban"
@@ -185,7 +185,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({ onResetGhe,onClose, table
               onChange={handleFilterChange}
               className="w-full px-2 py-1 text-sm border-none focus:outline-none font-normal"
             />
-          </th>
+          </th> */}
            <th className="px-6 py-2 border border-gray-300">
            
           </th>
@@ -210,9 +210,9 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({ onResetGhe,onClose, table
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                     {guest.groupInfo?.groupName}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                  {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                     {guest.tableName}
-                  </td>
+                  </td> */}
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                     {guest.seatName}
                   </td>
@@ -309,7 +309,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({ onResetGhe,onClose, table
           handleSaveGuest(guest);
           setIsGuestModalOpen(false);
         }}
-        parentgroupid={selectedOption?.value}
+        parentgroupid={selectedValue}
         initialData={editingGuest}
         table={table}
       />

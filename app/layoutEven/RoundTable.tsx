@@ -391,6 +391,7 @@ const RoundTable: React.FC<RoundTableProps> = ({
       data-index={index}
       data-type="round"
       data-indexnumber={table.tableNumber}
+      data-parentID={table.groupParentID}
     >
       <div
         onMouseDown={handleDragMouseDown}
@@ -405,6 +406,8 @@ const RoundTable: React.FC<RoundTableProps> = ({
           left: '50%',
           fontWeight: '600',
           zIndex: 99999,
+          textAlign:"center",
+          padding:"0px 6px"
         }}
       >
         {table.nameTable}

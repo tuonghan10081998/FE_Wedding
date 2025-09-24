@@ -138,7 +138,7 @@ const BadgeMan: React.FC<BadgeManProps> = ({
                 backfaceVisibility: "hidden",
                 willChange: "transform",
                   lineHeight: "1.2", // hoặc "40px" - tăng khoảng cách giữa các dòng
-  wordSpacing: "2px", // Khoảng cách giữa các từ
+                 wordSpacing: "2px", // Khoảng cách giữa các từ
             }}
             >
               {text}

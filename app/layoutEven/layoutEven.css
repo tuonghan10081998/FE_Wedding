@@ -320,6 +320,9 @@ button.close-btn:hover {
 .css-1nmdiq5-menu {
   z-index: 9999 !important;
 }
+.highlight {
+  background-color: #d5b8b8 !important;
+}
 @media print {
   #tableContainer {
     background-image: none !important;

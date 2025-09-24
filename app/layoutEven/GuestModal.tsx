@@ -23,7 +23,8 @@ const [formData, setFormData] = useState<Guest>(
     groupID: 1,
     isActive: true,
     groupInfo: {
-      parentID: parseInt(parentgroupid ?? "0")
+      parentID: parseInt(parentgroupid ?? "0"),
+      groupName:`Nhóm`
     }
   }
 );
@@ -43,7 +44,7 @@ useEffect(() => {
         isActive: true,
         groupInfo: {
           parentID: parseInt(parentgroupid ?? "0"),
-          groupName:`Nhóm ${formData.groupID}`
+          groupName:`${formData.groupInfo?.groupName}`
         }
       }
     );
@@ -159,9 +160,9 @@ useEffect(() => {
               Nhóm bàn
             </label>
             <input
-              type="number"
+              type="text"
               name="nhom"
-              value={formData.groupID}
+              value={formData.groupInfo?.groupName}
               onChange={handleChange}
               required
               className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"

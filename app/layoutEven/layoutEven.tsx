@@ -22,6 +22,19 @@ import "react-toastify/dist/ReactToastify.css";
 import './layoutEven.css';
 import { v4 as uuidv4 } from "uuid";
 import ModalSelectProject from '~/layoutEven/ModalSelectProject';
+import ZoneManager from '~/layoutEven/ZoneManager';
+import ZoneForm from '~/layoutEven/ZoneForm';
+export interface ZoneRegion {
+  zoneId: string;
+  zoneName: string;
+  xPosition: number;
+  yPosition: number;
+  zoneWidth: number;
+  zoneHeight: number;
+  zoneColor?: string;
+  alphaLevel?: number;
+  active?:boolean
+}
 export interface ImportResult {
   data: (string | number)[][];
   range: {
@@ -45,7 +58,8 @@ export interface UnifiedTableData {
   currentSeatCount?: number;
   sourceType: number;
   nameTable: string;
-  
+  groupParentID?:number
+  isComeback?:number 
 }
 
 export interface Guest {
@@ -66,7 +80,8 @@ export interface Guest {
     groupID?:number
     groupName?:string
     parentID?:number
-  }
+  },
+  mail?:string
 }
 
 interface layOutContainer {
@@ -142,12 +157,68 @@ export default function TablePlanner() {
   const [isProjectName,setProjectName] = useState<string>("")
   const [isDataParentGroup,setDataParentGroup] = useState<GroupGuest[]>([])
   const [isParentGroup,setParentGroup] = useState<string>("0")
+  const [selectedParentGroup, setSelectedParentGroup] = useState<string>("0");
+
+  const [zoneCollection, setZoneCollection] = useState<ZoneRegion[]>([]);
+  const [activeZoneIdx, setActiveZoneIdx] = useState<number | null>(null);
+  const [isZoneMode, setIsZoneMode] = useState<boolean>(true)
+  const [isConfirm,setConfirm] = useState<boolean>(false)
+
+  // Thêm handleToggleZoneMode function
+  const handleToggleZoneMode = () => {
+    // setIsZoneMode(!isZoneMode);
+
+    // Đóng các modal khác khi bật zone mode
+    if (!isZoneMode) {
+      setIsModalSelectOpen(false);
+      setModalOpen(false);
+      setModalOpenKH(false);
+    }
+  };
+
+
+    // Cập nhật handleZoneSelect 
+    const handleZoneSelect = (zoneIndex: number | null) => {
+      setActiveZoneIdx(zoneIndex);
+      if (zoneIndex !== null) {
+        setCheckLoai(5); // Set để hiển thị ZoneForm
+         setIsModalSelectOpen(false)
+          setModalOpen(false)
+          setModalOpenKH(false)
+      }
+    };
+
   useEffect(() => {
     const storedUser = localStorage.getItem("userInvitation");
      !storedUser && navigate("/");
     setUser(storedUser);
   }, []);
- 
+  const handleVisiableVung = () => {
+    setZoneCollection((prev) => 
+        prev.map(x => ({
+          ...x,
+          active: !x.active
+        }))
+      );
+  };
+useEffect(() => {
+ if(zoneCollection.length === 0) {
+   setConfirm(!isConfirm)
+ }
+},[zoneCollection])
+//  useEffect(() => {
+//   const handleClick = (e: MouseEvent) => {
+//     const target = e.target as HTMLElement;
+    
+//     // Nếu không click vào zone wrapper thì clear active zone
+//     if (!target.closest('.zone-display-wrapper') && isZoneMode) {
+//       setActiveZoneIdx(null);
+//     }
+//   };
+
+//   document.addEventListener('click', handleClick);
+//   return () => document.removeEventListener('click', handleClick);
+// }, [isZoneMode]);
  const handleDeleteData = (projectid:string) => {
      setData((prev) => prev.filter((p) => p.projectID !== projectid));
      Delete(projectid)
@@ -209,6 +280,13 @@ const getDataProject = async () => {
       setLayoutItems([]);
       setLayoutContainer({ x: 0, y: 0, zoomLevel: 0.7 });
       setGuests([])
+      setZoneCollection([])
+      setIsModalSelectOpen(false)
+      setModalOpen(false)
+      setModalOpenKH(false)
+      handleZoneSelect(null)
+      setSelectedParentGroup("0")
+      setParentGroup("0")
       zoomRef.current = 0.7;
       offsetRef.current = { x: 0, y: 0 };
       setNextTableNumber(1)
@@ -245,6 +323,8 @@ const getDataProject = async () => {
         currentSeatCount: t.CurrentSeatCount,
         sourceType: t.SourceType,
         nameTable: t.NameTable,
+        groupParentID:t.GroupParentID,
+        isComeback:0
       }));
      const maxTableNumber =
         normalizedTables.length > 0
@@ -282,12 +362,23 @@ const getDataProject = async () => {
         y: parsed.LayoutContainer?.Y ?? 0,
         zoomLevel: parsed.LayoutContainer?.ZoomLevel ?? 0.7,
       };
-     
+     const normalizedZone:ZoneRegion[] = (parsed.ZoneRegion || []).map((item: any) => ({
+        zoneId: item.ZoneId,
+        zoneName: item.ZoneName,
+        xPosition: item.XPosition,
+        yPosition: item.YPosition,
+        zoneWidth: item.ZoneWidth,
+        zoneHeight: item.ZoneHeight,
+        zoneColor: item.ZoneColor,
+        alphaLevel: (item.AlphaLevel / 100),
+        active:item.Active
+      }));
       // ✅ Sử dụng requestAnimationFrame để đảm bảo DOM đã clear
       requestAnimationFrame(() => {
         setTables(normalizedTables);
         setLayoutItems(normalizedItemLayout);
         setLayoutContainer(normalizedLayoutContainer);
+        setZoneCollection(normalizedZone)
         zoomRef.current = normalizedLayoutContainer.zoomLevel;
         offsetRef.current = { x: normalizedLayoutContainer.x, y: normalizedLayoutContainer.y };
         setlayoutBackZoom(normalizedLayoutContainer.zoomLevel)
@@ -324,8 +415,15 @@ useEffect(() => {
      const resetAndFetch = async () => {
       setTables([]);
       setLayoutItems([]);
+      setZoneCollection([])
       setLayoutContainer({ x: 0, y: 0, zoomLevel: 0.7 });
-      
+      setZoneCollection([])
+      setIsModalSelectOpen(false)
+      setModalOpen(false)
+      setModalOpenKH(false)
+      handleZoneSelect(null)
+      setSelectedParentGroup("0")
+      setParentGroup("0")
       zoomRef.current = 0.7;
       offsetRef.current = { x: 0, y: 0 };
       if (isProjectID !== "0") {
@@ -333,24 +431,32 @@ useEffect(() => {
         await new Promise(resolve => setTimeout(resolve, 10));
         await getDataProjectID(isProjectID);
          await GetGuest(isProjectID)
+      }else{
+       await handleAddItem("sankhau",200,200,"#155DFC","Sân khấu",(window.innerWidth / 2) + 182,150,1);
+       await handleAddItem("cong",150,200,"transparent","Cổng",(window.innerWidth / 2) + 182,window.innerHeight + 200,2);
       }
     };
-    
     resetAndFetch();
- 
 },[isProjectID])
    
   const handleSaveLayout = () => {
   
-     const layoutCurent: layOutContainer = {
+      const layoutCurent: layOutContainer = {
         x: offsetRef.current.x,
         y: offsetRef.current.y,
         zoomLevel: zoomRef.current,
       };
-     const layout = {
+
+      const dataZone = zoneCollection.map(x => ({
+        ...x,
+        alphaLevel: (x.alphaLevel ?? 0) * 100
+      }));
+
+      const layout = {
         table: tables,
-        itemLayout:layoutItems,
-        layoutContainer:layoutCurent
+        itemLayout: layoutItems,
+        layoutContainer: layoutCurent,
+        zoneRegion: dataZone
       };
       if (!layout) {
         toast.error("Chưa có bàn nào để lưu!");
@@ -408,7 +514,8 @@ useEffect(() => {
             userID: isUserID,    // tuỳ bạn set
             guestID: x.guestID ,
             gender:x.gender ,
-            tableName:x.tableName                               // lấy id đã generateUUID
+            tableName:x.tableName ,
+            mail:x.mail ?? ""                             // lấy id đã generateUUID
       }));
        PostGuest(arrSaveGuest,projectid)
   }
@@ -562,7 +669,7 @@ const handleDataImported = (result: ImportResult): void => {
      const maxTableNumber = guests.length > 0
           ? Math.max(...guests.map(t => t.sort ?? 0)) + 1
           : 1;
-
+    console.log(selectedParentGroup)
     const guestsTable = importData.map((row, index) => {
       return {
         guestID: uuidv4(),
@@ -574,13 +681,14 @@ const handleDataImported = (result: ImportResult): void => {
         groupID: typeof row[4] === 'number' ? row[4] : 0,
         qr: generateQR(`${Date.now()}-${Math.floor(Math.random() * 10000)}`, row[1] || ""),
         groupInfo:{
-          parentID:parseInt(isParentGroup),
-          groupName: `Nhóm ${row[4]}`  ,
-        }
+          parentID:parseInt(selectedParentGroup),
+          groupName: `${row[4]}`  ,
+        },
+        mail:row[5] ?? "",
       } as Guest;
     });
-    
     return guestsTable;
+   
   };
 
   
@@ -630,7 +738,7 @@ const handleCtrlClickSeat = (item: string, event: React.MouseEvent,checkClick:bo
 };
 
 const handleCtrlClickITem = (item: LayoutItem, event: React.MouseEvent,checkClick:boolean = false) => {
-      setIsModalSelectOpen(false)
+    setIsModalSelectOpen(false)
     setModalOpen(false)
     setModalOpenKH(false)
   if(checkClick ){
@@ -656,8 +764,15 @@ const handleCtrlClickITem = (item: LayoutItem, event: React.MouseEvent,checkClic
   type: string,
   seatCount: number | string,
   checkRow: string,
-  position: string  // thêm biến này
+  position: string,  // thêm biến này
+  groupParentID:string
 ) => {
+    // setTables((prev) =>
+    //   prev.map(x => ({
+    //     ...x,
+    //     isComeback: 0
+    //   }))
+    // );
   if (!row || row === '') {
     toast.error("Vui lòng nhập dãy!");
 
@@ -668,11 +783,17 @@ const handleCtrlClickITem = (item: LayoutItem, event: React.MouseEvent,checkClic
     toast.error("Vui lòng nhập số lượng ghế!");
     return;
   }
-
+  if(groupParentID === "0"){
+    toast.error("Vui lòng chọn bên!");
+    return
+  }
   const count = Number(seatCount); 
   const rowNum = Number(row);
   const newTables: UnifiedTableData[] = [];
-
+  let  maxTableNumber =
+  tables.length > 0 ? Math.max(...tables.map(t => t.tableNumber ?? 0)) : 0;
+   let maxTableComback =
+  tables.length > 0 ? Math.max(...tables.map(t => t.isComeback ?? 0)) + 1 : 1;
   const createTable = (
     tableNumber: number,
     top: number,
@@ -680,9 +801,10 @@ const handleCtrlClickITem = (item: LayoutItem, event: React.MouseEvent,checkClic
     type: string,
     layout: string
   ): UnifiedTableData => {
+    maxTableNumber++;
     if (type === 'tron') {
       return {
-        tableNumber,
+        tableNumber : maxTableNumber,
         shape: 'round',
         size: 100,
         top,
@@ -692,7 +814,9 @@ const handleCtrlClickITem = (item: LayoutItem, event: React.MouseEvent,checkClic
         width: 0,
         height: 0,
         sourceType: 1,
-        nameTable:`Bàn ${tableNumber}`
+        nameTable:`Bàn ${maxTableNumber}`,
+        groupParentID:parseInt(groupParentID),
+        isComeback:maxTableComback
       };
     } else if (type === 'vuong') {
       const width =  160 ;
@@ -700,7 +824,7 @@ const handleCtrlClickITem = (item: LayoutItem, event: React.MouseEvent,checkClic
       const totalSeats = (Math.floor(width / 36) + Math.floor(height / 36)) * 2;
 
       return {
-        tableNumber,
+        tableNumber : maxTableNumber,
         shape: 'square',
         width,
         height,
@@ -710,14 +834,16 @@ const handleCtrlClickITem = (item: LayoutItem, event: React.MouseEvent,checkClic
         rotation: 0,
         currentSeatCount: totalSeats,
         sourceType: 2,
-       nameTable:`Bàn ${tableNumber}`
+       nameTable:`Bàn ${maxTableNumber}`,
+       groupParentID:parseInt(groupParentID),
+        isComeback:maxTableComback
       };
     } else { 
       const width = 195 
       const height = 10 
 
       return {
-        tableNumber,
+        tableNumber : maxTableNumber,
         shape: 'bench',
         width,
         height,
@@ -727,28 +853,29 @@ const handleCtrlClickITem = (item: LayoutItem, event: React.MouseEvent,checkClic
         rotation: 0,
         currentSeatCount: 5,
         sourceType: 3,
-        nameTable:`${tableNumber}`
+        nameTable:`${maxTableNumber}`,
+        groupParentID:parseInt(groupParentID),
+        isComeback:maxTableComback
       };
     }
   };
 
-  const rowNumA = Number(row);
+const rowNumA = Number(row);
 const totalRows = checkRow === 'nhieuday' ? rowNumA : rowNumA;
 const startRow = checkRow === 'nhieuday' ? 1 : rowNumA;
 
 // chia ghế cho từng row
 const baseSeatsPerRow = Math.floor(count / totalRows);
-const remainder = count % totalRows;
-
+const remainder = checkRow === 'nhieuday' ? count % totalRows : count;
 for (let r = startRow; r <= totalRows; r++) {
   // số ghế thực tế của row hiện tại
-  const seatsInThisRow = baseSeatsPerRow + (r - startRow < remainder ? 1 : 0);
+  const seatsInThisRow = checkRow === 'nhieuday' ? baseSeatsPerRow + (r - startRow < remainder ? 1 : 0) : count;
 
   for (let i = 0; i < seatsInThisRow; i++) {
     const padLeftPx = type === 'tron' ? 50 : type === 'vuong' ? 55 : 30;
     const padTopPx = type === 'tron' ? 53 : type === 'vuong' ? 60 : 53;
-    let left = toLocalX(padLeftPx);
-    let top = toLocalY(padTopPx);
+    let left = toLocalX(padLeftPx );
+    let top = toLocalY(padTopPx + 50);
 
     const containerWidth = toLocalX(
       window.innerWidth - (type === 'tron' ? 270 : type === 'vuong' ? 258 : 315)
@@ -774,9 +901,10 @@ for (let r = startRow; r <= totalRows; r++) {
         left = containerWidthd - r * (type === 'tron' ? 225 : type === 'vuong' ? 310 : 230);
       }
     }
-
+   
+    
     newTables.push(
-      createTable(nextTableNumber + newTables.length, top, left, type, layout)
+      createTable(1, top, left, type, layout)
     );
   }
 }
@@ -924,44 +1052,117 @@ const handleResetSeat = () => {
 
   setGuests(newGuests);
 };
-  const handleAssignGuestsToSeats = () => {
-    const newGuests = [...guests];
-    const newGuestsFilter = newGuests.filter(x => x.groupInfo?.parentID === parseInt(isParentGroup))
+
+const handleAssignGuestsToSeats = () => {
+  const newGuests = [...guests];
+  const newGuestsFilter = newGuests.filter(x => x.groupInfo?.parentID === parseInt(selectedParentGroup));
+
+  const unassignedGuests = newGuestsFilter.filter((g) => !g.seatID);
+  var tableSetNameTable = tables
+  // Nhóm khách theo groupName
+  const guestsByGroup = unassignedGuests.reduce((acc, guest) => {
+    const groupName = guest.groupInfo?.groupName || 'default';
+    if (!acc[groupName]) {
+      acc[groupName] = [];
+    }
+    acc[groupName].push(guest);
+    return acc;
+  }, {} as Record<string, typeof unassignedGuests>);
+
+  const tableElements = Array.from(document.querySelectorAll('.item_banghe'));
+  const tablesWithNumbers = tableElements.map((el) => {
+    const id = el.id;
+    const parts = id.split('_@');
+    return { el, tableNumber: parseInt(parts[1]) };
+  });
+  
+  const sortedTables = tablesWithNumbers.sort((a, b) => a.tableNumber - b.tableNumber);
+  
+  // Theo dõi bàn nào đã được sử dụng bởi nhóm nào
+  const tableUsedByGroup: Record<string, string[]> = {}; // groupName -> [maBan1, maBan2, ...]
+  
+  // Xử lý từng nhóm khách
+  Object.entries(guestsByGroup).forEach(([groupName, groupGuests]) => {
+    let currentGuestIndex = 0;
     
-    const unassignedGuests = newGuestsFilter.filter((g) => !g.seatID);
-
-    const tableElements = Array.from(document.querySelectorAll('.item_banghe'));
-    const tablesWithNumbers = tableElements.map((el) => {
-      const id = el.id;
-      const parts = id.split('_@');
-      return { el, tableNumber: parseInt(parts[1]) };
-    });
-
-    const sortedTables = tablesWithNumbers.sort((a, b) => a.tableNumber - b.tableNumber);
     for (const table of sortedTables) {
+      if (currentGuestIndex >= groupGuests.length) break;
+      
       const seatElements = table.el.querySelectorAll('.seat');
+      let hasAssignedInThisTable = false;
+      
       for (const seatEl of seatElements) {
+        if (currentGuestIndex >= groupGuests.length) break;
+        
         const seatID = seatEl.id;
         const tableWrapper = seatEl.closest(".table-wrapper");
-         const maBan = tableWrapper?.getAttribute("data-indexnumber") || "";
-         const tenGhe= seatEl.textContent
+        const maBan = tableWrapper?.getAttribute("data-indexnumber") || "";
+        const parentID = tableWrapper?.getAttribute("data-parentID") || "";
+        
+        // Kiểm tra xem bàn này đã được nhóm khác sử dụng chưa
+        const isTableUsedByOtherGroup = Object.entries(tableUsedByGroup).some(
+          ([otherGroup, usedTables]) => 
+            otherGroup !== groupName && usedTables.includes(maBan)
+        );
+        
+        // Kiểm tra xem ghế đã có người ngồi chưa
         const isSeatTaken = newGuests.some((g) => g.seatID === seatID);
-
-        if (!isSeatTaken && unassignedGuests.length > 0) {
-          const guest = unassignedGuests.shift();
-          if (guest) {
+        
+        // Chỉ phân bố nếu:
+        // 1. Ghế chưa có người
+        // 2. Bàn chưa được nhóm khác sử dụng
+        // 3. parentID khớp với guest
+        if (!isSeatTaken && !isTableUsedByOtherGroup && currentGuestIndex < groupGuests.length) {
+          const guest = groupGuests[currentGuestIndex];
+          
+          if (guest && guest.groupInfo?.parentID === parseInt(parentID)) {
+            const tenGhe = seatEl.textContent;
+            
             guest.seatID = seatID;
-            guest.tableID = maBan; 
-            guest.tableName = `${seatEl.textContent}`
-            guest.seatName = tenGhe
+            guest.tableID = maBan;
+            guest.tableName = `${seatEl.textContent}`;
+            guest.seatName = tenGhe;
+            
+            tableSetNameTable = tableSetNameTable.map((t) => {
+            if (t.tableNumber === parseInt(maBan)) {
+              return {
+                ...t,
+                nameTable: guest.groupInfo?.groupName || t.nameTable, 
+                isComeback:0
+              };
+            }
+            return t;
+          });
+            
+            // Đánh dấu bàn này đã được nhóm này sử dụng
+            if (!tableUsedByGroup[groupName]) {
+              tableUsedByGroup[groupName] = [];
+            }
+            if (!tableUsedByGroup[groupName].includes(maBan)) {
+              tableUsedByGroup[groupName].push(maBan);
+            }
+            
+            hasAssignedInThisTable = true;
+            currentGuestIndex++;
           }
         }
       }
+      
+     
+      if (hasAssignedInThisTable) {
+        continue;
+      }
     }
-
-    setGuests(newGuests);
-  };
-
+  });
+  setTables(tableSetNameTable)
+  setGuests(newGuests);
+  //  setTables((prev) =>
+  //     prev.map(x => ({
+  //       ...x,
+  //       isComeback: 0
+  //     }))
+  //   );
+};
 useEffect(() => {
   // Kiểm tra xem có thay đổi thực sự không
   const guestsChanged = prevGuestsRef.current !== guests;
@@ -1058,14 +1259,22 @@ function useClickOutsideItemSave() {
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const clickedItem = target.closest('.item_save');
+
       document.querySelectorAll('.item_save').forEach(item => {
         const isClicked = item === clickedItem;
 
-        item.querySelectorAll('.resizer, .rotate-handle,.rotateSvg').forEach(child => {
+        // 🔹 tìm table-wrapper chứa item
+        const tableWrapper = item.closest('.table-wrapper');
+        // 🔹 tìm list_save bên trong table-wrapper
+        const listSave = tableWrapper?.querySelector('.list_save');
+
+        item.querySelectorAll('.resizer, .rotate-handle, .rotateSvg').forEach(child => {
           if (isClicked) {
             (child as HTMLElement).classList.remove('hidden');
+            listSave?.classList.add('highlight');
           } else {
             (child as HTMLElement).classList.add('hidden');
+            listSave?.classList.remove('highlight');
           }
         });
       });
@@ -1076,35 +1285,67 @@ function useClickOutsideItemSave() {
   }, []);
 }
 
-const handleAddItem = (type: LayoutItem['type'],width:number,height:number,color?:string,nameItem?:string) => {
-  const centerX = toLocalX(window.innerWidth / 2);
-  const centerY = toLocalY(window.innerHeight / 2);
-  const newItem: LayoutItem = {
-    id: `item${nextTableNumberItem}`,
-    type,
-    x: centerX - width / 2,   // cho nằm chính giữa item
-    y: centerY - height / 2,
-    size: Math.min(width, height) * 1,
-    width: width,
-    height: height,
-    rotation: 0,
-    name: `${type} ${layoutItems.length + 1}`,
-    color:color || "",
-    sourceType:4,
-    nameItem:nameItem
-  };
-  setLayoutItems((prev) => [...prev, newItem]);
-  setNextTableNumberItem((prev) => prev + 1);
-};
 
-const handleAddBan = (index: number) => {
+const handleAddItem = async (
+  type: LayoutItem['type'],
+  width: number,
+  height: number,
+  color?: string,
+  nameItem?: string,
+  x?: number,
+  y?: number,
+  id?:number
+): Promise<void> => {
+  return new Promise((resolve) => {
+    const maxTableNumberItem = 
+      layoutItems.length > 0
+        ? (() => {
+            const lastId = layoutItems[layoutItems.length - 1].id as string;
+            const num = Number(lastId.replace("item", "")) || 0;
+            return num + 1;
+          })()
+        : 1;
+
+    const centerX = x ?? toLocalX(window.innerWidth / 2);
+    const centerY = y ?? toLocalY(window.innerHeight / 2);
+
+    const newItem: LayoutItem = {
+      id: `item${id ?? maxTableNumberItem}`,
+      type,
+      x: centerX - width / 2,
+      y: centerY - height / 2,
+      size: Math.min(width, height) * 1,
+      width,
+      height,
+      rotation: type === "hd3" || type === "hd4" ? 4.7124 : 0,
+      name: `${type} ${layoutItems.length + 1}`,
+      color: color || "",
+      sourceType: 4,
+      nameItem,
+    };
+    console.log(newItem)
+    setLayoutItems((prev) => [...prev, newItem]);
+    setNextTableNumberItem((prev) => prev + 1);
+
+    resolve(); // ✅ báo cho await biết là xong
+  });
+};
+const handleAddBan = (index: number,groupParentID:number) => {
+  if(groupParentID === 0){
+    toast.error("Vui lòng chọn bên!");
+    return
+  }
   let newTable: UnifiedTableData;
+   const maxTableNumber =
+        tables.length > 0
+          ? Math.max(...tables.map(t => t.tableNumber ?? 0)) + 1
+          : 1;
   const centerX = toLocalX(window.innerWidth / 2);
   const centerY = toLocalY(window.innerHeight / 2);
   if (index === 1) {
     // Round table
     newTable = {
-      tableNumber: nextTableNumber,
+      tableNumber: maxTableNumber,
       shape: 'round',
       width: 0,
       height: 0,
@@ -1114,7 +1355,9 @@ const handleAddBan = (index: number) => {
       rotation: 0,
       currentSeatCount: 10,
       sourceType: 1,
-      nameTable:`Bàn ${nextTableNumber}`
+      nameTable:`Bàn ${maxTableNumber}`,
+      groupParentID:groupParentID,
+      isComeback:0
     };
   } else if (index === 2) {
     // Square table
@@ -1125,7 +1368,7 @@ const handleAddBan = (index: number) => {
     const totalSeats = (seatCountTop + seatCountLeft) * 2;
 
     newTable = {
-      tableNumber: nextTableNumber,
+      tableNumber: maxTableNumber,
       shape: 'square',
       width,
       height,
@@ -1135,12 +1378,14 @@ const handleAddBan = (index: number) => {
       rotation: 0,
       currentSeatCount: totalSeats,
       sourceType: 2,
-       nameTable:`Bàn ${nextTableNumber}`
+      nameTable:`Bàn ${maxTableNumber}`,
+      groupParentID:groupParentID,
+       isComeback:0
     };
   } else {
     // Bench table
     newTable = {
-      tableNumber: nextTableNumber,
+      tableNumber: maxTableNumber,
       shape: 'bench',
       width: 195,
       height: 10,
@@ -1150,7 +1395,9 @@ const handleAddBan = (index: number) => {
       rotation: 0,
       currentSeatCount: 5,
       sourceType: 3,
-       nameTable:`${nextTableNumber}`
+      nameTable:`${maxTableNumber}`,
+      groupParentID:groupParentID,
+      isComeback:0
     };
   }
 
@@ -1177,6 +1424,7 @@ const handleDeleteList = (e:React.MouseEvent) =>{
       setLayoutItems((prevTables) =>
           prevTables.filter((t) => !multiSelected.some((x) => x.id === t.id))
       )
+    setMultiSelectedItems([])
 }
 useClickOutsideItemSave();
 const handleResetZoom =() => {
@@ -1226,7 +1474,6 @@ const handleAddSeatOnTable = (customerid:string,checkSeatID:boolean)=>{
       }
       return { ...guest, seatId: multiSelectedSeat };
     }
-    console.log(guest)
     return guest;
     
   })
@@ -1304,6 +1551,7 @@ useEffect(() => {
                   setIsModalSelectOpen(true)
                   setModalOpen(false)
                  setModalOpenKH(false)
+                 handleZoneSelect(null)
               }}
               className="absolute top-[3px] left-[180px] cursor-pointer p-1 px-3 rounded-lg bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
             >
@@ -1313,8 +1561,24 @@ useEffect(() => {
             <ModalSelect
               isOpen={isModalSelectOpen}
               onClose={() => setIsModalSelectOpen(false)}
-             onConfirm={(row: number | string, layout: string, type: string, seatCount: number | string,checkRow:string,position:string) => handleConfirmModal(row,layout,type,seatCount,checkRow,position)}
-            />
+              selectedValue={selectedParentGroup}
+              onSelectedChange={(v) => setSelectedParentGroup(v)}
+              onConfirm={
+
+                 (row: number | string, layout: string, type: string, seatCount: number | string,
+                  checkRow:string,position:string,groupParentID:string) =>
+                   handleConfirmModal(row,layout,type,seatCount,checkRow,position,groupParentID)}
+                  data={isDataParentGroup}
+                  onComBack={() => {
+                    let maxTableComback =
+                    tables.length > 0 ? Math.max(...tables.map(t => t.isComeback ?? 0)) : 1;
+                    setTables((prev) =>
+                      prev.filter(x =>
+                        x.isComeback === 0 || x.isComeback !== maxTableComback
+                    )
+                );
+              }}
+           />
           </>
             <>
              <button
@@ -1343,12 +1607,16 @@ useEffect(() => {
                setIsModalSelectOpen(false)
                setModalOpen(true)
                setModalOpenKH(false)
+                handleZoneSelect(null)
            }} className="absolute top-[3px] left-[5px]">
             {isModalOpen && (
                   <ModalElement
                     onClose={() => setModalOpen(false)}
                     onAddItem={handleAddItem} // ✅ Truyền hàm xuống
                     onAddTable={handleAddBan}
+                    selectedValue={selectedParentGroup}
+                    onSelectedChange={(v) => setSelectedParentGroup(v)}
+                    data={isDataParentGroup}
                   />
                 )}
               <button
@@ -1379,9 +1647,12 @@ useEffect(() => {
               onDeleteData= {(project:string) => handleDeleteData(project)}
               setProjectID={setProjectID }
               setProjectName={setProjectName}
-              handleConfirmXN={(projectid:string) => handleConfirm(projectid)}
+              handleConfirmXN={(projectid:string) =>{
+                  handleConfirm(projectid)}
+              } 
+             
             />
-             </>
+         </>
           
           <div onClick={() => {
              if( isProjectID == "" ) {
@@ -1390,14 +1661,21 @@ useEffect(() => {
              }
                setIsModalSelectOpen(false)
                 setModalOpen(false)
-                 setModalOpenKH(true)
+                setModalOpenKH(true)
+               handleZoneSelect(null)
           }} 
             className="absolute top-[3px] left-[315px]">
             {isModalOpenKH && (
                   <ModalCustomer
                     onClose={() => setModalOpenKH(false)}
                     table={guests}
-                   onAddSeat={handleAssignGuestsToSeats}
+                   onAddSeat={() => {
+                    if(isParentGroup === "0"){
+                       toast.error("Vui lòng chọn bên!");
+                        return
+                    }
+                    handleAssignGuestsToSeats()
+                   }}
                    onClickSeat= {(customerid:string,checkseatid:boolean) => handleAddSeatOnTable(customerid,checkseatid)}
                    onDelete ={(customerid:string,customer:string) => handleDeleteGuest(customerid,customer)}
                     handleDataImported={handleDataImported}
@@ -1405,6 +1683,8 @@ useEffect(() => {
                     setParentGroup={setParentGroup}
                     setGuest={handleSetGuest}
                     onResetGhe={handleResetSeat}
+                    selectedValue={isParentGroup}
+                    onSelectedChange={(v) => setParentGroup(v)}
                    />
                 )}
               <button
@@ -1434,27 +1714,47 @@ useEffect(() => {
             transition: "background-size 0.2s ease",
           }}
         >
+          <ZoneManager
+            containerRef={containerRef as React.RefObject<HTMLDivElement>}
+            innerRef={innerRef as React.RefObject<HTMLDivElement>} 
+            zoomFactor={zoomRef.current}
+            offsetPosition={offsetRef.current}
+            isZoneMode={isZoneMode}
+            onZoneModeToggle={handleToggleZoneMode}
+            projectId={isProjectID}
+            isExportMode={isExporting}
+            // ✅ Truyền zone states
+            zoneCollection={zoneCollection}
+            onZoneCollectionChange={setZoneCollection}
+            activeZoneIdx={activeZoneIdx}
+            onActiveZoneChange={handleZoneSelect}
+            handleVisiableVung={handleVisiableVung}
+            isConfirm={isConfirm}
+          />
           <div className='absolute' style={{border: "1px solid #ccc",
             padding: "1px 10px",
+            display: isExporting ? "none" : "",
             top: `${32 }px`}}></div>
             <div className='absolute' style={{border: "1px solid #ccc",
-            padding: "1px 10px",
+            padding: "1px 10px", display: isExporting ? "none" : "",
             top: `${32 }px`,right: "0"}}></div>
             <div className='absolute' style={{border: "1px solid #ccc",
-            padding: "10px 1px",
+            padding: "10px 1px", display: isExporting ? "none" : "",
             left: `${29 }px`,}}></div>
             <div className='absolute' style={{border: "1px solid #ccc",
-            padding: "10px 1px",
+            padding: "10px 1px", display: isExporting ? "none" : "",
             top: `${0 }px`,right: "29px"}}></div>
          <div 
             ref={innerRef}
+            className='relative z-30'
             style={{
               willChange: 'transform',
-              transform: `translate(${offsetRef.current.x}px, ${offsetRef.current.y}px) scale(${zoomRef.current})`,
+              transform: `translate(${offsetRef.current.x}px, ${offsetRef.current.y}px) scale(${zoomRef.current}) `,
               transformOrigin: 'top left',
             }}
           
         >
+         
           {tables.map((table, index) => {
               switch (table.shape) {
                 case 'round':
@@ -1693,6 +1993,23 @@ useEffect(() => {
             onDelete ={(customerid:string,customer:string) => handleDeleteGuest(customerid,customer)}
             table={isGuestItem[0]} />
           )}
+          {checkLoai === 5 && activeZoneIdx !== null && zoneCollection[activeZoneIdx] && (
+              <ZoneForm 
+                zoneData={{
+                  selectedZone: zoneCollection[activeZoneIdx],
+                  activeZoneIdx,
+                  zoneCollection,
+                  onZoneCollectionChange: setZoneCollection,
+                  onActiveZoneChange: setActiveZoneIdx,
+                  // Thêm các màu sắc cho ZoneForm
+                  zoneColorOptions: [
+                    '#ff4757', '#5352ed', '#2ed573', '#ffa502',
+                    '#a55eea', '#26d0ce', '#fd9644', '#485460',
+                    '#fdd835', '#7dc383'
+                  ]
+                }} 
+              />
+            )}
       </div>
       
     </div>

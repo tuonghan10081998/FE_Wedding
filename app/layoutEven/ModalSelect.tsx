@@ -1,5 +1,7 @@
-import React, { useState } from "react";
-
+import React, { useState,useEffect} from "react";
+import Select from "react-select";
+import type { SingleValue } from "react-select";
+import type { GroupGuest } from '../layoutEven/layoutEven';
 interface ModalSelectProps {
   isOpen: boolean;
   onClose: () => void;
@@ -9,14 +11,26 @@ interface ModalSelectProps {
     type: string,
     seatCount: number | string,
     checkrow: string,
-    position: string
+    position: string,
+    groupParentID:string
   ) => void;
+   data?:GroupGuest[]
+   onComBack:() => void
+   selectedValue: string;
+    onSelectedChange: (v: string) => void;
 }
-
+interface OptionType {
+  value: string;
+  label: string;
+}
 const ModalSelect: React.FC<ModalSelectProps> = ({
   isOpen,
   onClose,
   onConfirm,
+  data,
+  onComBack,
+  selectedValue,
+  onSelectedChange
 }) => {
   const [row, setRow] = useState<number | string>("");
   const [layout, setLayout] = useState<string>("ngang");
@@ -25,12 +39,16 @@ const ModalSelect: React.FC<ModalSelectProps> = ({
   const [checkRow, setCheckRow] = useState<string>("nhieuday");
   const [position, setPosition] = useState<string>("left");
 
-  if (!isOpen) return null;
-
+   const filterOptions: OptionType[] = [
+          ...(data?.map((card) => ({
+            value: card.parentID.toString() ?? "",
+            label: card.parentName,
+          })) ?? []),
+   ];
   const handleConfirm = () => {
-    onConfirm(row, layout, type, seatCount, checkRow, position);
+    onConfirm(row, layout, type, seatCount, checkRow, position,selectedValue ?? "");
   };
-
+if (!isOpen) return null;
   return (
     <div
       className="fixed top-27 right-0 z-30 w-[295px] h-full"
@@ -41,6 +59,24 @@ const ModalSelect: React.FC<ModalSelectProps> = ({
         <h2 className="text-lg font-bold border-b mb-5">Tạo Bàn Mới</h2>
           {/* Dãy + SL bàn */}
         <div className="mb-3 flex gap-4 mb-2">
+          <div className="flex-1">
+            <label className="block text-sm font-medium mb-1">Chọn bên:</label>
+              <Select
+              options={filterOptions}
+               value={filterOptions.find(opt => opt.value === selectedValue)}
+               onChange={(option: SingleValue<OptionType>) =>
+                 onSelectedChange(option?.value ?? "")
+               }
+              className="mb-0 w-[200px]"
+              classNamePrefix="react-select"
+              isSearchable={true}
+              placeholder=""
+            />
+          </div>
+
+        
+        </div>
+          <div className="mb-3 flex gap-4 mb-2">
           {/* Dãy */}
           <div className="flex-1">
             <label className="block text-sm font-medium mb-1">Dãy:</label>
@@ -248,8 +284,16 @@ const ModalSelect: React.FC<ModalSelectProps> = ({
        
 
         {/* Buttons */}
-        <div className="flex justify-end border-t pt-4">
-          <button
+        <div className="flex justify-between border-t pt-4">
+          <div className="flex flex-col items-center space-y-2">
+            <button
+             onClick={onComBack}
+             className="flex items-center space-x-2 px-3 py-2 bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-pink-300 transform hover:rotate-1">
+              Quay lại
+            </button>
+        </div>
+         <div className="flex ">
+           <button
             onClick={onClose}
             className="px-4 py-2 mr-2 rounded bg-gray-200 hover:bg-gray-300"
           >
@@ -261,6 +305,7 @@ const ModalSelect: React.FC<ModalSelectProps> = ({
           >
             Xác nhận
           </button>
+         </div>
         </div>
       </div>
     </div>
