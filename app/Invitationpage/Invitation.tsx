@@ -21,7 +21,7 @@ import WeddingInvitation4 from "~/Invitationpage/WeddingInvitation4";
 import WeddingInvitationCard4 from "~/Invitationpage/WeddingInvitationCard4";
 import WeddingCardCreate from "~/Invitationpage/WeddingCardCreate";
 import type { Project } from "~/layoutEven/layoutEven";
-
+import InvitationSender from "~/Invitationpage/InvitationSender";
 export interface InvitationProps {
   name: string;
   layout:Project;
@@ -35,6 +35,7 @@ const Invitation = () => {
   const select = searchParams.get("select");
   const [isModalOpenSelect, setIsModalOpenSelect] = useState(select === "true");
   const [isModalOpen, setIsModalOpen] = useState(false);
+   const [isModalOpenSent, setModalOpenSent] = useState<boolean>(false);
   // State modal viewer
   const [selectedViews, setSelectedViews] = useState<React.ReactNode[]>([]);
   const [selectedCheckForm, setSelectedCheckForm] = useState<number>(1);
@@ -251,7 +252,9 @@ const handleEditCard = (invitationData: InvitationProps) => {
       <h1 className="text-4xl font-bold text-gray-800 mb-2">Thiệp đã tạo</h1>
       <p className="text-gray-600 text-lg">Danh sách các thiệp mà bạn đã tạo</p>
     </div>
-
+    <div className="text-center mb-8" onClick={() =>setModalOpenSent(true)}>
+      aaa
+    </div>
     {dataInvatition.length === 0 ? (
       <div className="text-center  mb-18">
         <p className="text-2xl font-[roboto] text-pink-600 ">
@@ -337,6 +340,12 @@ const handleEditCard = (invitationData: InvitationProps) => {
                 isCheckSave={isCheckSave}
            />
         </div>
+      )}
+      {isModalOpenSent && (
+        <InvitationSender 
+          isOpen={isModalOpenSent}
+          onClose={() => setModalOpenSent(false)}
+        />
       )}
     </div>
   );

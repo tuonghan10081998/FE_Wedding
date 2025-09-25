@@ -684,7 +684,7 @@ const generateQR = (id: string, name: string) => `QR-${id}-${name}`;
   };
 
 const handleDataImported = (result: ImportResult): void => {
-  console.log(isParentGroup)
+ 
   if(isParentGroup === "0"){
       toast.error("Vui lòng chọn bên !");
        return
