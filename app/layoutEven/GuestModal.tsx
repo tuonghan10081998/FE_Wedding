@@ -9,9 +9,10 @@ interface GuestModalProps {
   initialData?: Guest; // dùng để update
   table:Guest[]
   parentgroupid:string | undefined
+  isView:boolean
 }
 
-const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose, onSave, initialData,table,parentgroupid}) => {
+const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose, onSave, initialData,table,parentgroupid,isView}) => {
 const [formData, setFormData] = useState<Guest>(
   initialData || {
     guestID: "",
@@ -45,7 +46,8 @@ useEffect(() => {
         groupInfo: {
           parentID: parseInt(parentgroupid ?? "0"),
           groupName:`${formData.groupInfo?.groupName}`
-        }
+        },
+        isView:isView
       }
     );
   }

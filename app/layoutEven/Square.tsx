@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import type { Guest, UnifiedTableData } from '../layoutEven/layoutEven';
 import Badge from '~/layoutEven/ItemSVGUser';
 import BadgeMan from '~/layoutEven/ItemSVGUserMan';
-
+import BlingDot from '~/layoutEven/BlingDot';
 interface SquareTableRenderProps {
   table: UnifiedTableData;
   index: number;
@@ -173,8 +173,12 @@ const SquareTableRender: React.FC<SquareTableRenderProps> = ({
         }}
         className="cursor-move fa-user usercutomer"
       >
-        {guest ? (
+         <div className={`absolute z-[10]`}>
+              {guest?.isSearch &&  <BlingDot/>} 
+          </div>
+        {(guest && guest.isView) ? (
           <div className="flex flex-col items-center justify-center text-[10px] leading-tight">
+            
             {guest.gender === "Nữ" ? (
               <Badge 
                 text={guest.name} 
@@ -391,6 +395,7 @@ const SquareTableRender: React.FC<SquareTableRenderProps> = ({
       data-indexsave={table.tableNumber}
       data-type="square"
       data-indexnumber={table.tableNumber}
+      data-parentid={table.groupParentID}
       ref={wrapperRef}
       onClick={(e) => onClick(index, e)}
     >
@@ -398,7 +403,7 @@ const SquareTableRender: React.FC<SquareTableRenderProps> = ({
         onMouseDown={handleDragMouseDown}
         className={`table-rect list_save flex ${
           isActive ? "activeSelect" : ""
-        } items-center justify-center bg-yellow-200 border border-gray-500 text-center`}
+        } ${table.isSearch ? "activeSearch" : ""} items-center justify-center bg-yellow-200 border border-gray-500 text-center`}
         style={{
           width: '100%',
           height: '100%',

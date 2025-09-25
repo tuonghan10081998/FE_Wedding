@@ -3,7 +3,7 @@ import type { Guest, UnifiedTableData } from '../layoutEven/layoutEven';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import Badge from '~/layoutEven/ItemSVGUser';
 import BadgeMan from '~/layoutEven/ItemSVGUserMan';
-
+import BlingDot from '~/layoutEven/BlingDot';
 interface RoundTableProps {
   table: UnifiedTableData;
   index: number;
@@ -258,8 +258,12 @@ const RoundTable: React.FC<RoundTableProps> = ({
             onClick={(e) => handleClick(e, seatID)}
             className="cursor-move fa-user usercutomer"
           >
-            {guest ? (
+             <div className={`absolute z-[10]`}>
+                   {guest?.isSearch &&  <BlingDot/>} 
+                </div>
+            {(guest && guest.isView)  ? (
               <div className="flex flex-col items-center justify-center text-[10px] leading-tight">
+               
                 {guest.gender === "Nữ" ? (
                   <Badge 
                     text={guest.name} 
@@ -391,13 +395,13 @@ const RoundTable: React.FC<RoundTableProps> = ({
       data-index={index}
       data-type="round"
       data-indexnumber={table.tableNumber}
-      data-parentID={table.groupParentID}
+      data-parentid={table.groupParentID}
     >
       <div
         onMouseDown={handleDragMouseDown}
         className={`listBanTron list_save absolute bg-purple-200 ${
           isActive ? "activeSelect" : ""
-        } border border-gray-400 rounded-full flex items-center justify-center text-lg text-gray-700`}
+        } ${table.isSearch ? "activeSearch" : ""} border border-gray-400 rounded-full flex items-center justify-center text-lg text-gray-700`}
         style={{
           width: localSize,
           height: localSize,

@@ -328,3 +328,23 @@ button.close-btn:hover {
     background-image: none !important;
   }
 }
+@keyframes bling {
+  0% {
+    opacity: 1;
+    background-color: #dc2626;
+  }
+  50% {
+    opacity: 0;
+    background-color: #dc2626;
+  }
+  100% {
+    opacity: 1;
+    background-color: #dc2626;
+  }
+}
+.activeSearch {
+  background-color: #87fd90 !important;
+}
+.bling-dot {
+  animation: bling 2s ease-in-out;
+}

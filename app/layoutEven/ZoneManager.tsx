@@ -316,8 +316,8 @@ const ZoneManager = React.forwardRef<any, ZoneManagerProps>(({
             width: displayZone.zoneWidth,
             height: displayZone.zoneHeight,
             backgroundColor: displayZone.zoneColor,
-            border: `2px ${isHighlighted ? 'solid' : 'dashed'} ${displayZone.zoneColor}`,
-            borderWidth: isHighlighted ? '3px' : '2px',
+            border: `${isHighlighted ? `5px dotted ` : '5px dotted'}`,
+            borderWidth: isHighlighted ? '5px' : '5px',
             borderRadius: '6px',
             boxShadow: isHighlighted ? `0 4px 12px ${displayZone.zoneColor}50` : 'none',
             display:  'block',
@@ -325,7 +325,8 @@ const ZoneManager = React.forwardRef<any, ZoneManagerProps>(({
             cursor: isHighlighted ? 'move' : 'pointer',
             // ✅ Thêm visual feedback khi đang resize
             transform: isResizing && isHighlighted ? 'scale(1.02)' : 'scale(1)',
-            transition: isResizing ? 'none' : 'all 0.2s ease'
+            transition: isResizing ? 'none' : 'all 0.2s ease',
+          
           }}
         >
         </div>

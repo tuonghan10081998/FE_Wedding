@@ -24,6 +24,7 @@ import { v4 as uuidv4 } from "uuid";
 import ModalSelectProject from '~/layoutEven/ModalSelectProject';
 import ZoneManager from '~/layoutEven/ZoneManager';
 import ZoneForm from '~/layoutEven/ZoneForm';
+import ModalSearchGuest from '~/layoutEven/ModalSearchGuest';
 export interface ZoneRegion {
   zoneId: string;
   zoneName: string;
@@ -59,7 +60,8 @@ export interface UnifiedTableData {
   sourceType: number;
   nameTable: string;
   groupParentID?:number
-  isComeback?:number 
+  isComeback?:number,
+  isSearch?:boolean
 }
 
 export interface Guest {
@@ -81,7 +83,9 @@ export interface Guest {
     groupName?:string
     parentID?:number
   },
-  mail?:string
+  mail?:string,
+  isView?:boolean
+  isSearch?:boolean
 }
 
 interface layOutContainer {
@@ -138,7 +142,7 @@ export default function TablePlanner() {
   const [checkLoai,setCheckLoai] = useState<number>(0)
   const [tableShape,setTableShape] = useState<string>("");
   const [isModalSaveOpen, setIsModalSaveOpen] = useState(false);
-  const [isModalSaveOpenProject, setIsModalSaveOpenProject] = useState(true);
+  const [isModalSaveOpenProject, setIsModalSaveOpenProject] = useState(false);
   const [isModalSelectOpen, setIsModalSelectOpen] = useState(false);
   const [multiSelectedItems, setMultiSelectedItems] = useState<UnifiedTableData[]>([]);
   const [multiSelected, setMultiSelected] = useState<LayoutItem[]>([]);
@@ -158,11 +162,17 @@ export default function TablePlanner() {
   const [isDataParentGroup,setDataParentGroup] = useState<GroupGuest[]>([])
   const [isParentGroup,setParentGroup] = useState<string>("0")
   const [selectedParentGroup, setSelectedParentGroup] = useState<string>("0");
+  const [isViewIconUser, setViewIconUser] = useState<boolean>(true);
 
   const [zoneCollection, setZoneCollection] = useState<ZoneRegion[]>([]);
   const [activeZoneIdx, setActiveZoneIdx] = useState<number | null>(null);
   const [isZoneMode, setIsZoneMode] = useState<boolean>(true)
   const [isConfirm,setConfirm] = useState<boolean>(false)
+  const [isProjectLocal,setProjectLocal] = useState<string | null >(null)
+  const [isProjectNameLocal,setProjectNameLocal] = useState<string | null >(null)
+
+  const[isModalSearchGuest,setModalSearchGuest] = useState<boolean>(false)
+  const[isParentGroupSearch,setParentGroupSearch]= useState<string>("0")
 
   // Thêm handleToggleZoneMode function
   const handleToggleZoneMode = () => {
@@ -190,8 +200,13 @@ export default function TablePlanner() {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("userInvitation");
+    const storedProject = localStorage.getItem("projectid");
+    const storedProjectName = localStorage.getItem("projectidName");
+    console.log(storedProjectName)
      !storedUser && navigate("/");
     setUser(storedUser);
+    setProjectLocal(storedProject || "0")
+    setProjectNameLocal(storedProjectName || "")
   }, []);
   const handleVisiableVung = () => {
     setZoneCollection((prev) => 
@@ -206,24 +221,39 @@ useEffect(() => {
    setConfirm(!isConfirm)
  }
 },[zoneCollection])
-//  useEffect(() => {
-//   const handleClick = (e: MouseEvent) => {
-//     const target = e.target as HTMLElement;
+useEffect(() => {   
+  const handleClick = (e: MouseEvent) => {     
+    const target = e.target as HTMLElement;
     
-//     // Nếu không click vào zone wrapper thì clear active zone
-//     if (!target.closest('.zone-display-wrapper') && isZoneMode) {
-//       setActiveZoneIdx(null);
-//     }
-//   };
+    // Kiểm tra xem click có nằm trong tableContainer không
+    const tableContainer = document.getElementById('tableContainer');
+    if (!tableContainer || !tableContainer.contains(target)) {
+      return; // Nếu click ngoài tableContainer thì không làm gì
+    }
+          
+    // Nếu không click vào zone wrapper thì clear active zone     
+    if (!target.closest('.zone-display-wrapper') && isZoneMode) {       
+      setActiveZoneIdx(null);     
+    }   
+  };    
 
-//   document.addEventListener('click', handleClick);
-//   return () => document.removeEventListener('click', handleClick);
-// }, [isZoneMode]);
+  document.addEventListener('click', handleClick);   
+  return () => document.removeEventListener('click', handleClick); 
+}, [isZoneMode]);
  const handleDeleteData = (projectid:string) => {
      setData((prev) => prev.filter((p) => p.projectID !== projectid));
      Delete(projectid)
  }
-
+useEffect(() => {
+  if(!isProjectLocal) return
+  if(isProjectLocal === "0"){
+    setIsModalSaveOpenProject(true)
+  }
+  else{
+    setProjectID(isProjectLocal)
+    setProjectName(isProjectNameLocal ?? "")
+  }
+},[isProjectLocal])
 const getDataParentGroup = async () => {
     if (isUser == "") return;
     const url = `${import.meta.env.VITE_API_URL}/api/GroupInfo/ParentGroup`;
@@ -285,6 +315,7 @@ const getDataProject = async () => {
       setModalOpen(false)
       setModalOpenKH(false)
       handleZoneSelect(null)
+      setModalSearchGuest(false)
       setSelectedParentGroup("0")
       setParentGroup("0")
       zoomRef.current = 0.7;
@@ -399,7 +430,10 @@ const GetGuest = async (projectid:string) => {
 
       const data = await response.json();
       if(data.length > 0)
-         setGuests(data)
+         setGuests(data.map((x:any) => ({
+          ...x,
+          isView:true
+        })))
     } catch (error) {
         console.error(error);
     }
@@ -422,10 +456,13 @@ useEffect(() => {
       setModalOpen(false)
       setModalOpenKH(false)
       handleZoneSelect(null)
+      setModalSearchGuest(false)
       setSelectedParentGroup("0")
       setParentGroup("0")
       zoomRef.current = 0.7;
       offsetRef.current = { x: 0, y: 0 };
+      localStorage.setItem("projectid", isProjectID);
+      setViewIconUser(true)
       if (isProjectID !== "0") {
         // ✅ Đợi một chút để state reset hoàn toàn
         await new Promise(resolve => setTimeout(resolve, 10));
@@ -438,7 +475,9 @@ useEffect(() => {
     };
     resetAndFetch();
 },[isProjectID])
-   
+useEffect(() => {
+  isProjectName &&  localStorage.setItem("projectidName", isProjectName);
+},[isProjectName])
   const handleSaveLayout = () => {
   
       const layoutCurent: layOutContainer = {
@@ -645,6 +684,11 @@ const generateQR = (id: string, name: string) => `QR-${id}-${name}`;
   };
 
 const handleDataImported = (result: ImportResult): void => {
+  console.log(isParentGroup)
+  if(isParentGroup === "0"){
+      toast.error("Vui lòng chọn bên !");
+       return
+  }
   let hasDuplicate = false;
 
   const processedGuests = processImportedData(result.data)
@@ -684,6 +728,7 @@ const handleDataImported = (result: ImportResult): void => {
           groupName: `${row[4]}`  ,
         },
         mail:row[5] ?? "",
+        isView:isViewIconUser,
       } as Guest;
     });
     return guestsTable;
@@ -1054,12 +1099,10 @@ const handleResetSeat = () => {
 
 const handleAssignGuestsToSeats = () => {
   const newGuests = [...guests];
-  console.log(guests)
   const newGuestsFilter = newGuests.filter(x => x.groupInfo?.parentID === parseInt(isParentGroup));
 
   const unassignedGuests = newGuestsFilter.filter((g) => !g.seatID);
   var tableSetNameTable = tables
-  console.log(unassignedGuests)
   // Nhóm khách theo groupName
   const guestsByGroup = unassignedGuests.reduce((acc, guest) => {
     const groupName = guest.groupInfo?.groupName || 'default';
@@ -1501,6 +1544,22 @@ useEffect(() => {
   var guestItemInfo = guests.filter(x => x.guestID === isGuestItem[0]?.guestID)
   setGuestItem(guestItemInfo)
 },[guests])
+useEffect(() => {
+  if(!isModalSearchGuest) {
+    setGuests(prev => 
+      prev.map((x)=> ({
+        ...x,
+        isSearch:false
+      }))
+    )
+     setTables(prev => 
+      prev.map((x)=> ({
+        ...x,
+        isSearch:false
+      }))
+    )
+  }
+},[isModalSearchGuest])
   return (
     <div>
        <>
@@ -1551,6 +1610,7 @@ useEffect(() => {
                   setModalOpen(false)
                  setModalOpenKH(false)
                  handleZoneSelect(null)
+                 setModalSearchGuest(false)
               }}
               className="absolute top-[3px] left-[180px] cursor-pointer p-1 px-3 rounded-lg bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
             >
@@ -1607,6 +1667,7 @@ useEffect(() => {
                setModalOpen(true)
                setModalOpenKH(false)
                 handleZoneSelect(null)
+                setModalSearchGuest(false)
            }} className="absolute top-[3px] left-[5px]">
             {isModalOpen && (
                   <ModalElement
@@ -1652,16 +1713,42 @@ useEffect(() => {
              
             />
          </>
-          
+          <>
+          {isModalSearchGuest && (
+              <ModalSearchGuest
+                  isOpen={isModalSearchGuest}
+                  onClose={() =>setModalSearchGuest(false)}
+                 onSearch={(guestid: string,tableid:string) => {
+                    setGuests(prev =>
+                      prev.map(x => ({
+                        ...x,
+                        isSearch: x.guestID === guestid
+                      }))
+                    );
+                    setTables(prev =>
+                      prev.map(x => ({
+                        ...x,
+                        isSearch: x.tableNumber.toString() === tableid
+                      }))
+                    );
+                  }}
+                  data={isDataParentGroup}
+                  selectedValue={isParentGroupSearch}
+                  onSelectedChange={(v) => setParentGroupSearch(v)}
+                  dataGuest={guests}
+              />
+          )} 
+          </>
           <div onClick={() => {
              if( isProjectID == "" ) {
               toast.error("Vui lòng tạo dự án mới !");
               return
              }
                setIsModalSelectOpen(false)
-                setModalOpen(false)
-                setModalOpenKH(true)
+               setModalOpen(false)
+               setModalOpenKH(true)
                handleZoneSelect(null)
+               setModalSearchGuest(false)
           }} 
             className="absolute top-[3px] left-[315px]">
             {isModalOpenKH && (
@@ -1684,6 +1771,7 @@ useEffect(() => {
                     onResetGhe={handleResetSeat}
                     selectedValue={isParentGroup}
                     onSelectedChange={(v) => setParentGroup(v)}
+                    isView={isViewIconUser}
                    />
                 )}
               <button
@@ -1713,6 +1801,47 @@ useEffect(() => {
             transition: "background-size 0.2s ease",
           }}
         >
+           <div className="absolute bottom-[55px] left-[10px] z-[99999] space-y-2">
+                  <div className="flex items-center bg-white rounded-lg px-2 py-1 shadow-sm">
+                    <input
+                      type="checkbox"
+                      id="userToggle"
+                      checked={isViewIconUser}
+                      onChange={() => {
+                        setGuests(prev => 
+                          prev.map((x) => ({
+                            ...x,
+                            isView:!isViewIconUser
+                          }))
+                        )
+                        setViewIconUser(!isViewIconUser)
+                      }}
+                      className="w-4 h-4 text-purple-600 bg-gray-100  rounded "
+                    />
+                    <label 
+                      htmlFor="userToggle" 
+                      className="ml-2 text-sm font-medium text-gray-700 cursor-pointer select-none"
+                    >
+                      Khách mời
+                    </label>
+                  </div>
+                 
+                  
+                </div>
+            <div className="absolute top-[5px] right-[40px] z-[99999] space-y-2">
+                   <div className="flex items-center bg-white rounded-lg px-2 py-1 shadow-sm">
+                    <div onClick={() => {
+                        setIsModalSelectOpen(false)
+                        setModalOpen(false)
+                        setModalOpenKH(false)
+                        handleZoneSelect(null)
+                        setModalSearchGuest(true)
+                    }}>
+                      
+                      <i className="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                  </div>
+                </div>
           <ZoneManager
             containerRef={containerRef as React.RefObject<HTMLDivElement>}
             innerRef={innerRef as React.RefObject<HTMLDivElement>} 

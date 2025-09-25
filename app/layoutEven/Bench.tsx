@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import type { Guest, UnifiedTableData } from '../layoutEven/layoutEven';
 import Badge from '~/layoutEven/ItemSVGUser';
 import BadgeMan from '~/layoutEven/ItemSVGUserMan';
-
+import BlingDot from '~/layoutEven/BlingDot';
 interface BenchTableRenderProps {
   table: UnifiedTableData;
   index: number;
@@ -121,8 +121,12 @@ const BenchTableRender: React.FC<BenchTableRenderProps> = ({
         }}
         className="cursor-move fa-user usercutomer"
       >
-        {guest ? (
+         <div className={`absolute z-[10]`}>
+               {guest?.isSearch &&  <BlingDot/>} 
+           </div>
+         {(guest && guest.isView) ? (
           <div className="flex flex-col items-center justify-center text-[10px] leading-tight">
+          
             {guest.gender === "Nữ" ? (
               <Badge 
                 text={guest.name} 
@@ -313,6 +317,7 @@ const BenchTableRender: React.FC<BenchTableRenderProps> = ({
       data-indexsave={index}
       data-type="bench"
       data-indexnumber={table.tableNumber}
+      data-parentid={table.groupParentID}
       ref={wrapperRef}
       onClick={(e) => onClick(index, e)}
     >
@@ -320,7 +325,7 @@ const BenchTableRender: React.FC<BenchTableRenderProps> = ({
         onMouseDown={handleDragMouseDown}
         className={`list_save itemgd absolute ${
           isActive ? "activeSelect" : ""
-        } bg-green-300 border border-gray-400 rounded-md flex items-center justify-center text-lg text-gray-800`}
+        } ${table.isSearch ? "activeSearch" : ""}  bg-green-300 border border-gray-400 rounded-md flex items-center justify-center text-lg text-gray-800`}
         style={{
           top: 1,
           width: localSize,
