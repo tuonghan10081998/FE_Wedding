@@ -29,7 +29,7 @@ export default function WeddingLayoutLanding() {
   const layoutImages = [
     {
       id: 1,
-      image: "/image/layout2.png"
+      image: "/image/layout4.png"
     },
     {
       id: 2,
@@ -37,7 +37,7 @@ export default function WeddingLayoutLanding() {
     },
     {
       id: 3,
-      image:  "/image/layout3.png"
+      image:  "/image/layout2.png"
     }
   ];
 
@@ -214,7 +214,7 @@ export default function WeddingLayoutLanding() {
                   <img
                     src={item.image}
                     alt={`Layout Template ${item.id}`}
-                    className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="bg-white object-contain w-full h-64  group-hover:scale-110 transition-transform duration-500"
                   />
                 </div>
               </div>

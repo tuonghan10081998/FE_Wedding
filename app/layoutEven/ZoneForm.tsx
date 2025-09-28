@@ -1,5 +1,5 @@
-// ZoneForm.tsx - Fixed version
-import React, { useState } from 'react';
+// ZoneForm.tsx - Fixed Version
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import ConfirmDeleteZoneModal from '~/layoutEven/ModalNotiDeleteZone';
 
@@ -20,35 +20,100 @@ const ZoneForm: React.FC<ZoneFormProps> = ({ zoneData }) => {
   }
 
   const { selectedZone, activeZoneIdx, zoneCollection, onZoneCollectionChange, onActiveZoneChange, zoneColorOptions } = zoneData;
+  
+  // Thêm màu trắng vào bộ màu nếu chưa có
+  const enhancedColorOptions = zoneColorOptions.includes('#ffffff') 
+    ? zoneColorOptions 
+    : [...zoneColorOptions, '#ffffff'];
   const [isModalDelete, setModalDelete] = useState<boolean>(false);
+  
+  // Local state cho tất cả các thuộc tính
+  const [localZoneName, setLocalZoneName] = useState<string>(selectedZone.zoneName);
+  const [localZoneColor, setLocalZoneColor] = useState<string>(selectedZone.zoneColor);
+  const [localAlphaLevel, setLocalAlphaLevel] = useState<number>(selectedZone.alphaLevel);
 
-  const updateZoneName = (newName: string) => {
+  // Sync local state khi selectedZone thay đổi (fix race condition)
+  useEffect(() => {
+    if (selectedZone) {
+      setLocalZoneName(selectedZone.zoneName || '');
+      setLocalZoneColor(selectedZone.zoneColor || '#000000');
+      setLocalAlphaLevel(selectedZone.alphaLevel || 0.5);
+    }
+  }, [activeZoneIdx]); // Chỉ depend vào activeZoneIdx
+
+  // Hàm commit tất cả thay đổi
+  const commitAllChanges = () => {
+    if (!selectedZone) return;
+    
+    const hasChanges = 
+      localZoneName !== selectedZone.zoneName ||
+      localZoneColor !== selectedZone.zoneColor ||
+      localAlphaLevel !== selectedZone.alphaLevel;
+
+    if (hasChanges) {
+      const updatedZones = zoneCollection.map((zone, idx) => 
+        idx === activeZoneIdx ? { 
+          ...zone, 
+          zoneName: localZoneName,
+          zoneColor: localZoneColor,
+          alphaLevel: localAlphaLevel
+        } : zone
+      );
+      onZoneCollectionChange(updatedZones);
+    }
+  };
+
+  // Handle Enter key cho tên zone
+  const handleZoneNameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      commitAllChanges();
+      (e.target as HTMLInputElement).blur();
+    }
+  };
+
+  // Immediate update cho color preset
+  const handleColorPresetClick = (color: string) => {
+    setLocalZoneColor(color);
+    const updatedZones = zoneCollection.map((zone, idx) => 
+      idx === activeZoneIdx ? { ...zone, zoneColor: color } : zone
+    );
+    onZoneCollectionChange(updatedZones);
+  };
+
+  // Immediate update cho zone name - cả local và global
+  const handleZoneNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = e.target.value;
+    setLocalZoneName(newName); // Update local state
+    
+    // Update zoneCollection ngay lập tức
     const updatedZones = zoneCollection.map((zone, idx) => 
       idx === activeZoneIdx ? { ...zone, zoneName: newName } : zone
     );
     onZoneCollectionChange(updatedZones);
   };
 
-  const updateZoneColor = (newColor: string) => {
+  // Immediate update cho alpha level
+  const handleAlphaChange = (newAlpha: number) => {
+    setLocalAlphaLevel(newAlpha);
+    const updatedZones = zoneCollection.map((zone, idx) => 
+      idx === activeZoneIdx ? { ...zone, alphaLevel: newAlpha } : zone
+    );
+    onZoneCollectionChange(updatedZones);
+  };
+
+  // Immediate update cho color input
+  const handleColorInputChange = (newColor: string) => {
+    setLocalZoneColor(newColor);
     const updatedZones = zoneCollection.map((zone, idx) => 
       idx === activeZoneIdx ? { ...zone, zoneColor: newColor } : zone
     );
     onZoneCollectionChange(updatedZones);
   };
 
-  const updateZoneOpacity = (newOpacity: number) => {
-    const updatedZones = zoneCollection.map((zone, idx) => 
-      idx === activeZoneIdx ? { ...zone, alphaLevel: newOpacity } : zone
-    );
-    onZoneCollectionChange(updatedZones);
-  };
-
-  // ✅ Sửa lỗi: chỉ show modal thay vì return JSX
   const removeZone = () => {
     setModalDelete(true);
   };
 
-  // ✅ Hàm xử lý confirm delete
   const handleConfirmDelete = () => {
     onZoneCollectionChange(zoneCollection.filter((_, idx) => idx !== activeZoneIdx));
     onActiveZoneChange(null);
@@ -82,8 +147,10 @@ const ZoneForm: React.FC<ZoneFormProps> = ({ zoneData }) => {
           <label className="block text-sm font-medium mb-1 text-gray-600">Tên vùng:</label>
           <input
             type="text"
-            value={selectedZone.zoneName}
-            onChange={(e) => updateZoneName(e.target.value)}
+            value={localZoneName}
+            onChange={(e) => setLocalZoneName(e.target.value)}
+            onBlur={commitAllChanges}
+            onKeyDown={handleZoneNameKeyDown}
             className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
         </div>
@@ -94,18 +161,20 @@ const ZoneForm: React.FC<ZoneFormProps> = ({ zoneData }) => {
           <div className="flex items-center gap-2 mb-2">
             <input
               type="color"
-              value={selectedZone.zoneColor}
-              onChange={(e) => updateZoneColor(e.target.value)}
+              value={localZoneColor}
+              onChange={(e) => handleColorInputChange(e.target.value)}
               className="w-10 h-8 border border-gray-300 rounded cursor-pointer"
             />
-            <span className="text-sm text-gray-500">{selectedZone.zoneColor}</span>
+            <span className="text-sm text-gray-500">{localZoneColor}</span>
           </div>
           <div className="grid grid-cols-5 gap-1">
-            {zoneColorOptions.map((color: string) => (
+            {enhancedColorOptions.map((color: string) => (
               <button
                 key={color}
-                onClick={() => updateZoneColor(color)}
-                className="w-6 h-6 rounded border-2 hover:scale-110 transition-transform"
+                onClick={() => handleColorPresetClick(color)}
+                className={`w-6 h-6 rounded border-2 hover:scale-110 transition-transform ${
+                  color === '#ffffff' ? 'border-gray-400' : 'border-gray-200'
+                }`}
                 style={{ backgroundColor: color }}
                 title={color}
               />
@@ -116,15 +185,15 @@ const ZoneForm: React.FC<ZoneFormProps> = ({ zoneData }) => {
         {/* Độ trong suốt */}
         <div className="mb-3">
           <label className="block text-sm font-medium mb-1 text-gray-600">
-            Độ trong suốt: {Math.round(selectedZone.alphaLevel * 100)}%
+            Độ trong suốt: {Math.round(localAlphaLevel * 100)}%
           </label>
           <input
             type="range"
             min="0.1"
             max="0.8"
             step="0.05"
-            value={selectedZone.alphaLevel}
-            onChange={(e) => updateZoneOpacity(parseFloat(e.target.value))}
+            value={localAlphaLevel}
+            onChange={(e) => handleAlphaChange(parseFloat(e.target.value))}
             className="w-full"
           />
         </div>
@@ -155,7 +224,7 @@ const ZoneForm: React.FC<ZoneFormProps> = ({ zoneData }) => {
         </div>
       </div>
 
-      {/* ✅ Modal render ở đây */}
+      {/* Modal */}
       {isModalDelete && (
         <ConfirmDeleteZoneModal
           onClose={() => setModalDelete(false)}
