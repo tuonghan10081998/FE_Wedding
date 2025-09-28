@@ -105,7 +105,9 @@ const Layout: React.FC = () => {
                 <li className={isActive("/layout/Invitation") ? "active" : ""}>
                   <Link to="/layout/Invitation">THIỆP CƯỚI</Link>
                 </li>
-               
+                <li className={isActive("/layout/Plan") ? "active" : ""}>
+                  <Link to="/layout/Plan">GÓI DỊCH VỤ</Link>
+                </li>
                 <li className="relative hidden">
                   <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -228,14 +230,14 @@ const Layout: React.FC = () => {
                 </Link>
               </li>
               <li
-                className={isActive("/thiep-tan-gia") ? "active" : ""}
+                className={isActive("/layout/Plan") ? "active" : ""}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 <Link
-                  to="/thiep-tan-gia"
+                  to="/layout/Plan"
                   className="block px-3 py-2 rounded hover:bg-purple-600"
                 >
-                  THIỆP TÂN GIA
+                  GÓI DỊCH VỤ
                 </Link>
               </li>
               <li>

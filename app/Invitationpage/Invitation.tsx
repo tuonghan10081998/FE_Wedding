@@ -278,7 +278,8 @@ const handleCreateCard = (checkForm: number,invatition:string) => {
             <WeddingCardCreate
               key={inva.invitationID}
               title={inva.name || `Thiệp đã tạo ${index + 1}`}
-              images={card?.images ?? []}
+              images={card?.views ?? []}
+              layoutData={layoutData}
               onPreview={() => {
                 navigate(
                   `/layout/InvitationCard?thiep=${layoutData?.checkForm}&xt=0&id=${inva.invitationID}`

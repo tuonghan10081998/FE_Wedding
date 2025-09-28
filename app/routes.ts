@@ -6,7 +6,8 @@ const routes: RouteConfig = [
     route("Invitation", "Invitationpage/Invitation.tsx"),
     route("InvitationCard","InvitationCard/InvitationThiep.tsx"),
     route("layoutEven", "layoutEven/layoutEven.tsx"),
-     route("LayoutLanding", "LayoutLanding/WeddingLayoutLanding.tsx"),
+    route("LayoutLanding", "LayoutLanding/WeddingLayoutLanding.tsx"),
+    route("Plan", "Plan/PlanSelection.tsx"),
   ]),
 ];
 

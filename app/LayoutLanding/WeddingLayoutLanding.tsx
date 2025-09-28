@@ -3,6 +3,7 @@ import { Heart, Star, Palette, Smartphone, Users, Award, ArrowRight, Play, Check
 
 export default function WeddingLayoutLanding() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const [selectedPlan, setSelectedPlan] = useState<string>('');
 
   const testimonials = [
     {
@@ -25,23 +26,76 @@ export default function WeddingLayoutLanding() {
     }
   ];
 
-  const features = [
+  const layoutImages = [
     {
-      icon: <Palette className="w-8 h-8" />,
-      title: "Templates Đa Dạng",
-      description: "Hơn 100+ mẫu thiết kế đẹp mắt từ cổ điển đến hiện đại, phù hợp mọi phong cách đám cưới"
+      id: 1,
+      image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
     },
     {
-      icon: <Smartphone className="w-8 h-8" />,
-      title: "Responsive Design", 
-      description: "Thiết kế tự động thích ứng mọi thiết bị, từ điện thoại đến máy tính, luôn hiển thị hoàn hảo"
+      id: 2,
+      image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
     },
     {
-      icon: <Users className="w-8 h-8" />,
-      title: "Quản Lý Khách Mời",
-      description: "Tính năng RSVP thông minh, theo dõi phản hồi khách mời và quản lý danh sách một cách dễ dàng"
+      id: 3,
+      image: "https://images.unsplash.com/photo-1465495976277-4387d4b0e4a6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
     }
   ];
+
+  const invitationImages = [
+    {
+      id: 1,
+      image: "https://images.unsplash.com/photo-1594736797933-d0ea1b2e8db5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      id: 2,
+      image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      id: 3,
+      image: "https://images.unsplash.com/photo-1606800052052-a08af7148866?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+    }
+  ];
+
+  const plans = [
+    {
+      planID: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      planName: "Free",
+      price: 0,
+      maxLayOut: 2,
+      maxGuests: 100,
+      maxTable: 10,
+      isExport: 0
+    },
+    {
+      planID: "55ae1dc2-d98d-4389-38ab-08ddfabdc134",
+      planName: "VIP1",
+      price: 200,
+      maxLayOut: 5,
+      maxGuests: 100,
+      maxTable: 20,
+      isExport: 1
+    }
+  ];
+
+  const formatPrice = (price: number) => {
+    if (price === 0) return 'Miễn phí';
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(price * 1000);
+  };
+
+  const getPlanDisplayName = (planName: string) => {
+    const nameMap: { [key: string]: string } = {
+      'Free': 'Gói Miễn Phí',
+      'VIP1': 'Gói VIP Premium'
+    };
+    return nameMap[planName] || planName;
+  };
+
+  const handleSelectPlan = (planId: string) => {
+    setSelectedPlan(planId);
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -52,28 +106,6 @@ export default function WeddingLayoutLanding() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50">
-      {/* Header */}
-      {/* <header className="bg-white/80 backdrop-blur-md border-b border-pink-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-2">
-              <Heart className="w-8 h-8 text-pink-500" />
-              <span className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-                LoveCard
-              </span>
-            </div>
-            <nav className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-gray-700 hover:text-pink-500 transition-colors">Tính năng</a>
-              <a href="#templates" className="text-gray-700 hover:text-pink-500 transition-colors">Mẫu thiết kế</a>
-              <a href="#pricing" className="text-gray-700 hover:text-pink-500 transition-colors">Bảng giá</a>
-              <button className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-2 rounded-full hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
-                Đăng nhập
-              </button>
-            </nav>
-          </div>
-        </div>
-      </header> */}
-
       {/* Hero Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -97,12 +129,6 @@ export default function WeddingLayoutLanding() {
                 <span>Bắt đầu miễn phí</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
-              <button className="group flex items-center space-x-3 text-gray-700 hover:text-pink-500 transition-colors">
-                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
-                  <Play className="w-5 h-5 text-pink-500 ml-1" />
-                </div>
-                <span className="font-medium">Xem demo</span>
-              </button>
             </div>
           </div>
 
@@ -123,86 +149,200 @@ export default function WeddingLayoutLanding() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20 bg-white">
+      {/* Layout Templates Section - Simple Images */}
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Tại sao chọn chúng tôi?
+              Bộ Sưu Tập Template Layout
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Những tính năng vượt trội giúp bạn tạo ra thiệp cưới hoàn hảo
+            <p className="text-xl text-gray-600">
+              Chọn từ những mẫu thiết kế website đám cưới đẹp nhất
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 mb-16">
-            {features.map((feature, index) => (
-              <div key={index} className="group p-8 rounded-2xl bg-gradient-to-br from-pink-50 to-purple-50 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-                <div className="text-pink-500 mb-4 group-hover:scale-110 transition-transform">
-                  {feature.icon}
+          <div className="grid md:grid-cols-3 gap-8">
+            {layoutImages.map((item) => (
+              <div key={item.id} className="group cursor-pointer">
+                <div className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+                  <img
+                    src={item.image}
+                    alt={`Layout Template ${item.id}`}
+                    className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-12 border-t border-gray-100">
-            {[
-              { number: "10,000+", label: "Cặp đôi tin tưởng" },
-              { number: "150+", label: "Mẫu thiết kế" },
-              { number: "99%", label: "Khách hàng hài lòng" },
-              { number: "24/7", label: "Hỗ trợ tận tâm" }
-            ].map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl font-bold text-pink-500 mb-2">{stat.number}</div>
-                <div className="text-gray-600">{stat.label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Templates Showcase */}
-      <section id="templates" className="py-20 bg-gradient-to-br from-purple-50 to-pink-50">
+      {/* Invitation Templates Section - Simple Images */}
+      <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Bộ sưu tập template đẹp mắt
+              Bộ Sưu Tập Template Thiệp Cưới
             </h2>
             <p className="text-xl text-gray-600">
-              Từ cổ điển thanh lịch đến hiện đại sáng tạo
+              Thiệp mời điện tử đẹp mắt, dễ dàng chia sẻ
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { name: "Classic Rose", style: "Cổ điển", color: "from-pink-300 to-rose-300" },
-              { name: "Modern Minimal", style: "Hiện đại", color: "from-purple-300 to-indigo-300" },
-              { name: "Garden Party", style: "Thiên nhiên", color: "from-green-300 to-emerald-300" }
-            ].map((template, index) => (
-              <div key={index} className="group cursor-pointer">
-                <div className={`bg-gradient-to-br ${template.color} rounded-2xl p-6 h-64 flex flex-col justify-between shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300`}>
-                  <div className="flex justify-between items-start">
-                    <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm text-white font-medium">
-                      {template.style}
-                    </div>
-                    <Heart className="w-6 h-6 text-white/70 hover:text-white transition-colors" />
-                  </div>
-                  <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 text-center">
-                    <h3 className="font-bold text-gray-800 mb-1">{template.name}</h3>
-                    <p className="text-sm text-gray-600">Xem trước</p>
-                  </div>
+            {invitationImages.map((item) => (
+              <div key={item.id} className="group cursor-pointer">
+                <div className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+                  <img
+                    src={item.image}
+                    alt={`Invitation Template ${item.id}`}
+                    className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Plans Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Chọn Gói Dịch Vụ Phù Hợp
+            </h2>
+            <p className="text-xl text-gray-600">
+              Lựa chọn gói dịch vụ tốt nhất cho sự kiện của bạn
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {plans.map((plan) => {
+              const isSelected = selectedPlan === plan.planID;
+              const isPremium = plan.planName !== 'Free';
+              
+              return (
+                <div
+                  key={plan.planID}
+                  className={`relative bg-white rounded-2xl p-8 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl border-2 ${
+                    isSelected
+                      ? isPremium 
+                        ? 'border-purple-500 shadow-purple-200 shadow-lg'
+                        : 'border-green-500 shadow-green-200 shadow-lg'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => handleSelectPlan(plan.planID)}
+                >
+                  {/* Popular Badge cho gói VIP */}
+                  {isPremium && (
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                        Phổ Biến
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Selected indicator */}
+                  {isSelected && (
+                    <div className="absolute top-4 right-4">
+                      <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                        <CheckCircle className="w-4 h-4 text-white" />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="text-center">
+                    {/* Icon */}
+                    <div className="mb-6">
+                      {plan.planName === 'Free' ? (
+                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                          <Heart className="w-8 h-8 text-green-600" />
+                        </div>
+                      ) : (
+                        <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto">
+                          <Award className="w-8 h-8 text-white" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    <h4 className="text-2xl font-bold text-gray-900 mb-4">
+                      {getPlanDisplayName(plan.planName)}
+                    </h4>
+                    
+                    <div className="mb-6">
+                      <span className={`text-4xl font-bold ${plan.price === 0 ? 'text-green-600' : 'text-purple-600'}`}>
+                        {formatPrice(plan.price)}
+                      </span>
+                      {plan.price > 0 && (
+                        <span className="text-gray-500 text-lg ml-1">/tháng</span>
+                      )}
+                    </div>
+
+                    {/* Features */}
+                    <div className="space-y-4 mb-8 text-left">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-700 flex items-center">
+                          <Palette className="w-4 h-4 mr-2 text-purple-500" />
+                          Bố cục tối đa
+                        </span>
+                        <span className="font-semibold text-gray-900">{plan.maxLayOut} mẫu</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-700 flex items-center">
+                          <Users className="w-4 h-4 mr-2 text-blue-500" />
+                          Số khách mời
+                        </span>
+                        <span className="font-semibold text-gray-900">{plan.maxGuests} người</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-700 flex items-center">
+                          <Heart className="w-4 h-4 mr-2 text-pink-500" />
+                          Số bàn tiệc
+                        </span>
+                        <span className="font-semibold text-gray-900">{plan.maxTable} bàn</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-700 flex items-center">
+                          <ArrowRight className="w-4 h-4 mr-2 text-green-500" />
+                          Xuất dữ liệu
+                        </span>
+                        <span className={`font-semibold ${plan.isExport ? 'text-green-600' : 'text-red-500'}`}>
+                          {plan.isExport ? 'Có' : 'Không'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Select Button */}
+                    <button
+                      className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200 ${
+                        isSelected
+                          ? 'bg-green-500 text-white'
+                          : plan.planName === 'Free'
+                          ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                          : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600'
+                      }`}
+                    >
+                      {isSelected ? 'Đã Chọn' : 'Chọn Gói Này'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Get Started Button */}
+          <div className="text-center mt-12">
+            <button className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 flex items-center space-x-2 mx-auto">
+              <span>Bắt đầu tạo ngay</span>
+              <ArrowRight className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </section>
 
       {/* Testimonials */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
@@ -269,10 +409,10 @@ export default function WeddingLayoutLanding() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
               <Heart className="w-6 h-6 text-pink-500" />
-              <span className="text-xl font-bold">LoveCard</span>
+              <span className="text-xl font-bold">Wedding Layout</span>
             </div>
             <div className="text-gray-400 text-sm">
-              © 2024 LoveCard. Tất cả quyền được bảo lưu.
+              © 2024 Wedding Layout. Tất cả quyền được bảo lưu.
             </div>
           </div>
         </div>

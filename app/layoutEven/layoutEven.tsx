@@ -172,7 +172,7 @@ export default function TablePlanner() {
   const [isConfirm,setConfirm] = useState<boolean>(false)
   const [isProjectLocal,setProjectLocal] = useState<string | null >(null)
   const [isProjectNameLocal,setProjectNameLocal] = useState<string | null >(null)
-
+  const [isOpen, setIsOpen] = useState(false);
   const[isModalSearchGuest,setModalSearchGuest] = useState<boolean>(false)
   const[isParentGroupSearch,setParentGroupSearch]= useState<string>("0")
   const [isInvatition,setInvatition] = useState<string>("")
@@ -1706,7 +1706,7 @@ useEffect(() => {
   }
 },[isModalSearchGuest])
   return (
-    <div>
+    <div >
        <>
           <button
               type="button"
@@ -1718,6 +1718,70 @@ useEffect(() => {
            
           </>
        <div className='relative'>
+       <div className="absolute top-[3px] right-[452px] cursor-pointer p-1 px-3 rounded-lg  bg-pink-600 text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2">
+          <button
+            type="button"
+            aria-label="file"
+            onClick={() => {
+              if (isProjectID == "") {
+                toast.error("Vui lòng tạo dự án mới !");
+                return;
+              }
+              setIsOpen(!isOpen);
+            }}
+            className="relative"
+          >
+            <i className="fas fa-file-pdf fa-lg me-1"></i>
+            Xuất file
+          </button>
+          
+          {isOpen && (
+            <div className="absolute right-[80px] top-[35px] bg-white border border-gray-200 rounded-lg shadow-xl min-w-[180px] py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+              {/* Xuất file mẫu */}
+              <button 
+                className="w-full cursor-pointer flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 focus:bg-gray-100 focus:outline-none transition-colors duration-200 text-left text-sm group"
+                onClick={() => {
+                  // Logic xuất file mẫu
+                  handleEmportTemplates()
+                  setIsOpen(false);
+                }}
+              >
+                <i className="fa-solid fa-file-lines text-[16px] mr-3 text-blue-500 group-hover:text-blue-600"></i>
+                <span className="font-medium">Xuất file mẫu</span>
+              </button>
+              
+              {/* Xuất PDF */}
+              <button 
+                className="w-full cursor-pointer flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 focus:bg-gray-100 focus:outline-none transition-colors duration-200 text-left text-sm group"
+                onClick={() => {
+                  // Logic xuất PDF
+                if( isProjectID == "" ) {
+                        toast.error("Vui lòng tạo dự án mới !");
+                        return
+                  }
+                  handleExportPDF()
+                  setIsOpen(false);
+                }}
+              >
+                <i className="fa-solid fa-file-pdf text-[16px] mr-3 text-red-500 group-hover:text-red-600"></i>
+                <span className="font-medium">Xuất PDF</span>
+              </button>
+              
+              {/* Xuất file Hướng dẫn */}
+              <button 
+                className="w-full cursor-pointer flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 focus:bg-gray-100 focus:outline-none transition-colors duration-200 text-left text-sm group"
+                onClick={() => {
+                  // Logic xuất file hướng dẫn
+                  console.log("Xuất file Hướng dẫn");
+                  setIsOpen(false);
+                }}
+              >
+                <i className="fa-solid fa-book-open text-[16px] mr-3 text-green-500 group-hover:text-green-600"></i>
+                <span className="font-medium">Xuất file H.Dẫn</span>
+              </button>
+            </div>
+          )}
+        </div>
         <>
             <button
               type="button"
@@ -1729,7 +1793,7 @@ useEffect(() => {
                   }
                 setIsModalSaveOpen(true)
               }}
-              className="absolute top-[3px] right-[746px] cursor-pointer p-1 px-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="absolute top-[3px] right-[573px] cursor-pointer p-1 px-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               <i className="fas fa-save fa-lg me-1"></i>
               Lưu layout
@@ -1795,7 +1859,7 @@ useEffect(() => {
                 }
                  handleExportPDF()
               }}
-              className="absolute top-[3px] right-[450px] cursor-pointer p-1 px-3 rounded-lg  bg-pink-600 text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
+              className="hidden absolute top-[3px] right-[450px] cursor-pointer p-1 px-3 rounded-lg  bg-pink-600 text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
             >
               <i className="fas fa-file-pdf fa-lg me-1"></i>
               Xuất Layout
@@ -1811,9 +1875,9 @@ useEffect(() => {
                   toast.error("Vui lòng tạo dự án mới !");
                   return
                 }
-                handleEmportTemplates()
+              
               }}
-              className="absolute top-[3px] right-[593px] cursor-pointer p-1 px-3 rounded-lg  bg-pink-600 text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
+              className="hidden absolute top-[3px] right-[593px] cursor-pointer p-1 px-3 rounded-lg  bg-pink-600 text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
             >
               <i className="fas fa-file-pdf fa-lg me-1"></i>
               Xuất file mẫu
@@ -1946,7 +2010,7 @@ useEffect(() => {
               </button>
             </div>
       </div>
-    <div className="flex gap-2">
+    <div className="flex gap-2"  onClick={() => setIsOpen(false)}>
      
        <ToastContainer position="top-right" autoClose={2000} theme="colored" />
       <div
@@ -1955,6 +2019,7 @@ useEffect(() => {
         onWheel={handleZoom}
         onMouseDown={handleMouseDown}
         className="relative w-full h-[700px] overflow-hidden"
+        
         style={{
             backgroundImage: isExporting
               ? "none"
