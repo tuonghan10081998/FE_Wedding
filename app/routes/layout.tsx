@@ -105,9 +105,13 @@ const Layout: React.FC = () => {
                 <li className={isActive("/layout/Invitation") ? "active" : ""}>
                   <Link to="/layout/Invitation">THIỆP CƯỚI</Link>
                 </li>
+                 <li className={isActive("/layout/StatisticsPage") ? "active" : ""}>
+                  <Link to="/layout/StatisticsPage">THỐNG KÊ</Link>
+                </li>
                 <li className={isActive("/layout/Plan") ? "active" : ""}>
                   <Link to="/layout/Plan">GÓI DỊCH VỤ</Link>
                 </li>
+                
                 <li className="relative hidden">
                   <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -230,17 +234,28 @@ const Layout: React.FC = () => {
                 </Link>
               </li>
               <li
-                className={isActive("/layout/Plan") ? "active" : ""}
+                className={isActive("/layout/StatisticsPage") ? "active" : ""}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 <Link
-                  to="/layout/Plan"
+                  to="/layout/StatisticsPage"
                   className="block px-3 py-2 rounded hover:bg-purple-600"
                 >
-                  GÓI DỊCH VỤ
+                  THỐNG KÊ
                 </Link>
               </li>
-              <li>
+               <li
+                className={isActive("/layout/Invitation") ? "active" : ""}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Link
+                  to="/layout/Invitation"
+                  className="block px-3 py-2 rounded hover:bg-purple-600"
+                >
+                  THIỆP CƯỚI
+                </Link>
+              </li>
+              <li className="hidden">
                 <button
                   onClick={() => setIsMobileSubMenuOpen(!isMobileSubMenuOpen)}
                   className="w-full flex justify-between items-center px-3 py-2 hover:bg-purple-600"

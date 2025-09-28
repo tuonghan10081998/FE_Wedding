@@ -47,7 +47,6 @@ const WeddingCardCreate: React.FC<WeddingCardCreateProps> = ({
       const[projectid,setProject] = useState<string>(""); 
   useEffect(() => {
     if(!layoutData) return
-    console.log(layoutData.groomName)
      setProject(layoutData.projectID)
             setGroomName(layoutData.groomName || "");
             setGroomParents(layoutData.groomParents || "");
@@ -101,7 +100,6 @@ return (
                             
                               if (React.isValidElement(view)) {
                                   const typeName = (view.type as any).name
-                                  console.log(typeName)
                                   if (typeName === "SaveTheDateCard1" || typeName === "SaveTheDateCard2" || typeName === "SaveTheDateCard3" || typeName === "SaveTheDateCard4") {
                                       return React.cloneElement(view as React.ReactElement<{
                                           groomName?: string;

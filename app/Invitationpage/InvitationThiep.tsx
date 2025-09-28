@@ -49,7 +49,7 @@ const InvitationCard: React.FC = () => {
         <i className="fas fa-arrow-left text-2xl"></i>
       </button>
     )}
-    <InvitionCard  views={views} data={data} checkxttruoc={false}/>
+    <InvitionCard  views={views} data={data} checkxttruoc={false}  />
     </div>
   );
 };

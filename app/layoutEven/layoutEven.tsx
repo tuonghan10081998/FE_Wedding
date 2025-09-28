@@ -78,6 +78,7 @@ export interface Guest {
   isActive?:boolean
   sort?:number
   groupID?:number
+  partnerCount?:number
   groupInfo?:{
     groupID?:number
     groupName?:string
@@ -87,6 +88,9 @@ export interface Guest {
   isView?:boolean
   isSearch?:boolean
   status?: 'pending' | 'sent' ;
+  projectID?:string
+  subGuests?:any[]
+  isConfirm?:number
 }
 
 interface layOutContainer {
@@ -271,7 +275,7 @@ const getDataParentGroup = async () => {
     }
   };
     // GetData
-const getDataProject = async () => {
+  const getDataProject = async () => {
     if (isUser == "") return;
     const url = `${import.meta.env.VITE_API_URL}/api/Project/user/${isUserID}`;
     try {
@@ -1138,22 +1142,30 @@ const handleDragItem = (index: number, top: number, left: number) => {
   });
 };
 
-  const handleZoom = (e: React.WheelEvent<HTMLDivElement>) => {
-      const delta = e.deltaY < 0 ? 0.05 : -0.05;
-      zoomRef.current = Math.min(Math.max(zoomRef.current + delta, 0.5), 2);
-      setlayoutBackZoom(zoomRef.current)
-      if (innerRef.current) {
-        innerRef.current.style.transform = `scale(${zoomRef.current}) translate(${offsetRef.current.x}px, ${offsetRef.current.y}px)`;
-      }
-       clearTimeout((handleZoom as any).timer);
-          (handleZoom as any).timer = setTimeout(() => {
-            setZoomLevel(zoomRef.current);
-             setLayoutContainer((prev) => ({
-              ...prev,
-              zoomLevel: zoomRef.current,
-            }));
-        }, 1000);
-  };
+
+const handleZoom = (e: React.WheelEvent<HTMLDivElement>) => {
+  // Giảm delta từ 0.05 xuống 0.02 hoặc 0.01 để zoom chậm hơn
+  const delta = e.deltaY < 0 ? 0.05 : -0.05; // Thay đổi từ 0.05 -> 0.02
+  
+  // Hoặc nếu muốn zoom rất chậm:
+  // const delta = e.deltaY < 0 ? 0.01 : -0.01;
+  
+  zoomRef.current = Math.min(Math.max(zoomRef.current + delta, 0.01), 2);
+  setlayoutBackZoom(zoomRef.current)
+  
+  if (innerRef.current) {
+    innerRef.current.style.transform = `scale(${zoomRef.current}) translate(${offsetRef.current.x}px, ${offsetRef.current.y}px)`;
+  }
+  
+  clearTimeout((handleZoom as any).timer);
+  (handleZoom as any).timer = setTimeout(() => {
+    setZoomLevel(zoomRef.current);
+    setLayoutContainer((prev) => ({
+      ...prev,
+      zoomLevel: zoomRef.current,
+    }));
+  }, 1000);
+};
 useEffect(() => {
   if (innerRef.current) {
     innerRef.current.style.transform = `scale(${zoomRef.current}) translate(${offsetRef.current.x}px, ${offsetRef.current.y}px)`;
@@ -1736,7 +1748,7 @@ useEffect(() => {
           </button>
           
           {isOpen && (
-            <div className="absolute right-[80px] top-[35px] bg-white border border-gray-200 rounded-lg shadow-xl min-w-[180px] py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="absolute right-[0px] top-[35px] bg-white border border-gray-200 rounded-lg shadow-xl min-w-[180px] py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
               {/* Xuất file mẫu */}
               <button 
                 className="w-full cursor-pointer flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 focus:bg-gray-100 focus:outline-none transition-colors duration-200 text-left text-sm group"
@@ -2028,7 +2040,7 @@ useEffect(() => {
             transition: "background-size 0.2s ease",
           }}
         >
-           <div className="absolute bottom-[55px] left-[10px] z-[99999] space-y-2">
+          {!isExporting && ( <div className="absolute bottom-[55px] left-[10px] z-[99999] space-y-2">
                   <div className="flex items-center bg-white rounded-lg px-2 py-1 shadow-sm">
                     <input
                       type="checkbox"
@@ -2054,8 +2066,10 @@ useEffect(() => {
                   </div>
                  
                   
-                </div>
-            <div className="absolute top-[5px] right-[40px] z-[99999] space-y-2">
+                </div>)}
+          {!isExporting && (
+
+              <div className="absolute top-[5px] right-[40px] z-[99999] space-y-2">
                    <div className="flex items-center bg-white rounded-lg px-2 py-1 shadow-sm">
                     <div onClick={() => {
                         setIsModalSelectOpen(false)
@@ -2069,6 +2083,7 @@ useEffect(() => {
                     </div>
                   </div>
                 </div>
+          )}
           <ZoneManager
             containerRef={containerRef as React.RefObject<HTMLDivElement>}
             innerRef={innerRef as React.RefObject<HTMLDivElement>} 

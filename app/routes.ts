@@ -8,6 +8,7 @@ const routes: RouteConfig = [
     route("layoutEven", "layoutEven/layoutEven.tsx"),
     route("LayoutLanding", "LayoutLanding/WeddingLayoutLanding.tsx"),
     route("Plan", "Plan/PlanSelection.tsx"),
+    route("StatisticsPage","StatisticsPage/StatisticsPage.tsx"),
   ]),
 ];
 

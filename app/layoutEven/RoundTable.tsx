@@ -270,7 +270,7 @@ const RoundTable: React.FC<RoundTableProps> = ({
                     rotate={deg + degxy} 
                     centerX={(30 - offsetx) - ((2 * Math.PI / seatCount))} 
                     centerY={(30 + offsety) - ((2 * Math.PI / seatCount))} 
-                    customer={0} 
+                    customer={guest.partnerCount} 
                   />
                 ) : (
                   <BadgeMan 
@@ -278,7 +278,7 @@ const RoundTable: React.FC<RoundTableProps> = ({
                     rotate={deg + degxy} 
                     centerX={(30 - offsetx) - ((2 * Math.PI / seatCount))} 
                     centerY={(30 + offsety) - ((2 * Math.PI / seatCount))}
-                    customer={0} 
+                    customer={guest.partnerCount} 
                   />
                 )}
               </div>

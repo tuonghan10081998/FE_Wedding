@@ -53,7 +53,7 @@ const ZoneManager = React.forwardRef<any, ZoneManagerProps>(({
   const [isZoneVisible, setZoneVisible] = useState(true);
 
   useEffect(() => {
-    setZoneVisible(true);
+    // setZoneVisible(true);
     onZoneModeToggle();
   }, [isConfirm]);
 

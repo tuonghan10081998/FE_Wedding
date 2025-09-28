@@ -5,16 +5,16 @@ import { useNavigate } from "react-router-dom";
 interface InvitionCardProps {
   views: React.ReactNode[];
   data: any;
-  checkxttruoc:boolean
-  guestid:string
-  guest:string
-  phone:string
-  parentcount:number
-  tableName:string
-  setSave:(v:boolean) => void
-  isSave:boolean | null
-  message:string
-  dataProject:any
+  checkxttruoc?:boolean
+  guestid?:string
+  guest?:string
+  phone?:string
+  parentcount?:number
+  tableName?:string
+  setSave?:(v:boolean) => void
+  isSave?:boolean | null
+  message?:string
+  dataProject?:any
 }
 
 const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = false,guestid
@@ -96,7 +96,7 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
                 }
                 
                 resetRSVPForm();
-                setSave(!isSave)
+                setSave?.(!isSave)
         }
       };
     const resetForm = () => {
@@ -127,7 +127,7 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
     };
 
     const resetRSVPForm = () => {
-        setRsvpGuests(parentcount);
+        setRsvpGuests(parentcount ?? 0);
         setRsvpAttending("yes");
         setRsvpMessage("");
     };
@@ -144,7 +144,7 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
             tableName: "string",
             seatID: "string",
             seatName: "string",
-            isConfirm:rsvpAttending === "yes" ? 1 : 0,
+            isConfirm:rsvpAttending === "yes" ? 1 : 2,
             partnerCount: rsvpGuests - 1,
             message: rsvpMessage,
             groupName: "string",
@@ -492,14 +492,14 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
                                     <textarea
                                         value={rsvpMessage}
                                         onChange={(e) => setRsvpMessage(e.target.value)}
-                                        rows={3}
+                                        rows={1}
                                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors resize-none text-base"
                                         placeholder="Gửi lời chúc đến cô dâu chú rể..."
                                     />
                                 </div>
 
                                 {/* QR Code Section - Chỉ hiện khi đồng ý tham dự */}
-                                {rsvpAttending === "yes" && (
+                               
                                     <div className="border-t pt-4">
                                         <div className="text-center mb-4">
                                             <h3 className="text-lg font-semibold text-gray-800 mb-2 flex items-center justify-center">
@@ -559,7 +559,6 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
                                             </p>
                                         </div>
                                     </div>
-                                )}
                             </form>
                         </div>
 
