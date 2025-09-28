@@ -29,30 +29,36 @@ export default function WeddingLayoutLanding() {
   const layoutImages = [
     {
       id: 1,
-      image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+      image: "/image/layout2.png"
     },
     {
       id: 2,
-      image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+      image: "/image/layout3.png"
     },
     {
       id: 3,
-      image: "https://images.unsplash.com/photo-1465495976277-4387d4b0e4a6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+      image:  "/image/layout3.png"
     }
   ];
 
   const invitationImages = [
     {
       id: 1,
-      image: "https://images.unsplash.com/photo-1594736797933-d0ea1b2e8db5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+      image: "/image/image1_6.png",
+      title: "Thiệp Cưới Cổ Điển",
+      description: "Phong cách elegant & tinh tế"
     },
     {
       id: 2,
-      image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+      image: "/image/image1_5.png", 
+      title: "Thiệp Cưới Hiện Đại",
+      description: "Thiết kế tối giản & sang trọng"
     },
     {
       id: 3,
-      image: "https://images.unsplash.com/photo-1606800052052-a08af7148866?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+      image: "/image/image1_4.png",
+      title: "Thiệp Cưới Romantique", 
+      description: "Hoa văn lãng mạn & ngọt ngào"
     }
   ];
 
@@ -151,7 +157,47 @@ export default function WeddingLayoutLanding() {
 
       {/* Layout Templates Section - Simple Images */}
       <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+       
+
+         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Bộ Sưu Tập Template Thiệp Cưới
+            </h2>
+            <p className="text-xl text-gray-600">
+              Thiệp mời điện tử đẹp mắt, dễ dàng chia sẻ
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {invitationImages.map((item) => (
+              <div key={item.id} className="group cursor-pointer">
+                <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 overflow-hidden">
+                  <div className="overflow-hidden">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full h-56 object-contain bg-gradient-to-br from-pink-50 to-purple-50 group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-pink-600 transition-colors">
+                      {item.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm">
+                      {item.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Invitation Templates Section - With Title and Optimized Images */}
+      <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50">
+             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               Bộ Sưu Tập Template Layout
@@ -168,34 +214,6 @@ export default function WeddingLayoutLanding() {
                   <img
                     src={item.image}
                     alt={`Layout Template ${item.id}`}
-                    className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Invitation Templates Section - Simple Images */}
-      <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Bộ Sưu Tập Template Thiệp Cưới
-            </h2>
-            <p className="text-xl text-gray-600">
-              Thiệp mời điện tử đẹp mắt, dễ dàng chia sẻ
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {invitationImages.map((item) => (
-              <div key={item.id} className="group cursor-pointer">
-                <div className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
-                  <img
-                    src={item.image}
-                    alt={`Invitation Template ${item.id}`}
                     className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                 </div>
