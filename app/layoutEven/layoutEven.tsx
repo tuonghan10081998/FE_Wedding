@@ -275,7 +275,7 @@ const getDataParentGroup = async () => {
     }
   };
     // GetData
-  const getDataProject = async () => {
+const getDataProject = async () => {
     if (isUser == "") return;
     const url = `${import.meta.env.VITE_API_URL}/api/Project/user/${isUserID}`;
     try {
@@ -486,6 +486,10 @@ const GetGuest = async (projectid: string) => {
            
            setGuests([...processedGuests, ...allSubGuests]);
            setSubget(allSubGuests);
+        }
+        else{
+           setGuests([]);
+           setSubget([]);
         }
     } catch (error) {
         console.error(error);
