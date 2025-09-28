@@ -187,6 +187,7 @@ const SquareTableRender: React.FC<SquareTableRenderProps> = ({
                 viewbox={side === "right" ? "-20 -15 95 85" : side === "left" ? "-72 -70 95 85" : side === "bottom" ? "-75 -20 95 85" : "-21 -67 95 85"} 
                 height={55}
                 centerY={0} 
+                customer={0} 
               />
             ) : (
               <BadgeMan 
@@ -196,6 +197,7 @@ const SquareTableRender: React.FC<SquareTableRenderProps> = ({
                 viewbox={side === "right" ? "-20 -15 95 85" : side === "left" ? "-72 -70 95 85" : side === "bottom" ? "-75 -20 95 85" : "-21 -67 95 85"} 
                 height={55}
                 centerY={0} 
+                customer={0} 
               />
             )}
           </div>

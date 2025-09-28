@@ -1,222 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { Send, Users, Check, Clock, X, Plus, Mail, Phone, User, Search, QrCode } from 'lucide-react';
-
-interface Guest {
-  guestID: string;
-  name: string;
-  phone: string;
-  seatID?: string | null;
-  seatName?: string;
-  gender: "Nam" | "Nữ";
-  qr: string;
-  nhom?: number;
-  tableName?: string;
-  tableID?: string;
-  isActive?: boolean;
-  sort?: number;
-  groupID?: number;
-  groupInfo?: {
-    groupID?: number;
-    groupName?: string;
-    parentID?: number;
-  };
-  mail?: string;
-  isView?: boolean;
-  isSearch?: boolean;
-  status?: 'pending' | 'sent' ;
-}
+import type { Guest } from '~/layoutEven/layoutEven';
+import { ToastContainer, toast } from "react-toastify";
 interface InvitationModalProps {
   isOpen: boolean;
   onClose: () => void;
- 
+  data:Guest[]
+  project:string
 }
 const InvitationSender:React.FC<InvitationModalProps> = ({
     isOpen,
-    onClose
+    onClose,
+    data,
+    project
 }) => {
-  const [guests, setGuests] = useState<Guest[]>([
-    { 
-      guestID: '1', 
-      name: 'Nguyễn Văn An', 
-      mail: 'an.nguyen@email.com', 
-      phone: '0123456789', 
-      gender: 'Nam',
-      qr: 'QR001',
-      status: 'pending',
-      seatID: 'A1',
-      seatName: 'Bàn 1 - Ghế 1',
-      tableName: 'Bàn 1',
-      tableID: 'T1',
-      isActive: true,
-      sort: 1,
-      groupID: 1,
-      groupInfo: { groupID: 1, groupName: 'Gia đình', parentID: 0 }
-    },
-    { 
-      guestID: '2', 
-      name: 'Trần Thị Bình', 
-      mail: 'binh.tran@email.com', 
-      phone: '0987654321', 
-      gender: 'Nữ',
-      qr: 'QR002',
-      status: 'sent',
-      seatID: 'A2',
-      seatName: 'Bàn 1 - Ghế 2',
-      tableName: 'Bàn 1',
-      tableID: 'T1',
-      isActive: true,
-      sort: 2,
-      groupID: 1,
-      groupInfo: { groupID: 1, groupName: 'Gia đình', parentID: 0 }
-    },
-    { 
-      guestID: '3', 
-      name: 'Lê Minh Cường', 
-      mail: 'cuong.le@email.com', 
-      phone: '0111222333', 
-      gender: 'Nam',
-      qr: 'QR003',
-      status: 'pending',
-      seatID: 'B1',
-      seatName: 'Bàn 2 - Ghế 1',
-      tableName: 'Bàn 2',
-      tableID: 'T2',
-      isActive: true,
-      sort: 3,
-      groupID: 2,
-      groupInfo: { groupID: 2, groupName: 'Bạn bè', parentID: 0 }
-    },
-    { 
-      guestID: '4', 
-      name: 'Phạm Thu Dung', 
-      mail: 'dung.pham@email.com', 
-      phone: '0444555666', 
-      gender: 'Nữ',
-      qr: 'QR004',
-      status: 'pending',
-      seatID: 'B2',
-      seatName: 'Bàn 2 - Ghế 2',
-      tableName: 'Bàn 2',
-      tableID: 'T2',
-      isActive: true,
-      sort: 4,
-      groupID: 2,
-      groupInfo: { groupID: 2, groupName: 'Bạn bè', parentID: 0 }
-    },
-    { 
-      guestID: '5', 
-      name: 'Hoàng Văn Em', 
-      mail: 'em.hoang@email.com', 
-      phone: '0777888999', 
-      gender: 'Nam',
-      qr: 'QR005',
-      status: 'sent',
-      seatID: 'C1',
-      seatName: 'Bàn 3 - Ghế 1',
-      tableName: 'Bàn 3',
-      tableID: 'T3',
-      isActive: true,
-      sort: 5,
-      groupID: 3,
-      groupInfo: { groupID: 3, groupName: 'Đồng nghiệp', parentID: 0 }
-    },
-    { 
-      guestID: '6', 
-      name: 'Võ Thị Phương', 
-      mail: 'phuong.vo@email.com', 
-      phone: '0123987456', 
-      gender: 'Nữ',
-      qr: 'QR006',
-      status: 'pending',
-      seatID: 'C2',
-      seatName: 'Bàn 3 - Ghế 2',
-      tableName: 'Bàn 3',
-      tableID: 'T3',
-      isActive: true,
-      sort: 6,
-      groupID: 3,
-      groupInfo: { groupID: 3, groupName: 'Đồng nghiệp', parentID: 0 }
-    },
-    { 
-      guestID: '7', 
-      name: 'Đặng Minh Quân', 
-      mail: 'quan.dang@email.com', 
-      phone: '0987123654', 
-      gender: 'Nam',
-      qr: 'QR007',
-      status: 'sent',
-      seatID: 'D1',
-      seatName: 'Bàn 4 - Ghế 1',
-      tableName: 'Bàn 4',
-      tableID: 'T4',
-      isActive: true,
-      sort: 7,
-      groupID: 1,
-      groupInfo: { groupID: 1, groupName: 'Gia đình', parentID: 0 }
-    },
-    { 
-      guestID: '8', 
-      name: 'Bùi Thu Hà', 
-      mail: 'ha.bui@email.com', 
-      phone: '0456789123', 
-      gender: 'Nữ',
-      qr: 'QR008',
-      status: 'pending',
-      seatID: 'D2',
-      seatName: 'Bàn 4 - Ghế 2',
-      tableName: 'Bàn 4',
-      tableID: 'T4',
-      isActive: true,
-      sort: 8,
-      groupID: 1,
-      groupInfo: { groupID: 1, groupName: 'Gia đình', parentID: 0 }
-    },
-    { 
-      guestID: '9', 
-      name: 'Ngô Văn Sơn', 
-      mail: 'son.ngo@email.com', 
-      phone: '0789456321', 
-      gender: 'Nam',
-      qr: 'QR009',
-      status: 'pending',
-      seatID: 'E1',
-      seatName: 'Bàn 5 - Ghế 1',
-      tableName: 'Bàn 5',
-      tableID: 'T5',
-      isActive: true,
-      sort: 9,
-      groupID: 2,
-      groupInfo: { groupID: 2, groupName: 'Bạn bè', parentID: 0 }
-    },
-    { 
-      guestID: '10', 
-      name: 'Lý Thị Mai', 
-      mail: 'mai.ly@email.com', 
-      phone: '0321654987', 
-      gender: 'Nữ',
-      qr: 'QR010',
-      status: 'sent',
-      seatID: 'E2',
-      seatName: 'Bàn 5 - Ghế 2',
-      tableName: 'Bàn 5',
-      tableID: 'T5',
-      isActive: true,
-      sort: 10,
-      groupID: 2,
-      groupInfo: { groupID: 2, groupName: 'Bạn bè', parentID: 0 }
-    }
-  ]);
+  const [guests, setGuests] = useState<Guest[]>([ ]);
 
   const [selectedGuests, setSelectedGuests] = useState<string[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newGuest, setNewGuest] = useState<Partial<Guest>>({ 
-    name: '', 
-    mail: '', 
-    phone: '', 
-    gender: 'Nam',
-    qr: '',
-    status: 'pending'
-  });
+ 
+  useEffect(() => {
+    data && setGuests(data)
+  },[data])
   const [sendingProgress, setSendingProgress] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -230,50 +35,70 @@ const InvitationSender:React.FC<InvitationModalProps> = ({
         : [...prev, guestId]
     );
   };
+useEffect(() => {
+  data && setGuests(data)
+}, [data])
 
+// Thêm useEffect mới này để auto-select pending guests khi modal mở
+useEffect(() => {
+  if (isOpen && guests.length > 0) {
+    const pendingGuestIds = guests
+      .filter(guest => guest.status === 'pending' && guest.isActive !== false)
+      .map(guest => guest.guestID);
+    
+    setSelectedGuests(pendingGuestIds);
+  }
+}, [isOpen, guests]); // Trigger khi modal mở hoặc danh sách guests thay đổi
+
+// Nếu bạn muốn reset selection khi đóng modal, thêm:
+useEffect(() => {
+  if (!isOpen) {
+    setSelectedGuests([]);
+    setSearchTerm('');
+    setFilterGroup('all');
+    setShowSearchDropdown(false);
+  }
+}, [isOpen]);
   const handleSelectAll = () => {
     const pendingGuests = guests.filter(g => g.status === 'pending' && g.isActive !== false).map(g => g.guestID);
     setSelectedGuests(selectedGuests.length === pendingGuests.length ? [] : pendingGuests);
   };
 
-  const handleAddGuest = () => {
-    if (newGuest.name && newGuest.mail && newGuest.phone) {
-      const newGuestId = `G${Date.now()}`;
-      const guestToAdd: Guest = {
-        guestID: newGuestId,
-        name: newGuest.name,
-        mail: newGuest.mail,
-        phone: newGuest.phone,
-        gender: newGuest.gender || 'Nam',
-        qr: `QR${newGuestId}`,
-        status: 'pending',
-        isActive: true,
-        sort: guests.length + 1
-      };
-      setGuests([...guests, guestToAdd]);
-      setNewGuest({ name: '', mail: '', phone: '', gender: 'Nam', qr: '', status: 'pending' });
-      setShowAddForm(false);
-    }
-  };
-
+  
   const handleSendInvitations = async () => {
     setSendingProgress(true);
     
-    // Simulate sending process
-    for (let i = 0; i < selectedGuests.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setGuests(prev => prev.map(guest => 
-        selectedGuests[i] === guest.guestID 
-          ? { ...guest, status: 'sent' }
-          : guest
-      ));
+    const dataSave =  await PostSeant(project); 
+    if (dataSave.status === 201 || dataSave.status === 200) {
+        setSendingProgress(false);
+        toast.success("Gửi thiệp thành công");
+        setGuests(prev =>
+            prev.map(x => ({
+                ...x,
+                status: "sent"
+            }))
+         );
     }
-    
-    setSendingProgress(false);
-    setSelectedGuests([]);
+     
   };
+const PostSeant = async (projectId: string) => {
+    
+  const url = `${import.meta.env.VITE_API_URL}/api/Invitation/SendInvitaion?ProjectID=${projectId}`;
 
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "accept": "*/*"   // giống như Swagger gửi
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`);
+  }
+  
+  const data = await response.json(); // sẽ nhận true/false
+  return response;
+};
   const getStatusColor = (status?: string) => {
     switch (status) {
       case 'sent': return 'bg-green-100 text-green-800';
@@ -351,11 +176,11 @@ return (
       </button>
 
       {/* Toàn bộ nội dung cũ của bạn */}
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 w-full h-full overflow-auto pt-[42px]">
-        <div className="container mx-auto px-4 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 w-full h-full overflow-auto">
+        <div className="container mx-auto px-4 py-4">
           {/* --- PHẦN CODE CỦA BẠN BÊ NGUYÊN VÀO ĐÂY --- */}
           {/* Header */}
-          <div className="container mx-auto px-4 py-8">
+          <div className="">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
@@ -570,7 +395,7 @@ return (
         </div>
         {/* Progress Indicator */}
         {sendingProgress && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/50  flex items-center justify-center z-50">
             <div className="bg-white rounded-xl p-8 shadow-2xl max-w-md w-full mx-4">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>

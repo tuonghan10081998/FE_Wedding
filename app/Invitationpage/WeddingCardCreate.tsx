@@ -9,6 +9,7 @@ interface WeddingCardCreateProps {
   onCreateCard: () => void;
   onPreview:() => void;
   onDelete:() => void;
+  onSent:() => void
 }
 
 const WeddingCardCreate: React.FC<WeddingCardCreateProps> = ({ 
@@ -16,7 +17,8 @@ const WeddingCardCreate: React.FC<WeddingCardCreateProps> = ({
     title,
     onCreateCard,
     onPreview,
-    onDelete
+    onDelete,
+    onSent
 
 }) => {
   const [isOpenDelete,setOpenDelete] = useState<boolean>(false)
@@ -55,6 +57,12 @@ const WeddingCardCreate: React.FC<WeddingCardCreateProps> = ({
           className="px-4 py-2 rounded-lg bg-pink-600 text-white hover:bg-pink-700"
         >
           Cập nhật
+        </button>
+         <button
+         onClick={onSent}
+          className="px-4 py-2 rounded-lg border bg-pink-500 hover:bg-pink-600 text-white"
+        >
+         Gửi thiệp
         </button>
       </div>
       {isOpenDelete && (

@@ -135,6 +135,7 @@ const BenchTableRender: React.FC<BenchTableRenderProps> = ({
                 viewbox="-21 -67 95 85" 
                 height={55}
                 centerY={0} 
+                customer={0} 
               />
             ) : (
               <BadgeMan 
@@ -144,6 +145,7 @@ const BenchTableRender: React.FC<BenchTableRenderProps> = ({
                 viewbox="-21 -67 95 85" 
                 height={55}
                 centerY={0} 
+                customer={0} 
               />
             )}
           </div>

@@ -60,7 +60,7 @@ if (!isOpen) return null;
           {/* Dãy + SL bàn */}
         <div className="mb-3 flex gap-4 mb-2">
           <div className="flex-1">
-            <label className="block text-sm font-medium mb-1">Chọn bên:</label>
+            <label className="block text-sm font-medium mb-1">Chọn bên <span className="text-red-500">(*)</span></label>
               <Select
               options={filterOptions}
                value={filterOptions.find(opt => opt.value === selectedValue)}

@@ -322,7 +322,7 @@ const AuthPage: React.FC = () => {
                       }
                       className="w-full border border-pink-300 rounded-md px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-600 bg-white/80 backdrop-blur-sm transition-all duration-300"
                     />
-                    <i className="fas fa-user absolute right-3 top-3.5 text-pink-400 pointer-events-none" />
+                    <i className="fas fa-user absolute right-3 top-[9px] text-pink-400 pointer-events-none" />
                   </div>
                 </div>
 

@@ -1,4 +1,5 @@
-import React from "react";
+import React,{useEffect,useState} from "react";
+
 
 type BadgeProps = {
   text?: string;
@@ -8,9 +9,19 @@ type BadgeProps = {
   centerX?: number;
   centerY?: number;
   viewbox?:string
+  customer?:number
 };
 
-const Badge: React.FC<BadgeProps> = ({ text,rotate,centerX,centerY,width = 50,height = 55,viewbox =`-10 -10 90 90` }) => {
+const Badge: React.FC<BadgeProps> = ({ text,rotate,centerX,centerY,width = 50,height = 55,viewbox =`-10 -10 90 90`,customer }) => {
+    const [active, setActive] = useState(true);
+  useEffect(() => {
+       const interval = setInterval(() => {
+         setActive(false);
+         setTimeout(() => setActive(true), 50); // restart animation
+       }, 3000);
+   
+       return () => clearInterval(interval);
+     }, []);
   return (
    <div>
      <svg
@@ -183,6 +194,14 @@ const Badge: React.FC<BadgeProps> = ({ text,rotate,centerX,centerY,width = 50,he
             }}
           >
             {text}
+             {customer !== 0 && (
+                <tspan
+                  className={active ? "bling-dot" : ""}
+                  fill="red"
+                >
+                  ({customer})
+                </tspan>
+              )}
           </text>
         </g>
       </g>

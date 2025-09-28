@@ -102,7 +102,6 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
       className="fixed top-27 right-0 z-20 w-[750px] h-full flex justify-end"
       onClick={onClose}
     >
-      <ToastContainer position="top-right" autoClose={2000} theme="colored" />
       <div
         className="bg-white max-h-screen shadow-lg relative h-[calc(100vh-115px)] w-full max-w-[750px] flex flex-col"
         onClick={(e) => e.stopPropagation()}
@@ -112,7 +111,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
           <h2 className="text-xl font-bold">Danh sách khách mời</h2>
           <div className="flex gap-4">
             <div className="flex gap-4 items-center">
-              <div className="">Chọn bên</div>
+              <div className="">Chọn bên <span className="text-red-500">(*)</span></div>
               <Select
                 options={filterOptions}
                 value={filterOptions.find(opt => opt.value === selectedValue)}

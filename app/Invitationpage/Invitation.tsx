@@ -22,6 +22,7 @@ import WeddingInvitationCard4 from "~/Invitationpage/WeddingInvitationCard4";
 import WeddingCardCreate from "~/Invitationpage/WeddingCardCreate";
 import type { Project } from "~/layoutEven/layoutEven";
 import InvitationSender from "~/Invitationpage/InvitationSender";
+import type { Guest } from '~/layoutEven/layoutEven';
 export interface InvitationProps {
   name: string;
   layout:Project;
@@ -43,6 +44,8 @@ const Invitation = () => {
   const [dataInvatition,setInvatition] = useState<InvitationProps[]>([])
   const [isCheckSave,setCheckSave] = useState<boolean>(false)
   const [dataInvatitionEdit,setInvatitionEdit] = useState<InvitationProps[]>([])
+  const [guests,setGuests] = useState<Guest[]>([])
+  const [isProject,setProject] = useState<string>("")
    useEffect(() => {
       const storedUser = localStorage.getItem("userInvitation");
        !storedUser && navigate("/");
@@ -88,6 +91,24 @@ const Invitation = () => {
         console.error(error);
     }
   };
+  const GetGuest = async (projectid:string) => {
+    setProject(projectid)
+    const url = `${import.meta.env.VITE_API_URL}/api/Guest/project/${projectid}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Response status: ${response.status}`);
+
+      const data = await response.json();
+      console.log(data)
+      if(data.length > 0)
+         setGuests(data.map((x:any) => ({
+          ...x,
+          status:x.sentStatus === 0 ? "pending" : "sent",
+        })))
+    } catch (error) {
+        console.error(error);
+    }
+  };
   const getDataInvation = async () => {
     if (isUser == "") return;
     const url = `${import.meta.env.VITE_API_URL}/api/Invitation`;
@@ -107,7 +128,6 @@ const Invitation = () => {
           return false;
         }
       });
-      console.log(filtered)
      setInvatition(filtered)
     } catch (error) {
         console.error(error);
@@ -220,41 +240,17 @@ const handleCreateCard = (checkForm: number,invatition:string) => {
     console.warn(`Không tìm thấy card với checkForm = ${checkForm}`);
   }
 };
-const handleEditCard = (invitationData: InvitationProps) => {
-    console.log(invitationData)
-};
+
   return (
     <div className="min-h-screen bg-gray-100 p-6 flex flex-col">
        <ToastContainer position="top-right" autoClose={2000} theme="colored" />
 
-    {/* <div className="flex gap-3 justify-center mt-4" style={{position: "fixed",
-        top: "50px", right: "12px",  zIndex:"9"}}>
-       <button
-          type="button"
-          aria-label="Xem thiệp"
-          className="flex items-center space-x-2 bg-pink-600 hover:bg-pink-700 text-white font-semibold  p-4 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-blue-500"
-           onClick={() => setIsModalOpenSelect(true)}
-        >
-          <i className="fas fa-eye fa-lg"></i>
-         
-        </button>
-        <InvitationList
-          isOpen={isModalOpenSelect}
-          onClose={() => setIsModalOpenSelect(false)}
-          onCreateCard={(id: number,invatition) => handleCreateCard(id,invatition)}
-          onEditCard={(invitationData: InvitationProps) => handleEditCard(invitationData)}
-          data={dataInvatition}
-          onDelete={(invitationid:string) => handleDeleteInvitation(invitationid)}
-        />
-      </div>
-       */}
+    
    <div className="text-center mb-8">
       <h1 className="text-4xl font-bold text-gray-800 mb-2">Thiệp đã tạo</h1>
       <p className="text-gray-600 text-lg">Danh sách các thiệp mà bạn đã tạo</p>
     </div>
-    <div className="text-center mb-8" onClick={() =>setModalOpenSent(true)}>
-      aaa
-    </div>
+   
     {dataInvatition.length === 0 ? (
       <div className="text-center  mb-18">
         <p className="text-2xl font-[roboto] text-pink-600 ">
@@ -294,6 +290,10 @@ const handleEditCard = (invitationData: InvitationProps) => {
               onCreateCard={() =>
                 handleCreateCard(layoutData?.checkForm, inva.invitationID)
               }
+              onSent={() => {
+                GetGuest(layoutData?.projectID)
+                setModalOpenSent(true)
+              }}
             />
           );
         })}
@@ -345,6 +345,8 @@ const handleEditCard = (invitationData: InvitationProps) => {
         <InvitationSender 
           isOpen={isModalOpenSent}
           onClose={() => setModalOpenSent(false)}
+          data={guests}
+          project={isProject}
         />
       )}
     </div>

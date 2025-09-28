@@ -86,7 +86,7 @@ const ModalSearchGuest: React.FC<ModalSearchGuesttProps> = ({
 
         {/* Chọn bên */}
         <div className="mb-3">
-          <label className="block text-sm font-medium mb-1">Chọn bên:</label>
+          <label className="block text-sm font-medium mb-1">Chọn bên <span className="text-red-500">(*)</span></label>
           <Select
             options={filterOptions}
             value={filterOptions.find(opt => opt.value === selectedValue)}

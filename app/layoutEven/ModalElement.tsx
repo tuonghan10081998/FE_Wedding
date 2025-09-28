@@ -34,10 +34,10 @@ const ModalElement: React.FC<ModalEllement> = ({ onClose,
       >
         {/* Header cố định */}
         <div className="sticky top-0 z-10 bg-white border-b p-4 flex justify-between items-center">
-          <h2 className="text-xl font-bold">📌 Chọn Element</h2>
+          <h2 className="text-xl font-bold">📌 Chọn Element </h2>
            <div className="flex gap-4">
              <div className="flex  gap-4 items-center">
-            <div className="">Chọn bên</div>
+            <div className="">Chọn bên <span className="text-red-500">(*)</span></div>
            <Select
               options={filterOptions}
               value={filterOptions.find(opt => opt.value === selectedValue)}

@@ -1,4 +1,4 @@
-import React from "react";
+import React,{useEffect,useState} from "react";
 
 type BadgeManProps = {
   text?: string;
@@ -7,12 +7,23 @@ type BadgeManProps = {
   rotate?:number
   centerX?: number;
   centerY?: number;
-  viewbox?:string
+  viewbox?:string;
+  customer?:number
 };
 
 const BadgeMan: React.FC<BadgeManProps> = ({
-  text,rotate,centerX,centerY,width = 50,height = 55,viewbox =`-10 -10 90 90`
+  text,rotate,centerX,centerY,width = 50,height = 55,viewbox =`-10 -10 90 90`,customer
 }) => {
+  const [active, setActive] = useState(true);
+  
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setActive(false);
+        setTimeout(() => setActive(true), 50); // restart animation
+      }, 3000);
+  
+      return () => clearInterval(interval);
+    }, []);
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -141,7 +152,15 @@ const BadgeMan: React.FC<BadgeManProps> = ({
                  wordSpacing: "2px", // Khoảng cách giữa các từ
             }}
             >
-              {text}
+                {text}
+                  {customer !== 0 && (
+                    <tspan
+                      className={active ? "bling-dot" : ""}
+                      fill="red"
+                    >
+                      ({customer})
+                    </tspan>
+               )}
             </text>
           </g>
         </g>

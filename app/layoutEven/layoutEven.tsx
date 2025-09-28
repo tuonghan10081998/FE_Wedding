@@ -86,6 +86,7 @@ export interface Guest {
   mail?:string,
   isView?:boolean
   isSearch?:boolean
+  status?: 'pending' | 'sent' ;
 }
 
 interface layOutContainer {
@@ -150,6 +151,7 @@ export default function TablePlanner() {
   const [isNameTable,setNameTable] = useState<string>("")
   const [isGuestItem,setGuestItem]= useState<Guest[]>([]);
   const [guests, setGuests] = useState<Guest[]>([]);
+  const [subget, setSubget] = useState<Guest[]>([]);
   const prevGuestsRef = useRef(guests);
   const prevTablesRef = useRef(tables);
   const [isNotiDelete,setNotiDelete] = useState<boolean>(false)
@@ -173,7 +175,7 @@ export default function TablePlanner() {
 
   const[isModalSearchGuest,setModalSearchGuest] = useState<boolean>(false)
   const[isParentGroupSearch,setParentGroupSearch]= useState<string>("0")
-
+  const [isInvatition,setInvatition] = useState<string>("")
   // Thêm handleToggleZoneMode function
   const handleToggleZoneMode = () => {
     // setIsZoneMode(!isZoneMode);
@@ -203,6 +205,7 @@ export default function TablePlanner() {
     const storedProject = localStorage.getItem("projectid");
     const storedProjectName = localStorage.getItem("projectidName");
     console.log(storedProjectName)
+    console.log(storedProject)
      !storedUser && navigate("/");
     setUser(storedUser);
     setProjectLocal(storedProject || "0")
@@ -329,6 +332,7 @@ const getDataProject = async () => {
       }
   }
   const getDataProjectID = async (projectid: string) => {
+    if(!projectid) return
     const url = `${import.meta.env.VITE_API_URL}/api/Project/${projectid}`;
     try {
       const response = await fetch(url);
@@ -336,8 +340,8 @@ const getDataProject = async () => {
       const data = await response.json();
       
       const dataLayout = data;
+      setInvatition(dataLayout.invitationID)
       const layoutRaw = (dataLayout as any).layout ?? (dataLayout as any).layoutData;
-      
       if (layoutRaw) {
       const parsed = JSON.parse(layoutRaw);
       
@@ -421,23 +425,68 @@ const getDataProject = async () => {
     console.error(error);
   }
 };
-const GetGuest = async (projectid:string) => {
-    if (isUser == "" || isProjectID === "0") return;
-    const url = `${import.meta.env.VITE_API_URL}/api/Guest/prroject/${projectid}`;
-    try {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`Response status: ${response.status}`);
 
-      const data = await response.json();
-      if(data.length > 0)
-         setGuests(data.map((x:any) => ({
-          ...x,
-          isView:true
-        })))
+const GetGuest = async (projectid: string) => {
+    if (isUser == "" || isProjectID === "0") return;
+    const url = `${import.meta.env.VITE_API_URL}/api/Guest/project/${projectid}`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Response status: ${response.status}`);
+
+        const data = await response.json();
+        if (data.length > 0) {
+            // Xử lý guests chính
+            const processedGuests = data.map((x: Guest) => ({
+                ...x,
+                isView: true
+            }));
+
+            // Tách subGuests thành mảng riêng
+            const allSubGuests: Guest[] = [];
+            
+            data.forEach((guest: any) => {
+                if (guest.subGuests && guest.subGuests.length > 0) {
+                    guest.subGuests.forEach((subGuest: any) => {
+                        // Tạo subGuest object với thông tin kế thừa từ parent
+                        const processedSubGuest: Guest = {
+                            guestID: subGuest.subGuestID, // Đổi subGuestID thành guestID
+                            name: `${guest.name}`, // Hoặc tên khác tùy logic
+                            phone: guest.phone, // Kế thừa từ parent
+                            seatID: subGuest.seatID || null,
+                            seatName: subGuest.seatName || '',
+                            gender: guest.gender, // Kế thừa từ parent
+                            qr: '', // Có thể tạo QR mới hoặc để trống
+                            tableName: subGuest.tableName || '',
+                            tableID: subGuest.tableID || '',
+                            isActive: guest.isActive,
+                            
+                            // Các trường kế thừa từ parent
+                            sort: guest.sort,
+                            groupID: guest.groupID,
+                            groupInfo: {
+                                groupID: guest.groupInfo?.groupID,
+                                groupName: guest.groupInfo?.groupName,
+                                parentID: guest.groupInfo?.parentID
+                            },
+                            
+                            mail: guest.mail,
+                            isView: true,
+                            isSearch: false,
+                            status: 'pending'
+                        };
+                        
+                        allSubGuests.push(processedSubGuest);
+                    });
+                }
+            });
+           
+           setGuests([...processedGuests, ...allSubGuests]);
+           setSubget(allSubGuests);
+        }
     } catch (error) {
         console.error(error);
     }
-  };
+};
 useEffect(() => {
   document.querySelectorAll('.item_save').forEach(item => {
     item.querySelectorAll('.resizer, .resize-handle, .rotateSvg').forEach(child => {
@@ -461,7 +510,6 @@ useEffect(() => {
       setParentGroup("0")
       zoomRef.current = 0.7;
       offsetRef.current = { x: 0, y: 0 };
-      localStorage.setItem("projectid", isProjectID);
       setViewIconUser(true)
       if (isProjectID !== "0") {
         // ✅ Đợi một chút để state reset hoàn toàn
@@ -476,7 +524,9 @@ useEffect(() => {
     resetAndFetch();
 },[isProjectID])
 useEffect(() => {
-  isProjectName &&  localStorage.setItem("projectidName", isProjectName);
+  if(!isProjectName) return
+   localStorage.setItem("projectid", isProjectID); 
+   localStorage.setItem("projectidName", isProjectName);
 },[isProjectName])
   const handleSaveLayout = () => {
   
@@ -506,10 +556,11 @@ useEffect(() => {
         description: "", 
         layout:layout,
         userID: isUserID ?? "",
-        projectID:isProjectID
+        projectID:isProjectID,
+        invitationID:isInvatition
     };
-    isProjectID === "0" &&  PostProject(Save,true);
-    isProjectID !== "0" &&  PostProject(Save,false);
+     isProjectID === "0" &&  PostProject(Save,true);
+     isProjectID !== "0" &&  PostProject(Save,false);
   };
   const PostProject = async (save: Project,checkSave :boolean) => {
     const request = new Request(`${import.meta.env.VITE_API_URL}/api/Project`, {
@@ -536,28 +587,35 @@ useEffect(() => {
       }
     }
   };
-  const handleSaveGuest = (projectid:string) => {
-        const arrSaveGuest = guests.map(x => ({
-            name: x.name,
-            phone: x.phone,
-            tableID: x.tableID ?? "", // nếu bạn lưu table là string
-            seatID: x.seatID ?? "",
-            seatName:x.seatName,
-            isConfirm: 0,
-            partnerCount: 0,
-            groupName:`${x.groupInfo?.groupName}`,
-            groupParentID: x.groupInfo?.parentID ?? 0,
-            sort: x.sort,
-            groupID: x.groupID,
-            projectID: projectid, // có thể lấy từ props/state
-            userID: isUserID,    // tuỳ bạn set
-            guestID: x.guestID ,
-            gender:x.gender ,
-            tableName:x.tableName ,
-            mail:x.mail ?? ""                             // lấy id đã generateUUID
-      }));
-       PostGuest(arrSaveGuest,projectid)
-  }
+const handleSaveGuest = (projectid: string) => {
+  // Lấy danh sách guestID trong subget
+  const subGuestIds = new Set(subget.map(x => x.guestID));
+
+  // Loại bỏ những guest nào có guestID nằm trong subget
+  const arrSaveGuest = guests
+    .filter(x => !subGuestIds.has(x.guestID))
+    .map(x => ({
+      name: x.name,
+      phone: x.phone,
+      tableID: x.tableID ?? "",
+      seatID: x.seatID ?? "",
+      seatName: x.seatName,
+      isConfirm: 0,
+      partnerCount: 0,
+      groupName: `${x.groupInfo?.groupName}`,
+      groupParentID: x.groupInfo?.parentID ?? 0,
+      sort: x.sort,
+      groupID: x.groupID,
+      projectID: projectid,
+      userID: isUserID,
+      guestID: x.guestID,
+      gender: x.gender,
+      tableName: x.tableName,
+      mail: x.mail ?? ""
+    }));
+
+  PostGuest(arrSaveGuest, projectid);
+};
 const PostGuest = async (save: any,projectid:string) => {
     const request = new Request(`${import.meta.env.VITE_API_URL}/api/Guest`, {
       method:  "POST",
@@ -595,7 +653,65 @@ const Delete = async (projectId: string) => {
     console.error("Delete error:", error);
   }
 };
+const DeleteGuest = async (guestid: string) => {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/Guest/${guestid}`,
+      {
+        method: "DELETE",
+      }
+    );
+    if (!response.ok)  throw new Error(`Lỗi xoá: ${response.status}`);
+    
+    if (response.status === 204) {
+      toast.success("Đã xoá khách mời");
+    }
 
+  } catch (error) {
+    console.error("Delete error:", error);
+  }
+};
+const handleEmportTemplates = async () => {
+   const url = `${import.meta.env.VITE_API_URL}/api/Project/download-template`;
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Accept: "*/*",
+      },
+    });
+
+    if (!response.ok) throw new Error(`Response status: ${response.status}`);
+
+    // Lấy dữ liệu dạng blob
+    const blob = await response.blob();
+
+    // Tạo URL cho blob
+    const urlBlob = window.URL.createObjectURL(blob);
+
+    // Tạo thẻ <a> để tải file
+    const link = document.createElement("a");
+    link.href = urlBlob;
+
+    // Lấy tên file từ header (nếu có) hoặc đặt mặc định
+    const disposition = response.headers.get("content-disposition");
+    let fileName = "template.xlsx";
+    if (disposition && disposition.includes("filename=")) {
+      fileName = disposition.split("filename=")[1].split(";")[0].replace(/"/g, "");
+    }
+
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+
+    // Xóa link và giải phóng URL
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(urlBlob);
+  } catch (error) {
+    console.error("Download error:", error);
+  }
+}
 const handleExportPDF = async () => {
   if (!containerRef.current) return;
   setIsExporting(true);
@@ -709,31 +825,35 @@ const handleDataImported = (result: ImportResult): void => {
     toast.warning("Có số điện thoại trùng, nên một số khách không được thêm vào danh sách!");
   }
 };
-  const processImportedData = (importData: any[][]) => {
-     const maxTableNumber = guests.length > 0
-          ? Math.max(...guests.map(t => t.sort ?? 0)) + 1
-          : 1;
-    const guestsTable = importData.map((row, index) => {
-      return {
-        guestID: uuidv4(),
-        sort:maxTableNumber + index ,
-        name: row[1] || '',
-        gender: (row[2] === "Nam" || row[2] === "Nữ") ? row[2] : "Nam",
-        phone: row[3]?.toString() || '',
-        seatID:  null,
-        groupID: typeof row[4] === 'number' ? row[4] : 0,
-        qr: generateQR(`${Date.now()}-${Math.floor(Math.random() * 10000)}`, row[1] || ""),
-        groupInfo:{
-          parentID:parseInt(isParentGroup),
-          groupName: `${row[4]}`  ,
-        },
-        mail:row[5] ?? "",
-        isView:isViewIconUser,
-      } as Guest;
-    });
-    return guestsTable;
-   
-  };
+const processImportedData = (importData: any[][]) => {
+  const maxTableNumber = guests.length > 0
+    ? Math.max(...guests.map(t => t.sort ?? 0)) + 1
+    : 1;
+    
+  // Lọc bỏ những row có name rỗng trước khi xử lý
+  const validRows = importData.filter(row => row[1] && row[1].toString().trim() !== '');
+  
+  const guestsTable = validRows.map((row, index) => {
+    return {
+      guestID: uuidv4(),
+      sort: maxTableNumber + index,
+      name: row[1] || '',
+      gender: (row[2] === "Nam" || row[2] === "Nữ") ? row[2] : "Nam",
+      phone: row[3]?.toString() || '',
+      seatID: null,
+      groupID: typeof row[4] === 'number' ? row[4] : 0,
+      qr: generateQR(`${Date.now()}-${Math.floor(Math.random() * 10000)}`, row[1] || ""),
+      groupInfo: {
+        parentID: parseInt(isParentGroup),
+        groupName: `${row[4]}`,
+      },
+      mail: row[5] ?? "",
+      isView: isViewIconUser,
+    } as Guest;
+  });
+  
+  return guestsTable;
+};
 
   
 const handleCtrlClick = (item: UnifiedTableData, event: React.MouseEvent,checkClick:boolean = false) => {
@@ -1103,6 +1223,7 @@ const handleAssignGuestsToSeats = () => {
 
   const unassignedGuests = newGuestsFilter.filter((g) => !g.seatID);
   var tableSetNameTable = tables
+  
   // Nhóm khách theo groupName
   const guestsByGroup = unassignedGuests.reduce((acc, guest) => {
     const groupName = guest.groupInfo?.groupName || 'default';
@@ -1112,7 +1233,9 @@ const handleAssignGuestsToSeats = () => {
     acc[groupName].push(guest);
     return acc;
   }, {} as Record<string, typeof unassignedGuests>);
+  
   console.log(guestsByGroup)
+  
   const tableElements = Array.from(document.querySelectorAll('.item_banghe'));
   const tablesWithNumbers = tableElements.map((el) => {
     const id = el.id;
@@ -1124,6 +1247,19 @@ const handleAssignGuestsToSeats = () => {
   
   // Theo dõi bàn nào đã được sử dụng bởi nhóm nào
   const tableUsedByGroup: Record<string, string[]> = {}; // groupName -> [maBan1, maBan2, ...]
+  
+  // Helper function: Kiểm tra xem bàn có khách ngồi chưa và lấy groupName của khách đang ngồi
+  const getTableOccupancyInfo = (maBan: string) => {
+    const occupiedGuests = newGuests.filter(guest => guest.tableID === maBan);
+    
+    if (occupiedGuests.length === 0) {
+      return { isOccupied: false, groupName: null };
+    }
+    
+    // Lấy groupName của khách đầu tiên (giả định tất cả khách trong 1 bàn cùng nhóm)
+    const occupiedGroupName = occupiedGuests[0].groupInfo?.groupName || 'default';
+    return { isOccupied: true, groupName: occupiedGroupName };
+  };
   
   // Xử lý từng nhóm khách
   Object.entries(guestsByGroup).forEach(([groupName, groupGuests]) => {
@@ -1143,17 +1279,32 @@ const handleAssignGuestsToSeats = () => {
         const maBan = tableWrapper?.getAttribute("data-indexnumber") || "";
         const parentID = tableWrapper?.getAttribute("data-parentID") || "";
         
-        // Kiểm tra xem bàn này đã được nhóm khác sử dụng chưa
+        // Kiểm tra thông tin bàn
+        const tableOccupancy = getTableOccupancyInfo(maBan);
+        
+        // Kiểm tra logic mới:
+        // 1. Nếu bàn có người ngồi rồi
+        if (tableOccupancy.isOccupied) {
+          // Kiểm tra groupName có giống không
+          if (tableOccupancy.groupName !== groupName) {
+            // GroupName khác nhau -> không được add vào bàn này
+            continue;
+          }
+          // GroupName giống nhau -> có thể add vào (tiếp tục kiểm tra các điều kiện khác)
+        }
+        
+        // Kiểm tra xem ghế cụ thể đã có người ngồi chưa
+        const isSeatTaken = newGuests.some((g) => g.seatID === seatID);
+        
+        // Kiểm tra xem bàn này đã được nhóm khác sử dụng chưa (logic cũ)
         const isTableUsedByOtherGroup = Object.entries(tableUsedByGroup).some(
           ([otherGroup, usedTables]) => 
             otherGroup !== groupName && usedTables.includes(maBan)
         );
         
-        // Kiểm tra xem ghế đã có người ngồi chưa
-        const isSeatTaken = newGuests.some((g) => g.seatID === seatID);
         // Chỉ phân bố nếu:
         // 1. Ghế chưa có người
-        // 2. Bàn chưa được nhóm khác sử dụng
+        // 2. Bàn chưa được nhóm khác sử dụng (hoặc nếu có người thì phải cùng groupName)
         // 3. parentID khớp với guest
         if (!isSeatTaken && !isTableUsedByOtherGroup && currentGuestIndex < groupGuests.length) {
           const guest = groupGuests[currentGuestIndex];
@@ -1167,15 +1318,15 @@ const handleAssignGuestsToSeats = () => {
             guest.seatName = tenGhe;
             
             tableSetNameTable = tableSetNameTable.map((t) => {
-            if (t.tableNumber === parseInt(maBan)) {
-              return {
-                ...t,
-                nameTable: guest.groupInfo?.groupName || t.nameTable, 
-                isComeback:0
-              };
-            }
-            return t;
-          });
+              if (t.tableNumber === parseInt(maBan)) {
+                return {
+                  ...t,
+                  nameTable: guest.groupInfo?.groupName || t.nameTable, 
+                  isComeback: 0
+                };
+              }
+              return t;
+            });
             
             // Đánh dấu bàn này đã được nhóm này sử dụng
             if (!tableUsedByGroup[groupName]) {
@@ -1191,21 +1342,15 @@ const handleAssignGuestsToSeats = () => {
         }
       }
       
-     
       if (hasAssignedInThisTable) {
         continue;
       }
     }
   });
-  setTables(tableSetNameTable)
+  
+  setTables(tableSetNameTable);
   setGuests(newGuests);
-  //  setTables((prev) =>
-  //     prev.map(x => ({
-  //       ...x,
-  //       isComeback: 0
-  //     }))
-  //   );
-};
+}
 useEffect(() => {
   // Kiểm tra xem có thay đổi thực sự không
   const guestsChanged = prevGuestsRef.current !== guests;
@@ -1584,7 +1729,7 @@ useEffect(() => {
                   }
                 setIsModalSaveOpen(true)
               }}
-              className="absolute top-[3px] left-[593px] cursor-pointer p-1 px-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="absolute top-[3px] right-[746px] cursor-pointer p-1 px-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               <i className="fas fa-save fa-lg me-1"></i>
               Lưu layout
@@ -1612,7 +1757,7 @@ useEffect(() => {
                  handleZoneSelect(null)
                  setModalSearchGuest(false)
               }}
-              className="absolute top-[3px] left-[180px] cursor-pointer p-1 px-3 rounded-lg bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+              className="absolute top-[3px] right-[180px] cursor-pointer p-1 px-3 rounded-lg bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
             >
               <i className="fas fa-layer-group fa-lg me-1"></i>
               Tạo layout
@@ -1650,14 +1795,31 @@ useEffect(() => {
                 }
                  handleExportPDF()
               }}
-              className="absolute top-[3px] left-[450px] cursor-pointer p-1 px-3 rounded-lg  bg-pink-600 text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
+              className="absolute top-[3px] right-[450px] cursor-pointer p-1 px-3 rounded-lg  bg-pink-600 text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
             >
               <i className="fas fa-file-pdf fa-lg me-1"></i>
               Xuất Layout
             </button>    
            
           </>
+            <>
+             <button
+              type="button"
+              aria-label="Export Templates"
+              onClick={() =>{
+                if( isProjectID == "" ) {
+                  toast.error("Vui lòng tạo dự án mới !");
+                  return
+                }
+                handleEmportTemplates()
+              }}
+              className="absolute top-[3px] right-[593px] cursor-pointer p-1 px-3 rounded-lg  bg-pink-600 text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
+            >
+              <i className="fas fa-file-pdf fa-lg me-1"></i>
+              Xuất file mẫu
+            </button>    
            
+          </>
            <div onClick={() => {
               if( isProjectID == "" ) {
                 toast.error("Vui lòng tạo dự án mới !");
@@ -1668,7 +1830,7 @@ useEffect(() => {
                setModalOpenKH(false)
                 handleZoneSelect(null)
                 setModalSearchGuest(false)
-           }} className="absolute top-[3px] left-[5px]">
+           }} className="absolute top-[3px] right-[5px]">
             {isModalOpen && (
                   <ModalElement
                     onClose={() => setModalOpen(false)}
@@ -1693,7 +1855,7 @@ useEffect(() => {
                 type="button"
                 aria-label="Select Project"
                 onClick={() => setIsModalSaveOpenProject(true)}
-                className="absolute top-[3px] right-[3px] flex items-center space-x-2 cursor-pointer p-1 px-3 rounded-lg bg-gray-700 text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-1 transition font-semibold select-none"
+                className="absolute top-[3px] left-[3px] flex items-center space-x-2 cursor-pointer p-1 px-3 rounded-lg bg-gray-700 text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-1 transition font-semibold select-none"
                 title="Select Project"
               >
                 <i className="fas fa-folder-open fa-lg me-1"></i>
@@ -1750,7 +1912,7 @@ useEffect(() => {
                handleZoneSelect(null)
                setModalSearchGuest(false)
           }} 
-            className="absolute top-[3px] left-[315px]">
+            className="absolute top-[3px] right-[315px]">
             {isModalOpenKH && (
                   <ModalCustomer
                     onClose={() => setModalOpenKH(false)}
@@ -2148,6 +2310,7 @@ useEffect(() => {
         onConfirm={() => {
           setGuests((prev) => prev.filter(x => x.guestID !== isGuestID))
           setGuestItem((prev) => prev.filter(x => x.guestID !== isGuestID))
+          DeleteGuest(isGuestID)
           setNotiDelete(false);
         }}
       />

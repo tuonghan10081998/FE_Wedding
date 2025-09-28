@@ -46,7 +46,6 @@ const WeddingInvitation4: React.FC<WeddingInvitation1Props> = ({
               TRÂN TRỌNG KÍNH MỜI
             </p>
              <p className="text-2xl font-light tracking-widest mt-1 mb-3 font-[Roboto]">
-              ...............................
             </p>
             <p className="text-sm font-light max-w-xs mx-auto leading-relaxed font-[Roboto]">
               Đến dự bữa tiệc thân mật chung vui cùng gia đình chúng tôi tại
