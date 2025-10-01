@@ -92,7 +92,9 @@ const TransactionReport: React.FC = () => {
     to: "2100-12-31", // Ngày cuối tháng
   });
   const statistics = useMemo<Statistics>(() => {
+   
     const total = transactionData.reduce((sum, t) => sum + t.amount, 0);
+    console.log(total)
     const avgTransaction = total / transactionData.length;
     const uniqueUsers = new Set(transactionData.map(t => t.userId)).size;
     const successRate = (transactionData.filter(t => t.orderStatus === 'Success').length / transactionData.length) * 100;
@@ -117,7 +119,7 @@ const TransactionReport: React.FC = () => {
       byDate,
       byPackage
     };
-  }, []);
+  }, [transactionData]);
 
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('vi-VN', {
