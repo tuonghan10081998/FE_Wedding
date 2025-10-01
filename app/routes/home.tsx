@@ -120,8 +120,16 @@ const AuthPage: React.FC = () => {
             localStorage.removeItem("userInvitationR");
             localStorage.removeItem("passwordInvitationR");
           }
-
-          navigate("/layout/LayoutLanding"); // chuyển trang
+          localStorage.setItem("role", data.role);
+          localStorage.setItem("accessToken", data.accessToken);
+          localStorage.setItem("refreshToken", data.refreshToken);
+          localStorage.setItem("senderInvatition", data.plan.isExport);
+          if(data.role === "Admin"){
+            navigate("/layout/PlanEditor"); // chuyển <trang>  </trang>
+          }else{
+            navigate("/layout/LayoutLanding"); // chuyển trang
+          }
+         
         } else {
           // ❌ Nếu fail -> đọc text
           const errorText = await response.text();

@@ -184,7 +184,7 @@ const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose, onSave, initia
             </label>
             <input
               type="email"
-              name="email"
+              name="mail"
               value={formData.mail || ""}
               onChange={handleChange}
               placeholder=""

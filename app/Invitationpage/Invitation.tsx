@@ -46,6 +46,7 @@ const Invitation = () => {
   const [dataInvatitionEdit,setInvatitionEdit] = useState<InvitationProps[]>([])
   const [guests,setGuests] = useState<Guest[]>([])
   const [isProject,setProject] = useState<string>("")
+  const [planID,setPlanID] = useState<string>("")
    useEffect(() => {
       const storedUser = localStorage.getItem("userInvitation");
        !storedUser && navigate("/");
@@ -72,7 +73,7 @@ const Invitation = () => {
       const data = await response.json();
       var dataUser = data.find((x:any) => x.mail === isUser)
       setUserID(dataUser.userID)
-      
+      setPlanID(dataUser.planID)
     } catch (error) {
         console.error(error);
     }
@@ -280,6 +281,7 @@ const handleCreateCard = (checkForm: number,invatition:string) => {
               title={inva.name || `Thiệp đã tạo ${index + 1}`}
               images={card?.views ?? []}
               layoutData={layoutData}
+               userID={isUserID ??""}
               onPreview={() => {
                 navigate(
                   `/layout/InvitationCard?thiep=${layoutData?.checkForm}&xt=0&id=${inva.invitationID}`
@@ -348,6 +350,8 @@ const handleCreateCard = (checkForm: number,invatition:string) => {
           onClose={() => setModalOpenSent(false)}
           data={guests}
           project={isProject}
+          userID={isUserID ??""}
+          planID={planID}
         />
       )}
     </div>

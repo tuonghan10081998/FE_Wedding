@@ -2,23 +2,44 @@ import React, { useState,useEffect } from 'react';
 import { Send, Users, Check, Clock, X, Plus, Mail, Phone, User, Search, QrCode } from 'lucide-react';
 import type { Guest } from '~/layoutEven/layoutEven';
 import { ToastContainer, toast } from "react-toastify";
+import { useNavigate } from "react-router-dom"; 
+import ModalSentInva from '~/Invitationpage/ModalSentInva';
 interface InvitationModalProps {
   isOpen: boolean;
   onClose: () => void;
   data:Guest[]
   project:string
+  userID:string,
+  planID:string
 }
 const InvitationSender:React.FC<InvitationModalProps> = ({
     isOpen,
     onClose,
     data,
-    project
+    project,
+    userID,
+    planID
 }) => {
-  const [guests, setGuests] = useState<Guest[]>([ ]);
-
+  const navigate = useNavigate();
+  const [guests, setGuests] = useState<Guest[]>([]);
   const [selectedGuests, setSelectedGuests] = useState<string[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
- 
+    const[isExport,setExport] = useState<boolean>(false); 
+    useEffect(()=>{
+        planID && getDataPlan(planID)
+    },[planID])
+   const getDataPlan = async (planID:string) => {
+        const url = `${import.meta.env.VITE_API_URL}/api/Plan/${planID}`;
+        try {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`Response status: ${response.status}`);
+    
+          const data = await response.json();
+          setExport(data.sendInvitation === 1)
+        } catch (error) {
+          console.error(error);
+        }
+    };
   useEffect(() => {
     data && setGuests(data)
   },[data])
@@ -27,7 +48,23 @@ const InvitationSender:React.FC<InvitationModalProps> = ({
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [filterGroup, setFilterGroup] = useState<string>('all');
   const [filterGender, setFilterGender] = useState<string>('all');
-
+  // token
+  const [accessToken,setAccessToken] = useState<string>("")
+  const [refreshToken,setRefreshToken] = useState<string>("") 
+    const [isModalOpenUpgra, setIsModalOpenUpgra] = useState<boolean>(false);
+  
+   useEffect(() => {
+       
+    const storedAccessToken = localStorage.getItem("accessToken");
+    const storedRefreshToken = localStorage.getItem("refreshToken");
+  
+    setAccessToken(storedAccessToken ?? "")
+    setRefreshToken(storedRefreshToken ?? "")
+  }, []);
+  const handleUpgrade = () => {
+    navigate("/layout/Plan");
+    setIsModalOpenUpgra(false);
+  };
   const handleSelectGuest = (guestId: string) => {
     setSelectedGuests(prev => 
       prev.includes(guestId) 
@@ -35,9 +72,34 @@ const InvitationSender:React.FC<InvitationModalProps> = ({
         : [...prev, guestId]
     );
   };
-useEffect(() => {
-  data && setGuests(data)
-}, [data])
+  const ReFreshToken = async () => {
+     const encodedRefreshToken = encodeURIComponent(refreshToken);
+    const request = new Request(
+      `${import.meta.env.VITE_API_URL}/api/User/refresh-token/${userID}?refreshtoken=${encodedRefreshToken}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+  );
+
+  let response = await fetch(request);
+  const data = await response.json();
+    if (response.status === 200 || response.status === 201) {
+      setAccessToken(data.accessToken);
+      setRefreshToken(data.refreshToken);
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
+      handleSendInvitations(data.accessToken)
+      
+    }else{
+      navigate("/")
+    }
+  };
+  useEffect(() => {
+    data && setGuests(data)
+  }, [data])
 
 // Thêm useEffect mới này để auto-select pending guests khi modal mở
 useEffect(() => {
@@ -65,39 +127,59 @@ useEffect(() => {
   };
 
   
-  const handleSendInvitations = async () => {
-    setSendingProgress(true);
-    
-    const dataSave =  await PostSeant(project); 
-    if (dataSave.status === 201 || dataSave.status === 200) {
-        setSendingProgress(false);
-        toast.success("Gửi thiệp thành công");
-        setGuests(prev =>
-            prev.map(x => ({
-                ...x,
-                status: "sent"
-            }))
-         );
+  const handleSendInvitations = async (access:string) => {
+    console.log(isExport)
+    if(isExport){
+       setSendingProgress(true);
+       PostSeant(project,access); 
+    }else{
+      setIsModalOpenUpgra(true)
     }
-     
   };
-const PostSeant = async (projectId: string) => {
-    
-  const url = `${import.meta.env.VITE_API_URL}/api/Invitation/SendInvitaion?ProjectID=${projectId}`;
+const PostSeant = async (projectId: string, access: string) => {
+  try {
+    const request = new Request(
+      `${import.meta.env.VITE_API_URL}/api/Invitation/SendInvitaion?ProjectID=${projectId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${access}`,
+        },
+      }
+    );
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "accept": "*/*"   // giống như Swagger gửi
+    let response = await fetch(request);
+
+    // chỉ parse nếu có body
+    let data: any = null;
+    const text = await response.text();
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = text;
+      }
     }
-  });
 
-  if (!response.ok) {
-    throw new Error(`Request failed with status ${response.status}`);
+    if (response.status === 200 || response.status === 201) {
+      setSendingProgress(false);
+      toast.success("Gửi thiệp thành công");
+      setGuests((prev) =>
+        prev.map((x) => ({
+          ...x,
+          status: "sent",
+        }))
+      );
+    } else if (response.status === 401) {
+      console.warn("Token hết hạn hoặc không hợp lệ → 401");
+      ReFreshToken();
+    } else {
+      console.error("Error:", response.status, data);
+    }
+  } catch (error) {
+    console.error("Fetch error:", error);
   }
-  
-  const data = await response.json(); // sẽ nhận true/false
-  return response;
 };
   const getStatusColor = (status?: string) => {
     switch (status) {
@@ -166,6 +248,15 @@ const PostSeant = async (projectId: string) => {
   if (!isOpen) return null;
 return (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <>
+       <ModalSentInva
+              isOpen={isModalOpenUpgra}
+              onClose={() =>{
+                setIsModalOpenUpgra(false)
+              }}
+              onUpgrade={handleUpgrade}
+            />
+    </>
     <div className="relative w-full h-full bg-white overflow-auto">
       {/* Nút Close */}
       <button
@@ -267,7 +358,7 @@ return (
               
               {selectedGuests.length > 0 && (
                 <button
-                  onClick={handleSendInvitations}
+                  onClick={() => handleSendInvitations(accessToken)}
                   disabled={sendingProgress}
                   className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-200 disabled:opacity-50"
                 >

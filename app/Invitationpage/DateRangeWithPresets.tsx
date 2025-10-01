@@ -20,26 +20,29 @@ const DateRangeWithPresets: React.FC<DateRangeWithPresetsProps> = ({
       ? [dayjs().startOf("month"), dayjs().endOf("month")]
       : null
   );
-  const presets = [
-    { label: "Hôm nay", value: [dayjs(), dayjs()] },
-    {
-      label: "Hôm qua",
-      value: [dayjs().subtract(1, "day"), dayjs().subtract(1, "day")],
-    },
-    { label: "7 ngày qua", value: [dayjs().subtract(7, "day"), dayjs()] },
-    {
-      label: "Tháng này",
-      value: [dayjs().startOf("month"), dayjs().endOf("month")],
-    },
-    {
-      label: "Tháng trước",
-      value: [
-        dayjs().subtract(1, "month").startOf("month"),
-        dayjs().subtract(1, "month").endOf("month"),
-      ],
-    },
-    { label: "Tất cả", value: [dayjs("2000-01-01"), dayjs("2100-12-31")] },
-  ];
+  const presets: {
+  label: string;
+  value: [Dayjs, Dayjs];
+}[] = [
+  { label: "Hôm nay", value: [dayjs(), dayjs()] as [Dayjs, Dayjs] },
+  {
+    label: "Hôm qua",
+    value: [dayjs().subtract(1, "day"), dayjs().subtract(1, "day")] as [Dayjs, Dayjs],
+  },
+  { label: "7 ngày qua", value: [dayjs().subtract(7, "day"), dayjs()] as [Dayjs, Dayjs] },
+  {
+    label: "Tháng này",
+    value: [dayjs().startOf("month"), dayjs().endOf("month")] as [Dayjs, Dayjs],
+  },
+  {
+    label: "Tháng trước",
+    value: [
+      dayjs().subtract(1, "month").startOf("month"),
+      dayjs().subtract(1, "month").endOf("month"),
+    ] as [Dayjs, Dayjs],
+  },
+  { label: "Tất cả", value: [dayjs("2000-01-01"), dayjs("2100-12-31")] as [Dayjs, Dayjs] },
+];
 
   const handleChange = (dates: null | (Dayjs | null)[]) => {
     if (dates && dates[0] && dates[1]) {

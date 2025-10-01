@@ -5,10 +5,12 @@ const routes: RouteConfig = [
     route("layout", "routes/layout.tsx", [
     route("Invitation", "Invitationpage/Invitation.tsx"),
     route("InvitationCard","InvitationCard/InvitationThiep.tsx"),
-    route("layoutEven", "layoutEven/layoutEven.tsx"),
+    route("layoutEvent", "layoutEven/layoutEven.tsx"),
     route("LayoutLanding", "LayoutLanding/WeddingLayoutLanding.tsx"),
     route("Plan", "Plan/PlanSelection.tsx"),
     route("StatisticsPage","StatisticsPage/StatisticsPage.tsx"),
+    route("PlanEditor", "PlanEditor/PlanEditor.tsx"),
+    route("TransactionReport", "TransactionReport/TransactionReport.tsx"),
   ]),
 ];
 

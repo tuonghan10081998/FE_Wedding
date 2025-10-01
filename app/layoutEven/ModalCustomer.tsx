@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
-import type { Guest, GroupGuest, ImportResult } from '../layoutEven/layoutEven';
+import type { Guest, GroupGuest, ImportResult } from './layoutEven';
 import ExcelImporter from '~/layoutEven/ImportExCustomer';
 import Select from "react-select";
 import type { SingleValue } from "react-select";
@@ -22,6 +22,8 @@ interface ModalCustomerProps {
   selectedValue: string;
   onSelectedChange: (v: string) => void;
   isView: boolean
+  onSetLimit:() => void
+  maxGuest:number
 }
 
 interface OptionType {
@@ -32,7 +34,8 @@ interface OptionType {
 const ModalCustomer: React.FC<ModalCustomerProps> = ({ 
   onResetGhe, onClose, table,
   onAddSeat, onClickSeat, onDelete, handleDataImported,
-  data, setParentGroup, setGuest, selectedValue, onSelectedChange, isView
+  data, setParentGroup, setGuest, selectedValue, onSelectedChange,
+  isView,onSetLimit,maxGuest
 }) => {
   const filterOptions: OptionType[] = [
     ...(data?.map((card) => ({
@@ -82,7 +85,13 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
     const maxTableNumber = table.length > 0
       ? Math.max(...table.map(t => t.sort ?? 0)) + 1
       : 1;
-
+    const currentGuestCount = table.length + 1;
+     const maxGuestLimit = maxGuest; // Giới hạn của gói (bạn có thể thay đổi)
+     // Nếu đã đầy hoàn toàn
+    if (currentGuestCount >  maxGuestLimit) {
+      onSetLimit();
+      return []; // Không thêm khách nào
+    }
     const newGuest = { ...guest, sort: maxTableNumber };
     const newTable = [...table, newGuest];
     setGuest(newTable);
@@ -139,6 +148,9 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
             <thead className="bg-indigo-600 sticky top-0 z-1">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-white whitespace-nowrap tracking-wider">
+                  Stt
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-white whitespace-nowrap tracking-wider">
                   Tên
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-white whitespace-nowrap tracking-wider">
@@ -159,6 +171,9 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
               </tr>
               {/* Filter row */}
               <tr className="bg-indigo-100">
+                <th className="px-6 py-2 border border-gray-300">
+                 
+                </th>
                 <th className="px-6 py-2 border border-gray-300">
                   <input
                     type="text"
@@ -202,8 +217,11 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {listData?.map((guest) => (
+              {listData?.map((guest,index) => (
                 <tr key={guest.guestID} className="hover:bg-indigo-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {index + 1}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {guest.name}
                   </td>

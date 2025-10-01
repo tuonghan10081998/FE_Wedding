@@ -11,6 +11,7 @@ interface WeddingCardCreateProps {
   onDelete:() => void;
   onSent:() => void
   layoutData:any
+  userID:string
 }
 
 const WeddingCardCreate: React.FC<WeddingCardCreateProps> = ({ 
@@ -21,6 +22,7 @@ const WeddingCardCreate: React.FC<WeddingCardCreateProps> = ({
     onDelete,
     onSent,
     layoutData,
+    userID
 }) => {
       const [isOpenDelete,setOpenDelete] = useState<boolean>(false)
       const [groomName, setGroomName] = useState(""); 
@@ -45,6 +47,7 @@ const WeddingCardCreate: React.FC<WeddingCardCreateProps> = ({
       const [partyAddress, setpartyAddress] = useState("");
       const [checkNhaHang,setCheckNhaHang] = useState<boolean>(true)
       const[projectid,setProject] = useState<string>(""); 
+  
   useEffect(() => {
     if(!layoutData) return
      setProject(layoutData.projectID)
@@ -70,6 +73,7 @@ const WeddingCardCreate: React.FC<WeddingCardCreateProps> = ({
             setpartyAddress(layoutData.partyAddress || "");
             setCheckNhaHang(layoutData.checkNhaHang ?? true);
   },[layoutData])
+  
 return (
     <div className="w-full max-w-sm rounded-2xl shadow-lg bg-white p-4 relative">
       <div className="absolute right-2 top-1 text-red-500 ">
@@ -177,7 +181,8 @@ return (
         >
           Cập nhật
         </button>
-         <button
+        
+           <button
          onClick={onSent}
           className="px-4 py-2 rounded-lg border bg-pink-500 hover:bg-pink-600 text-white"
         >

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
-import type { Guest } from '../layoutEven/layoutEven';
+import type { Guest } from './layoutEven';
 
 interface GuestInfoModalProps {
    table: Guest;

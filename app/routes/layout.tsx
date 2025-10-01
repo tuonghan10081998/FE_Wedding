@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Outlet, Link, useLocation } from "react-router-dom";
+import '@fortawesome/fontawesome-free/css/all.min.css';
 import "./layout.css";
 
 const Layout: React.FC = () => {
@@ -12,8 +13,10 @@ const Layout: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false); // có phải mobile không
   const [openMenu, setOpenMenu] = useState(false);
   const location = useLocation();
+  const [isTabNameAdmin,setTabNameAdmin]= useState("Gói dịch vụ")
   const currentPath = location.pathname;
   const isActive = (path: string) => currentPath === path;
+
   const [isOpen, setIsOpen] = useState(false);
     const [isUser, setUser] = useState<string | null>(null);
     const [isUserName, setUserName] = useState<string | null>("");
@@ -29,10 +32,14 @@ const Layout: React.FC = () => {
   }, []);
    useEffect(() => {
       const storedUser = localStorage.getItem("userInvitation");
-      console.log(storedUser)
+       const storeRole = localStorage.getItem("role");
+       if(storeRole === "Admin"){
+          setview(false)
+       }
        !storedUser && navigate("/");
       setUser(storedUser);
   }, []);
+
    const getDataUser = async () => {
     if (isUser == "") return;
     const url = `${import.meta.env.VITE_API_URL}/api/User`;
@@ -52,7 +59,6 @@ const Layout: React.FC = () => {
       isUser && getDataUser()
     },[isUser])
   const handleLogOut= () => {
-    console.log(1)
       localStorage.removeItem("userInvitation");
       localStorage.removeItem("passwordInvitation");
       navigate("/");
@@ -99,8 +105,8 @@ const Layout: React.FC = () => {
                 <li className={isActive("/layout/LayoutLanding") ? "active" : ""}>
                   <Link to="/layout/LayoutLanding">TRANG CHỦ</Link>
                 </li>
-                <li className={isActive("/layout/layoutEven") ? "active" : ""}>
-                  <Link to="/layout/layoutEven">TẠO LAYOUT</Link>
+                <li className={isActive("/layout/layoutEvent") ? "active" : ""}>
+                  <Link to="/layout/layoutEvent">TẠO LAYOUT</Link>
                 </li>
                 <li className={isActive("/layout/Invitation") ? "active" : ""}>
                   <Link to="/layout/Invitation">THIỆP CƯỚI</Link>
@@ -212,11 +218,11 @@ const Layout: React.FC = () => {
                 </Link>
               </li>
               <li
-                className={isActive("/layout/layoutEven") ? "active" : ""}
+                className={isActive("/layout/layoutEvent") ? "active" : ""}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 <Link
-                  to="/layout/layoutEven"
+                  to="/layout/layoutEvent"
                   className="block px-3 py-2 rounded hover:bg-purple-600"
                 >
                   TẠO LAYOUT
@@ -323,7 +329,7 @@ const Layout: React.FC = () => {
               </button>
 
               <ul className="mt-16 space-y-2 px-4">
-               <li className="flex flex-col">
+               <li className="flex flex-col hidden">
                   <div
                     className={`flex items-center space-x-2 p-2 rounded hover:bg-blue-600 cursor-pointer`}
                     onClick={() => setOpenMenu(!openMenu)}
@@ -348,25 +354,41 @@ const Layout: React.FC = () => {
                   )}
                 </li>
 
-                <li
+                 <li
                   className={`flex items-center space-x-2 p-2 rounded hover:bg-blue-600 cursor-pointer 
-                  ${isActive("/congviec") ? "bg-blue-700" : ""}`}
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  ${isActive("/layout/PlanEditor") ? "bg-blue-700" : ""}`}
+                  onClick={() => {
+                    setTabNameAdmin("Gói dịch vụ")
+                    setIsMobileMenuOpen(false)
+                  }}
                 >
-                  <Link to="/congviec" className="flex items-center space-x-2">
-                    <i className="fa fa-tasks text-lg"></i>
-                    <span className="whitespace-nowrap">Danh sách công việc</span>
+                  <Link to="/layout/PlanEditor" className="flex items-center space-x-2">
+                     <i className="fa fa-tasks text-lg"></i>
+                    <span className="whitespace-nowrap">Gói dịch vụ</span>
                   </Link>
-                </li>
+                </li> 
 
                 <li
                   className={`flex items-center space-x-2 p-2 rounded hover:bg-blue-600 cursor-pointer 
-                  ${isActive("/duan") ? "bg-blue-700" : ""}`}
+                  ${isActive("/layout/TransactionReport") ? "bg-blue-700" : ""}`}
+                 onClick={() => {
+                    setTabNameAdmin("Báo cáo giao dịch")
+                    setIsMobileMenuOpen(false)
+                  }}
+                >
+                  <Link to="/layout/TransactionReport" className="flex items-center space-x-2">
+                    <i className="fa fa-project-diagram text-lg"></i>
+                    <span className="whitespace-nowrap">Báo cáo giao dịch</span>
+                  </Link>
+                </li>
+                 <li
+                  className={`flex items-center space-x-2 p-2 rounded hover:bg-blue-600 cursor-pointer 
+                  ${isActive("/") ? "bg-blue-700" : ""}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <Link to="/duan" className="flex items-center space-x-2">
-                    <i className="fa fa-project-diagram text-lg"></i>
-                    <span className="whitespace-nowrap">Danh sách dự án</span>
+                  <Link to="/" className="flex items-center space-x-2">
+                    <i className="fa-solid fa-right-from-bracket"></i>
+                    <span className="whitespace-nowrap">Đăng xuất</span>
                   </Link>
                 </li>
               </ul>
@@ -383,7 +405,7 @@ const Layout: React.FC = () => {
               </div>
 
               <ul className="mt-4 space-y-2 px-4">
-               <li className="flex flex-col">
+               <li className="flex flex-col hidden">
                   <div
                     className={`flex items-center space-x-2 p-2 rounded hover:bg-blue-600 cursor-pointer`}
                     onClick={() => setOpenMenu(!openMenu)}
@@ -413,27 +435,38 @@ const Layout: React.FC = () => {
                 </li>
 
                 <li
+                onClick={() => setTabNameAdmin("Gói dịch vụ")}
                   className={`flex items-center space-x-2 p-2 rounded hover:bg-blue-600 cursor-pointer 
-                  ${isActive("/congviec") ? "bg-blue-700" : ""}`}
+                  ${isActive("/layout/PlanEditor") ? "bg-blue-700" : ""}`}
                 >
-                  <Link to="/congviec" className="flex items-center space-x-2">
+                  <Link to="/layout/PlanEditor" className="flex items-center space-x-2">
                     <i className="fa fa-tasks text-lg"></i>
                     {!isCollapsed && (
-                      <span className="whitespace-nowrap">Danh sách công việc</span>
+                      <span className="whitespace-nowrap">Gói dịch vụ</span>
                     )}
                   </Link>
                 </li>
 
                 <li
+                onClick={() => setTabNameAdmin("Báo cáo giao dịch")}
                   className={`flex items-center space-x-2 p-2 rounded hover:bg-blue-600 cursor-pointer 
-                  ${isActive("/duan") ? "bg-blue-700" : ""}`}
+                  ${isActive("/layout/TransactionReport") ? "bg-blue-700" : ""}`}
                 >
-                  <Link to="/duan" className="flex items-center space-x-2">
+                  <Link to="/layout/TransactionReport" className="flex items-center space-x-2">
                     <i className="fa fa-project-diagram text-lg"></i>
                     {!isCollapsed && (
-                      <span className="whitespace-nowrap">Danh sách dự án</span>
+                      <span className="whitespace-nowrap">Báo cáo giao dịch</span>
                     )}
                   </Link>
+                </li>
+               <li
+                  className="flex items-center space-x-2 p-2 rounded hover:bg-blue-600 cursor-pointer"
+                  onClick={handleLogOut}
+                >
+                 <i className="fa-solid fa-right-from-bracket"></i>
+                  {!isCollapsed && (
+                    <span className="whitespace-nowrap">Đăng xuất</span>
+                  )}
                 </li>
               </ul>
             </div>
@@ -445,12 +478,13 @@ const Layout: React.FC = () => {
       <main  onClick={() => setIsOpen(false)}
         className={`${!isviews ? isMobile ? "ml-0": isCollapsed ? "ml-[70px]": "ml-[260px]": "mt-[65px]" } `}
       >
-        <div className="flex items-center">
+        <div className="flex items-center fixed top-0 w-full bg-[#0d3057] h-[42px]">
           {!isviews && !isMobile && (
-            <button
+            <>
+              <button
               onClick={() => setIsCollapsed(!isCollapsed)}
               aria-label="Toggle menu"
-              className="text-white bg-gradient-to-r from-cyan-400 to-purple-600 p-2 rounded shadow-lg"
+              className="text-white rounded shadow-lg ml-[5px]"
             >
               <svg
                 className="w-6 h-6"
@@ -463,9 +497,16 @@ const Layout: React.FC = () => {
                 <line x1="3" y1="12" x2="21" y2="12" />
                 <line x1="3" y1="18" x2="21" y2="18" />
               </svg>
+             
             </button>
+             <span className="ml-[10px] text-[20px] font-bold font-roboto text-white">
+                {isTabNameAdmin}
+              </span>
+            </>
+            
           )}
           {!isviews && isMobile && (
+            <>
             <button
               onClick={() => setIsMobileMenuOpen(true)}
               aria-label="Open mobile menu"
@@ -483,6 +524,10 @@ const Layout: React.FC = () => {
                 <line x1="3" y1="18" x2="21" y2="18" />
               </svg>
             </button>
+            <span className="ml-[10px] text-[20px] font-bold font-roboto text-white">
+                {isTabNameAdmin}
+              </span>
+            </>
           )}
         </div>
         <Outlet  />

@@ -20,7 +20,7 @@ interface WeddingCardViewerProps {
 }
 
 const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,data,isUserID,dataInvatitionEdit,setCheckSave,isCheckSave }) => {
- const navigate = useNavigate();
+  const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [showModal, setShowModal] = useState(false);
@@ -56,6 +56,18 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
   const [partyAddress, setpartyAddress] = useState("");
   const [checkNhaHang,setCheckNhaHang] = useState<boolean>(true)
   const [isFormData,setFormData] = useState<string>("")
+  // token
+  const [accessToken,setAccessToken] = useState<string>("")
+  const [refreshToken,setRefreshToken] = useState<string>("") 
+   useEffect(() => {
+     
+      const storedAccessToken = localStorage.getItem("accessToken");
+      const storedRefreshToken = localStorage.getItem("refreshToken");
+
+      setAccessToken(storedAccessToken ?? "")
+      setRefreshToken(storedRefreshToken ?? "")
+    }, []);
+
     useEffect(() => {
     isUserID && setUserID(isUserID)
   },[isUserID])
@@ -164,26 +176,35 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
        const jsonString = JSON.stringify(formData);
        setFormData(jsonString)
   }
-  const handleSaveInvitation = () => {
+  const handleSaveInvitation = (access:string) => {
     const object = {
             name: isNewInvitation,
             layout: isFormData,
             projectID: projectID,
             invitationID:isInvitation
         }
-        PostInvitation(object)
+        PostInvitation(object,access)
   }
-   const PostInvitation = async (save: any) => {
+   const PostInvitation = async (save: any,access:string) => {
     const request = new Request(`${import.meta.env.VITE_API_URL}/api/Invitation`, {
       method:  isCheckUpdate ? "PUT" : "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${access}`
       },
       body: JSON.stringify(save), // 👈 stringify object Save
     });
 
     let response = await fetch(request);
-    let data = await response.json();
+     let data: any = null;
+    const text = await response.text();
+    if (text) {
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = text;
+        }
+    }
      if (response.status === 201 || response.status === 200) {
         //  !isCheckUpdate &&  resetForm()
          toast.success(` ${isCheckUpdate ? "Cập nhật" : "Lưu"} thiệp thành công`)
@@ -192,6 +213,35 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
        isCheckUpdate &&  navigate(`/layout/InvitationCard?thiep=${checkForm}&xt=0&id=${isInvitation}&customer=&selectxt=true`);
         !isCheckUpdate && navigate(`/layout/InvitationCard?thiep=${checkForm}&xt=0&id=${data.invitationID}&customer=&selectxt=true`);
      }
+      else if(response.status === 401){
+      ReFreshToken()
+    }
+  };
+  const ReFreshToken = async () => {
+     const encodedRefreshToken = encodeURIComponent(refreshToken);
+    const request = new Request(
+      `${import.meta.env.VITE_API_URL}/api/User/refresh-token/${isUserID}?refreshtoken=${encodedRefreshToken}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+  );
+
+  let response = await fetch(request);
+  const data = await response.json();
+    if (response.status === 200 || response.status === 201) {
+      setAccessToken(data.accessToken);
+      setRefreshToken(data.refreshToken);
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
+      
+      handleSaveInvitation(data.accessToken)
+      
+    }else{
+      navigate("/")
+    }
   };
      const resetForm = () => {
             setNewInvitation("");
@@ -483,7 +533,7 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
               setInvitaion={setNewInvitation} 
               isOpen={showModalName} 
               onClose={() => setShowModalName(false)} 
-              onSaveInvatitaion={handleSaveInvitation}
+              onSaveInvatitaion={() => handleSaveInvitation(accessToken)}
               isNewInvitation={isNewInvitation}
               checkUpdate={isCheckUpdate}
               />

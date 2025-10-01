@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import type { Guest, UnifiedTableData } from '../layoutEven/layoutEven';
+import type { Guest, UnifiedTableData } from './layoutEven';
 import Badge from '~/layoutEven/ItemSVGUser';
 import BadgeMan from '~/layoutEven/ItemSVGUserMan';
 import BlingDot from '~/layoutEven/BlingDot';

@@ -1,10 +1,10 @@
 import React, { useRef, useState,useEffect,useMemo,useCallback } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
-import RoundTable from '../layoutEven/RoundTable';
+import RoundTable from './RoundTable';
 import SquareTableRender from '~/layoutEven/Square';
 import BenchTableRender from '~/layoutEven/Bench';
 import GenericItem from '~/layoutEven/ItemLayout'; 
-import type {LayoutItem} from '../layoutEven/ItemLayout'
+import type {LayoutItem} from './ItemLayout'
 import ModalElement from '~/layoutEven/ModalElement';
 import TableForm from '~/layoutEven/Table';
 import ItemForm from '~/layoutEven/Item';
@@ -25,6 +25,9 @@ import ModalSelectProject from '~/layoutEven/ModalSelectProject';
 import ZoneManager from '~/layoutEven/ZoneManager';
 import ZoneForm from '~/layoutEven/ZoneForm';
 import ModalSearchGuest from '~/layoutEven/ModalSearchGuest';
+import type { Plan } from '~/Plan/PlanSelection';
+import UpgradeModal from '~/layoutEven/UpgradeModalLayout';
+import LimitNotificationModal from '~/layoutEven/LimitNotificationModalProps ';
 export interface ZoneRegion {
   zoneId: string;
   zoneName: string;
@@ -180,6 +183,30 @@ export default function TablePlanner() {
   const[isModalSearchGuest,setModalSearchGuest] = useState<boolean>(false)
   const[isParentGroupSearch,setParentGroupSearch]= useState<string>("0")
   const [isInvatition,setInvatition] = useState<string>("")
+
+  // plan
+  const [maxTable,setMaxTable] = useState<number>(0)
+  const [maxGuest,setMaxGuest] = useState<number>(0)
+  const [isExportLayout,setExportLayout] = useState<boolean>(false)
+  const [maxProject,setMaxProject] = useState<number>(0)
+  const [countMaxProject,setCountMaxProject] = useState<number>(0)
+  const [checkmaxProject,setCheckMaxProject] = useState<boolean>(false)
+  const [planID,setPlanID] = useState<string>("")
+  const [plans, setPlans] = useState<Plan | null>(null);
+
+  // token
+  const [accessToken,setAccessToken] = useState<string>("")
+  const [refreshToken,setRefreshToken] = useState<string>("") 
+
+  const [isModalOpenUpgra, setIsModalOpenUpgra] = useState<boolean>(false);
+  const [isTableLimitModalOpen, setIsTableLimitModalOpen] = useState(false);
+  const [isGuestLimitModalOpen, setIsGuestLimitModalOpen] = useState(false);
+
+  const handleUpgrade = () => {
+    navigate("/layout/Plan");
+    setIsModalOpenUpgra(false);
+  };
+
   // Thêm handleToggleZoneMode function
   const handleToggleZoneMode = () => {
     // setIsZoneMode(!isZoneMode);
@@ -194,26 +221,28 @@ export default function TablePlanner() {
 
 
     // Cập nhật handleZoneSelect 
-    const handleZoneSelect = (zoneIndex: number | null) => {
-      setActiveZoneIdx(zoneIndex);
-      if (zoneIndex !== null) {
-        setCheckLoai(5); // Set để hiển thị ZoneForm
-         setIsModalSelectOpen(false)
-          setModalOpen(false)
-          setModalOpenKH(false)
-      }
-    };
-
+  const handleZoneSelect = (zoneIndex: number | null) => {
+    setActiveZoneIdx(zoneIndex);
+    if (zoneIndex !== null) {
+      setCheckLoai(5); // Set để hiển thị ZoneForm
+       setIsModalSelectOpen(false)
+        setModalOpen(false)
+         setModalOpenKH(false)
+     }
+  };
   useEffect(() => {
     const storedUser = localStorage.getItem("userInvitation");
     const storedProject = localStorage.getItem("projectid");
     const storedProjectName = localStorage.getItem("projectidName");
-    console.log(storedProjectName)
-    console.log(storedProject)
+    const storedAccessToken = localStorage.getItem("accessToken");
+    const storedRefreshToken = localStorage.getItem("refreshToken");
      !storedUser && navigate("/");
     setUser(storedUser);
     setProjectLocal(storedProject || "0")
     setProjectNameLocal(storedProjectName || "")
+    
+    setAccessToken(storedAccessToken ?? "")
+    setRefreshToken(storedRefreshToken ?? "")
   }, []);
   const handleVisiableVung = () => {
     setZoneCollection((prev) => 
@@ -223,6 +252,28 @@ export default function TablePlanner() {
         }))
       );
   };
+  useEffect(()=>{
+    planID && getDataPlan(planID)
+  },[planID])
+  const getDataPlan = async (planID:string) => {
+    const url = `${import.meta.env.VITE_API_URL}/api/Plan/${planID}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Response status: ${response.status}`);
+
+      const data = await response.json();
+      setPlans(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+useEffect(() => {
+  if (!plans) return;
+  setMaxGuest(plans.maxGuests);
+  setMaxTable(plans.maxTable);
+  setExportLayout(plans.isExport === 1);
+  setMaxProject(plans.maxLayOut)
+}, [plans]);
 useEffect(() => {
  if(zoneCollection.length === 0) {
    setConfirm(!isConfirm)
@@ -283,13 +334,13 @@ const getDataProject = async () => {
       if (!response.ok) throw new Error(`Response status: ${response.status}`);
 
       const data = await response.json();
+      setCountMaxProject(data.length)
       setData(data)
     } catch (error) {
         console.error(error);
     }
   };
   const getDataUser = async () => {
-    if (isUser == "") return;
     const url = `${import.meta.env.VITE_API_URL}/api/User`;
     try {
       const response = await fetch(url);
@@ -298,7 +349,7 @@ const getDataProject = async () => {
       const data = await response.json();
       var dataUser = data.find((x:any) => x.mail === isUser)
       setUserID(dataUser.userID)
-      
+      setPlanID(dataUser.planID)
     } catch (error) {
         console.error(error);
     }
@@ -329,12 +380,23 @@ const getDataProject = async () => {
       offsetRef.current = { x: 0, y: 0 };
       setNextTableNumber(1)
       setNextTableNumberItem(1)
+      
       if (projectid !== "0") {
         // ✅ Đợi một chút để state reset hoàn toàn
         await new Promise(resolve => setTimeout(resolve, 10));
         await getDataProjectID(projectid);
+        setCheckMaxProject(false)
+      }else{
+          if(countMaxProject >= maxProject){
+            setCheckMaxProject(true)
+            setIsModalOpenUpgra(true)
+            
+          }else{
+            toast.success(`Tạo dự án thành công`);
+          }
       }
   }
+
   const getDataProjectID = async (projectid: string) => {
     if(!projectid) return
     const url = `${import.meta.env.VITE_API_URL}/api/Project/${projectid}`;
@@ -536,8 +598,7 @@ useEffect(() => {
    localStorage.setItem("projectid", isProjectID); 
    localStorage.setItem("projectidName", isProjectName);
 },[isProjectName])
-  const handleSaveLayout = () => {
-  
+  const handleSaveLayout = (access:string) => {
       const layoutCurent: layOutContainer = {
         x: offsetRef.current.x,
         y: offsetRef.current.y,
@@ -567,35 +628,79 @@ useEffect(() => {
         projectID:isProjectID,
         invitationID:isInvatition
     };
-     isProjectID === "0" &&  PostProject(Save,true);
-     isProjectID !== "0" &&  PostProject(Save,false);
+    
+     isProjectID === "0" &&  PostProject(Save,true,access);
+     isProjectID !== "0" &&  PostProject(Save,false,access);
   };
-  const PostProject = async (save: Project,checkSave :boolean) => {
+ 
+  const ReFreshToken = async (value: number) => {
+     const encodedRefreshToken = encodeURIComponent(refreshToken);
+    const request = new Request(
+      `${import.meta.env.VITE_API_URL}/api/User/refresh-token/${isUserID}?refreshtoken=${encodedRefreshToken}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+  );
+
+  let response = await fetch(request);
+  const data = await response.json();
+    if (response.status === 200 || response.status === 201) {
+      setAccessToken(data.accessToken);
+      setRefreshToken(data.refreshToken);
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
+      if (value === 2) {
+        hadleCheckExportPDF(data.accessToken);
+      }else{
+        handleSaveLayout(data.accessToken)
+      }
+    }else{
+      navigate("/")
+    }
+  };
+
+  const PostProject = async (save: Project,checkSave :boolean,access:string) => {
     const request = new Request(`${import.meta.env.VITE_API_URL}/api/Project`, {
       method: checkSave ? "POST" : "PUT",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${access}`
       },
       body: JSON.stringify(save), // 👈 stringify object Save
     });
 
     let response = await fetch(request);
-    let data = await response.json();
+    let data: any = null;
+    const text = await response.text();
+    if (text) {
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = text;
+        }
+    }
     if (response.status === 201 || response.status === 200) {
       await getDataProject()  
       if(checkSave){
         toast.success("Lưu thành công");
         await setProjectID(data.projectID)
         await setProjectName(data.projectName)
-        handleSaveGuest(data.projectID)
+        handleSaveGuest(data.projectID,access)
 
       }else {
         toast.success("Cập nhật thành công");
-         handleSaveGuest(isProjectID)
+         handleSaveGuest(isProjectID,access)
       }
     }
+     else if(response.status === 401){
+      ReFreshToken(1)
+    }
+    
   };
-const handleSaveGuest = (projectid: string) => {
+const handleSaveGuest = (projectid: string,access:string) => {
   // Lấy danh sách guestID trong subget
   const subGuestIds = new Set(subget.map(x => x.guestID));
 
@@ -622,13 +727,14 @@ const handleSaveGuest = (projectid: string) => {
       mail: x.mail ?? ""
     }));
 
-  PostGuest(arrSaveGuest, projectid);
+  PostGuest(arrSaveGuest, projectid,access);
 };
-const PostGuest = async (save: any,projectid:string) => {
+const PostGuest = async (save: any,projectid:string,access:string) => {
     const request = new Request(`${import.meta.env.VITE_API_URL}/api/Guest`, {
       method:  "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${access}`
       },
       body: JSON.stringify(save), // 👈 stringify object Save
     });
@@ -801,7 +907,24 @@ const handleExportPDF = async () => {
     
   }
 };
+const hadleCheckExportPDF = async (access:string) => {
+  const request = new Request(`${import.meta.env.VITE_API_URL}/api/Project/IsExport`, {
+      method:  "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${access}`
+      },
+      //body: JSON.stringify(save), // 👈 stringify object Save
+    });
 
+    let response = await fetch(request);
+    if (response.status === 201 || response.status === 200) {
+      handleExportPDF()
+    }
+    else if(response.status === 401){
+      ReFreshToken(2)
+    }
+}
 const generateQR = (id: string, name: string) => `QR-${id}-${name}`;
  const handleSetGuest = (newGuests: Guest[]) => {
     setGuests(newGuests);
@@ -841,7 +964,29 @@ const processImportedData = (importData: any[][]) => {
   // Lọc bỏ những row có name rỗng trước khi xử lý
   const validRows = importData.filter(row => row[1] && row[1].toString().trim() !== '');
   
-  const guestsTable = validRows.map((row, index) => {
+  // KIỂM TRA GIỚI HẠN KHÁCH MỜI
+  const currentGuestCount = guests.length;
+  const maxGuestLimit = maxGuest; // Giới hạn của gói (bạn có thể thay đổi)
+  
+  // Tính số khách còn có thể thêm
+  const availableSlots = maxGuestLimit - currentGuestCount;
+  
+  // Nếu đã đầy hoàn toàn
+  if (availableSlots <= 0) {
+    setIsGuestLimitModalOpen(true);
+    return []; // Không thêm khách nào
+  }
+  
+  // Nếu số khách muốn import vượt quá chỗ trống
+  let rowsToProcess = validRows;
+  let showWarning = false;
+  
+  if (validRows.length > availableSlots) {
+    rowsToProcess = validRows.slice(0, availableSlots); // Chỉ lấy số khách còn lại
+    showWarning = true; // Đánh dấu để hiện thông báo sau
+  }
+  
+  const guestsTable = rowsToProcess.map((row, index) => {
     return {
       guestID: uuidv4(),
       sort: maxTableNumber + index,
@@ -859,6 +1004,13 @@ const processImportedData = (importData: any[][]) => {
       isView: isViewIconUser,
     } as Guest;
   });
+  
+  // Hiển thị modal cảnh báo SAU KHI đã import xong
+  if (showWarning) {
+    setTimeout(() => {
+      setIsGuestLimitModalOpen(true);
+    }, 100);
+  }
   
   return guestsTable;
 };
@@ -939,12 +1091,7 @@ const handleCtrlClickITem = (item: LayoutItem, event: React.MouseEvent,checkClic
   position: string,  // thêm biến này
   groupParentID:string
 ) => {
-    // setTables((prev) =>
-    //   prev.map(x => ({
-    //     ...x,
-    //     isComeback: 0
-    //   }))
-    // );
+   
   if (!row || row === '') {
     toast.error("Vui lòng nhập dãy!");
 
@@ -973,6 +1120,7 @@ const handleCtrlClickITem = (item: LayoutItem, event: React.MouseEvent,checkClic
     type: string,
     layout: string
   ): UnifiedTableData => {
+    
     maxTableNumber++;
     if (type === 'tron') {
       return {
@@ -1044,6 +1192,14 @@ for (let r = startRow; r <= totalRows; r++) {
   const seatsInThisRow = checkRow === 'nhieuday' ? baseSeatsPerRow + (r - startRow < remainder ? 1 : 0) : count;
 
   for (let i = 0; i < seatsInThisRow; i++) {
+   const currentTableCount = tables.length + newTables.length + 1;
+    const maxTableLimit = maxTable;
+    
+    if(currentTableCount > maxTableLimit){
+      setIsTableLimitModalOpen(true);
+      break; // Dừng vòng lặp
+    }
+    
     const padLeftPx = type === 'tron' ? 50 : type === 'vuong' ? 55 : 30;
     const padTopPx = type === 'tron' ? 53 : type === 'vuong' ? 60 : 53;
     let left = toLocalX(padLeftPx );
@@ -1075,15 +1231,15 @@ for (let r = startRow; r <= totalRows; r++) {
     }
    
     
-    newTables.push(
-      createTable(1, top, left, type, layout)
-    );
+    const table = createTable(1, top, left, type, layout);
+      if (table !== null) {  // Chỉ push khi không null
+        newTables.push(table);
+      }
   }
 }
   setTables((prev) => [...prev, ...newTables]);
   setNextTableNumber((prev) => prev + newTables.length);
 };
-
   const handleResize = (index: number, newTable: UnifiedTableData) => {
     setTables((prev) => {
       const updated = [...prev];
@@ -1538,6 +1694,13 @@ const handleAddBan = (index: number,groupParentID:number) => {
     toast.error("Vui lòng chọn bên!");
     return
   }
+  const currentTableCount = tables.length + 1;
+  const maxTableLimit = maxTable; // Giới hạn của gói
+  if(currentTableCount > maxTableLimit){
+    // Nếu đã đầy hoàn toàn
+    setIsTableLimitModalOpen(true);
+    return;
+  }
   let newTable: UnifiedTableData;
    const maxTableNumber =
         tables.length > 0
@@ -1723,6 +1886,32 @@ useEffect(() => {
 },[isModalSearchGuest])
   return (
     <div >
+      <>
+       <UpgradeModal
+        isOpen={isModalOpenUpgra}
+        onClose={() =>{
+          setIsModalOpenUpgra(false)
+          setIsModalSaveOpenProject(true)
+          setProjectID("")
+          setProjectName("Dự án")
+        }}
+        onUpgrade={handleUpgrade}
+      />
+      <LimitNotificationModal
+        isOpen={isTableLimitModalOpen}
+        onClose={() => setIsTableLimitModalOpen(false)}
+        limitType="tables"
+        currentCount={maxTable}
+        maxLimit={maxTable}
+      />
+       <LimitNotificationModal
+        isOpen={isGuestLimitModalOpen}
+        onClose={() => setIsGuestLimitModalOpen(false)}
+        limitType="guests"
+        currentCount={maxGuest}
+        maxLimit={maxGuest}
+      />
+      </>
        <>
           <button
               type="button"
@@ -1775,7 +1964,8 @@ useEffect(() => {
                         toast.error("Vui lòng tạo dự án mới !");
                         return
                   }
-                  handleExportPDF()
+                 
+                  hadleCheckExportPDF(accessToken)
                   setIsOpen(false);
                 }}
               >
@@ -1817,7 +2007,7 @@ useEffect(() => {
             <LayoutModal
               isOpen={isModalSaveOpen}
               onClose={() => setIsModalSaveOpen(false)}
-             onSave={handleSaveLayout}
+             onSave={() => handleSaveLayout(accessToken)}
              checkProject={isProjectID}
              projectName={isProjectName}
             />
@@ -1997,7 +2187,9 @@ useEffect(() => {
                   <ModalCustomer
                     onClose={() => setModalOpenKH(false)}
                     table={guests}
-                   onAddSeat={() => {
+                    onSetLimit={() => setIsGuestLimitModalOpen(true)}
+                    maxGuest={maxGuest}
+                    onAddSeat={() => {
                     if(isParentGroup === "0"){
                        toast.error("Vui lòng chọn bên!");
                         return

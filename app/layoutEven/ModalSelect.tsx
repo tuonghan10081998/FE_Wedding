@@ -1,7 +1,7 @@
 import React, { useState,useEffect} from "react";
 import Select from "react-select";
 import type { SingleValue } from "react-select";
-import type { GroupGuest } from '../layoutEven/layoutEven';
+import type { GroupGuest } from './layoutEven';
 interface ModalSelectProps {
   isOpen: boolean;
   onClose: () => void;

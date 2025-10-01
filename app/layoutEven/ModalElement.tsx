@@ -1,5 +1,5 @@
 import React, { useEffect,useState } from 'react';
-import type { Guest,GroupGuest,ImportResult } from '../layoutEven/layoutEven';
+import type { Guest,GroupGuest,ImportResult } from './layoutEven';
 import Select from "react-select";
 import type { SingleValue } from "react-select";
 interface ModalEllement {
@@ -382,12 +382,12 @@ const ModalElement: React.FC<ModalEllement> = ({ onClose,
                 </div>
               </div>
                <div className="flex flex-col items-center">
-                <div onClick={() => onAddItem("maytaokhoi",70,70,"transparent","Máy tạo khối")} className="icon-item">
+                <div onClick={() => onAddItem("maytaokhoi",70,70,"transparent","Máy tạo khói")} className="icon-item">
                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 70" width="70"
                       height="70" fill="none" stroke="#333"strokeWidth="1.5"strokeLinecap="round" strokeLinejoin="round">
                       <path d="M47.1 8.1q1.25.55 2.45 1.25 1.5.9 3 2 1.7 1.3 3.3 2.9Q64.5 22.9 64.5 35.1q0 12.2-8.65 20.85-3.5 3.5-7.6 5.6-1.45.75-3 1.3-1.25.45-2.5.8-.9.2-1.85.4-2.85.55-5.9.55-2.95 0-5.75-.5-.15 0-.25-.05-1.35-.25-2.65-.65-.7-.2-1.35-.45-1.65-.6-3.25-1.4-2.6-1.35-5.25-3.45-1.2-1-2.35-2.15-3.8-3.8-5.9-8.25Q5.5 41.95 5.5 35.1q0-12.2 8.65-20.85 2.95-2.95 6.35-4.9.6-.35 1.25-.7.55-.3 1.15-.55M27.55 31q-1 .35-2.15.35-2.25 0-3.9-1.65t-1.65-3.95q0-2.25 1.65-3.9t3.9-1.65q1.45 0 2.65.6.45-.8 1.15-1.55l.15-.15.1-.1q1-1 2.25-1.55 1.55-.7 3.35-.7t3.35.7q1.3.6 2.35 1.65l.15.15q.6.65 1.05 1.4.15.15.25.4.4-.25.85-.35.05-.05.1-.05.7-.2 1.5-.2t1.6.2q1.25.4 2.3 1.45l.1.05q.25.25.45.6 1.1 1.4 1.1 3.3 0 1.85-1.1 3.35-.2.25-.45.5l-.1.05q-1.55 1.6-3.7 1.65h-.2q-1.05 0-1.95-.3M34 11.35q7-.05 8-4.2 1-4.2-3.8-5.35-4.85-1.15-8.4 1.15-2.65 2.4.65 4 3.25 1.55 6.7-1.15m-2 21.85V47.2M28.9 27.1q3.85 3.85 3.05 19.35m9.2-19.6q-.8.55-1.3 2.4-1.5 4.6-1.3 17.5m-7.4 3.7h8v5.35h-8v-5.35z" />
                     </svg>
-                    <span className="label-text">Máy tạo khối</span>
+                    <span className="label-text">Máy tạo khói</span>
                 </div>
               </div>
                <div className="flex flex-col items-center">

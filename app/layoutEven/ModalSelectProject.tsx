@@ -38,7 +38,7 @@ const ModalSelectProject: React.FC<ModalSelectProjectProps> = ({ isOpen, onClose
         toast.error("Vui lòng nhập tên dự án mới!");
         return;
       }
-      toast.success(`Tạo dự án mới: ${newProjectName}`);
+     
       setProjectID?.("0")
       setProjectName(newProjectName ?? "")
       setNewProjectName("");
