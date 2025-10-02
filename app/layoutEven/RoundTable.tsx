@@ -259,7 +259,7 @@ const RoundTable: React.FC<RoundTableProps> = ({
             className="cursor-move fa-user usercutomer"
           >
              <div className={`absolute z-[10]`}>
-                   {guest?.isSearch &&  <BlingDot/>} 
+                   {/* {guest?.isSearch &&  <BlingDot/>}  */}
                 </div>
             {(guest && guest.isView)  ? (
               <div className="flex flex-col items-center justify-center text-[10px] leading-tight">

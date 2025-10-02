@@ -47,6 +47,7 @@ const WeddingCardCreate: React.FC<WeddingCardCreateProps> = ({
       const [partyAddress, setpartyAddress] = useState("");
       const [checkNhaHang,setCheckNhaHang] = useState<boolean>(true)
       const[projectid,setProject] = useState<string>(""); 
+      const [isOpen, setIsOpen] = useState(false);
   
   useEffect(() => {
     if(!layoutData) return
@@ -73,16 +74,58 @@ const WeddingCardCreate: React.FC<WeddingCardCreateProps> = ({
             setpartyAddress(layoutData.partyAddress || "");
             setCheckNhaHang(layoutData.checkNhaHang ?? true);
   },[layoutData])
-  
+ useEffect(() => {
+  const handleClickOutside = (event: MouseEvent) => {
+    const target = event.target as HTMLElement;
+    // Kiểm tra xem click có nằm trong dropdown-container không
+    if (!target.closest('.dropdown-container')) {
+      setIsOpen(false);
+    }
+  };
+
+  if (isOpen) {
+    // Delay nhỏ để tránh đóng ngay khi vừa mở
+    setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+  }
+
+  return () => {
+    document.removeEventListener('mousedown', handleClickOutside);
+  };
+}, [isOpen]);
 return (
     <div className="w-full max-w-sm rounded-2xl shadow-lg bg-white p-4 relative">
       <div className="absolute right-2 top-1 text-red-500 ">
-         <button 
-               onClick={() => setOpenDelete(true)}
+        <div className="relative">
+           <button 
+               onClick={() => setIsOpen(true)}
                className="hover:text-red-600 focus:outline-none transition-colors p-2 rounded cursor-pointer"
                 title="Xóa thiệp" >
-               <i className="fas fa-trash-alt"></i>
+               <i className="fa-solid fa-ellipsis-vertical"></i>
            </button>
+            {isOpen && (
+              <div 
+                className="dropdown-container absolute right-[0px] top-[35px] bg-white border border-gray-200 
+                          rounded-lg shadow-xl min-w-[150px] py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+              >
+                {/* Xuất file mẫu */}
+                <button 
+                  className="w-full cursor-pointer flex items-center px-4 py-3 text-gray-700 
+                            hover:bg-gray-50 focus:bg-gray-100 focus:outline-none transition-colors duration-200 
+                            text-left text-sm group"
+                  onClick={() => {
+                    setOpenDelete(true)
+                    setIsOpen(false);
+                  }}
+                >
+                  <i className="fa-solid fa-trash text-[16px] mr-3 text-red-500 group-hover:text-red-600"></i>
+                  <span className="font-medium">Xóa thiệp</span>
+                </button>
+              </div>
+            )}
+        </div>
+
       </div>
       
       <div className="h-[190px]">

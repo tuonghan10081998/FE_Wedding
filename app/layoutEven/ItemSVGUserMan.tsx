@@ -16,14 +16,14 @@ const BadgeMan: React.FC<BadgeManProps> = ({
 }) => {
   const [active, setActive] = useState(true);
   
-    useEffect(() => {
-      const interval = setInterval(() => {
-        setActive(false);
-        setTimeout(() => setActive(true), 50); // restart animation
-      }, 3000);
+    // useEffect(() => {
+    //   const interval = setInterval(() => {
+    //     setActive(false);
+    //     setTimeout(() => setActive(true), 50); // restart animation
+    //   }, 3000);
   
-      return () => clearInterval(interval);
-    }, []);
+    //   return () => clearInterval(interval);
+    // }, []);
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -153,7 +153,7 @@ const BadgeMan: React.FC<BadgeManProps> = ({
             }}
             >
                 {text}
-                  {customer !== 0 && (
+                   {(customer !== 0 && customer )&& (
                     <tspan
                       className={active ? "bling-dot" : ""}
                       fill="red"

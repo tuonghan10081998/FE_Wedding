@@ -3,6 +3,8 @@ import { BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, Cart
 import { TrendingUp, DollarSign, ShoppingCart, User } from 'lucide-react';
 import DateRangeWithPresets from "~/Invitationpage/DateRangeWithPresets";
 import moment from "moment";
+import '../PlanEditor/admin.css'
+import '../layoutEven/layoutEven.css'
 // Type Definitions
 interface Transaction {
   orderId: string;
@@ -188,7 +190,7 @@ const TransactionReport: React.FC = () => {
           </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
           <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-blue-100 rounded-lg">
@@ -223,7 +225,7 @@ const TransactionReport: React.FC = () => {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-xl shadow-lg mb-8">
+        <div className="bg-white rounded-xl shadow-lg">
           <div className="border-b border-slate-200">
             <div className="flex space-x-4 px-6">
               <button
@@ -319,7 +321,7 @@ const TransactionReport: React.FC = () => {
             )}
 
             {activeTab === 'details' && (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto max-h-[500px]">
                 <table className="w-full">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-200">

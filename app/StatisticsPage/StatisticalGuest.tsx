@@ -79,6 +79,10 @@ const StatisticalGuest:React.FC<StatisticalGuestProps> = ({data,guestLength}) =>
                             <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
                               ✅ Đã xác nhận
                             </span>
+                          ) : guest.isConfirm === 2 ? (
+                            <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">
+                              ❌ Xác nhận không đi
+                            </span>
                           ) : (
                             <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">
                               ⏳ Chờ xác nhận

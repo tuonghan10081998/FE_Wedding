@@ -201,7 +201,7 @@ export default function TablePlanner() {
   const [isModalOpenUpgra, setIsModalOpenUpgra] = useState<boolean>(false);
   const [isTableLimitModalOpen, setIsTableLimitModalOpen] = useState(false);
   const [isGuestLimitModalOpen, setIsGuestLimitModalOpen] = useState(false);
-
+   const [isExportlimit, setExportlimit] = useState(false);
   const handleUpgrade = () => {
     navigate("/layout/Plan");
     setIsModalOpenUpgra(false);
@@ -923,6 +923,9 @@ const hadleCheckExportPDF = async (access:string) => {
     }
     else if(response.status === 401){
       ReFreshToken(2)
+    }
+    else if(response.status === 400){
+      setExportlimit(true)
     }
 }
 const generateQR = (id: string, name: string) => `QR-${id}-${name}`;
@@ -1911,6 +1914,11 @@ useEffect(() => {
         currentCount={maxGuest}
         maxLimit={maxGuest}
       />
+      <LimitNotificationModal
+        isOpen={isExportlimit}
+        onClose={() => setExportlimit(false)}
+        limitType="export"
+      />
       </>
        <>
           <button
@@ -2555,9 +2563,19 @@ useEffect(() => {
           )}
           {checkLoai === 4 && isGuestItem?.length > 0 && (
             <GuestInfoModal
-             onClickSeat= {(customerid:string,checkseatid:boolean) => handleAddSeatOnTable(customerid,checkseatid)}
-            onDelete ={(customerid:string,customer:string) => handleDeleteGuest(customerid,customer)}
-            table={isGuestItem[0]} />
+              onClickSeat= {(customerid:string,checkseatid:boolean) => handleAddSeatOnTable(customerid,checkseatid)}
+              onDelete ={(customerid:string,customer:string) => handleDeleteGuest(customerid,customer)}
+              table={isGuestItem[0]}
+              onReset={(customerid:string) => {
+                setGuests(prev => 
+                   prev.map(g =>
+                    g.guestID === customerid
+                      ? { ...g, seatID: null, tableID: "", tableName: "", seatName: "" }
+                      : g
+                  )
+                  )
+              }}
+              />
           )}
           {checkLoai === 5 && activeZoneIdx !== null && zoneCollection[activeZoneIdx] && (
               <ZoneForm 

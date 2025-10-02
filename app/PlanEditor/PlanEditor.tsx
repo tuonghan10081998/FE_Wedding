@@ -187,7 +187,7 @@ const AdminPlanEditor = () => {
           </div>
           <button
             onClick={() => handleOpenModal('add')}
-            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center gap-2"
+            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center gap-2"
           >
             <Plus className="w-5 h-5" />
             Thêm gói mới

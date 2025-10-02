@@ -194,7 +194,7 @@ const Badge: React.FC<BadgeProps> = ({ text,rotate,centerX,centerY,width = 50,he
             }}
           >
             {text}
-             {customer !== 0 && (
+             {(customer !== 0 && customer) && (
                 <tspan
                   className={active ? "bling-dot" : ""}
                   fill="red"

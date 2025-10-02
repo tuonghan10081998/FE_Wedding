@@ -204,28 +204,55 @@ const PlanSelection = () => {
   const resultPayment = searchParams.get("result");
   const [showModal, setShowModal] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
-
+  const [refreshToken,setRefreshToken] = useState<string>("") 
   useEffect(() => {
     const storedUser = localStorage.getItem("userInvitation");
     !storedUser && navigate("/");
+    const storedRefreshToken = localStorage.getItem("refreshToken");
+    setRefreshToken(storedRefreshToken ?? "")
     setUser(storedUser);
   }, []);
 
   useEffect(() => {
     if (resultPayment) {
       setPaymentSuccess(resultPayment === "1");
+      
       setShowModal(true);
     }
   }, [resultPayment]);
+  useEffect(()=> {
+    if(resultPayment && isUserID && refreshToken){
+      ReFreshToken()
+    }
+  },[resultPayment,refreshToken,isUserID])
+   const ReFreshToken = async () => {
+     const encodedRefreshToken = encodeURIComponent(refreshToken);
+    const request = new Request(
+      `${import.meta.env.VITE_API_URL}/api/User/refresh-token/${isUserID}?refreshtoken=${encodedRefreshToken}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+  );
 
+  let response = await fetch(request);
+  const data = await response.json();
+    if (response.status === 200 || response.status === 201) {
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
+      
+    }else{
+      navigate("/")
+    }
+  };
   const handleCloseModal = () => {
     setShowModal(false);
-    // Remove result param from URL
     searchParams.delete("result");
     setSearchParams(searchParams);
     
     if (paymentSuccess) {
-      // Refresh user data to get updated plan
       getDataUser();
     }
   };
@@ -240,7 +267,6 @@ const PlanSelection = () => {
       const data = await response.json();
       var dataUser = data.find((x: any) => x.mail === isUser);
       setUserID(dataUser.userID);
-      console.log(dataUser.planID)
       setSelectedPlan(dataUser.planID);
     } catch (error) {
       console.error(error);

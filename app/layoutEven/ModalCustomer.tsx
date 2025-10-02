@@ -78,6 +78,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
 
       return matchName && matchPhone && matchGender && matchNhom && matchBan;
     });
+    console.log(filteredTable)
     setListData(filteredTable);
   }, [table, filters, selectedValue]);
 
@@ -232,10 +233,10 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
                     {guest.gender}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {guest.groupInfo?.groupName}
+                    {guest.seatID && guest.groupInfo?.groupName}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {guest.seatName}
+                    {guest.seatID && guest.seatName}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <div className='flex gap-2 justify-between items-center'>

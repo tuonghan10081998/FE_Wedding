@@ -109,7 +109,6 @@ const AuthPage: React.FC = () => {
         if (response.status === 200) {
           const data = await response.json();
 
-          toast.success("Đăng nhập thành công");
          if (rememberMe) {
             localStorage.setItem("userInvitation", loginForm.user);
             localStorage.setItem("passwordInvitation", loginForm.password);

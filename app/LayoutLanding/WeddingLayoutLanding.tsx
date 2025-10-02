@@ -1,10 +1,20 @@
 import { useState, useEffect } from 'react';
 import { Heart, Star, Palette, Smartphone, Users, Award, ArrowRight, Play, CheckCircle, Sparkles } from 'lucide-react';
+import { XCircle, Layout, Download, BarChart3, UserPlus, Utensils, FileDown, X,Facebook,Mail,Phone } from 'lucide-react';
 
+import { useNavigate } from "react-router-dom";
+import type { Plan } from '~/Plan/PlanSelection';
 export default function WeddingLayoutLanding() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [selectedPlan, setSelectedPlan] = useState<string>('');
-
+  const navigate = useNavigate();
+   useEffect(() => {
+      const storedUser = localStorage.getItem("userInvitation");
+       !storedUser && navigate("/");
+       setUser(storedUser);
+    }, []);
+   const [isUser, setUser] = useState<string | null>(null);
+    const [isUserID, setUserID] = useState<string | null>("");
   const testimonials = [
     {
       name: "Nguyễn Thị Mai",
@@ -61,47 +71,115 @@ export default function WeddingLayoutLanding() {
       description: "Hoa văn lãng mạn & ngọt ngào"
     }
   ];
-
-  const plans = [
-    {
-      planID: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-      planName: "Free",
-      price: 0,
-      maxLayOut: 2,
-      maxGuests: 100,
-      maxTable: 10,
-      isExport: 0
-    },
-    {
-      planID: "55ae1dc2-d98d-4389-38ab-08ddfabdc134",
-      planName: "VIP1",
-      price: 200,
-      maxLayOut: 5,
-      maxGuests: 100,
-      maxTable: 20,
-      isExport: 1
-    }
-  ];
-
-  const formatPrice = (price: number) => {
-    if (price === 0) return 'Miễn phí';
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(price * 1000);
+  const getDataUser = async () => {
+      if (isUser == "") return;
+      const url = `${import.meta.env.VITE_API_URL}/api/User`;
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Response status: ${response.status}`);
+  
+        const data = await response.json();
+        var dataUser = data.find((x: any) => x.mail === isUser);
+        setUserID(dataUser.userID);
+        setSelectedPlan(dataUser.planID);
+      } catch (error) {
+        console.error(error);
+      }
   };
-
-  const getPlanDisplayName = (planName: string) => {
-    const nameMap: { [key: string]: string } = {
-      'Free': 'Gói Miễn Phí',
-      'VIP1': 'Gói VIP Premium'
+  
+  useEffect(() => {
+     isUser && getDataUser();
+  }, [isUser]);
+  const getDataPlan = async () => {
+      if (isUser == "") return;
+      const url = `${import.meta.env.VITE_API_URL}/api/Plan`;
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Response status: ${response.status}`);
+  
+        const data = await response.json();
+        setPlans(data);
+      } catch (error) {
+        console.error(error);
+      }
     };
-    return nameMap[planName] || planName;
-  };
-
-  const handleSelectPlan = (planId: string) => {
-    setSelectedPlan(planId);
-  };
+  
+  useEffect(() => {
+      isUserID && getDataPlan();
+  }, [isUserID]);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const handleGoCreateLayout = () => {
+    navigate("/layout/layoutEvent")
+  }
+   const handleGoCreatePlan = () => {
+    navigate("/layout/Plan")
+  }
+   const handleGoCreateInvatition = () => {
+    navigate("/layout/Invitation")
+  }
+   const formatPrice = (price: number) => {
+     if (price === 0) return 'Miễn phí';
+     return new Intl.NumberFormat('vi-VN', {
+       style: 'currency',
+       currency: 'VND'
+     }).format(price * 1);
+   };
+ 
+ const getPlanDisplayName = (plan: Plan) => {
+   // Nếu miễn phí
+   if (plan.price === 0) {
+     return 'Gói Miễn Phí';
+   }
+   
+   // Phân loại theo mức giá
+   if (plan.price < 100000) {
+     return 'Gói Cơ Bản';
+   } else if (plan.price >= 100000 && plan.price < 300000) {
+     return 'Gói Tiêu Chuẩn';
+   } else if (plan.price >= 300000 && plan.price < 500000) {
+     return 'Gói Premium';
+   } else if (plan.price >= 500000 && plan.price < 1000000) {
+     return 'Gói VIP';
+   } else {
+     return 'Gói VIP Platinum';
+   }
+ };
+ const getPlanIcon = (planName: string) => {
+     if (planName === 'Free') {
+       return (
+         <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+           <CheckCircle className="w-6 h-6 text-green-600" />
+         </div>
+       );
+     }
+     return (
+       <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-4">
+         <Sparkles className="w-6 h-6 text-white" />
+       </div>
+     );
+ };
+ 
+   const getCardStyle = (planName: string, isSelected: boolean) => {
+     const baseStyle = "relative bg-white rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl border-2";
+     
+     if (isSelected) {
+       return planName === 'Free' 
+         ? `${baseStyle} border-green-500 shadow-green-200 shadow-lg`
+         : `${baseStyle} border-purple-500 shadow-purple-200 shadow-lg`;
+     }
+     
+     return `${baseStyle} border-gray-200 hover:border-gray-300`;
+   };
+ 
+   const getFeatures = (plan: Plan) => {
+     return [
+       { icon: BarChart3, label: 'Bố cục tối đa', value: `${plan.maxLayOut} mẫu` },
+       { icon: Users, label: 'Số khách mời', value: `${plan.maxGuests} người` },
+       { icon: Utensils, label: 'Số bàn tiệc', value: `${plan.maxTable} bàn` },
+       { icon: UserPlus, label: 'Gửi thiệp mời', value: plan.sendInvitation === 1 ? 'Có' : 'Không' },
+       { icon: plan.isExport ? FileDown : X, label: 'Xuất dữ liệu', value: plan.isExport ? 'Có' : 'Không' }
+     ];
+   };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -131,7 +209,7 @@ export default function WeddingLayoutLanding() {
               độc đáo, hiện đại và đầy cảm xúc. Dễ dàng tùy chỉnh, chia sẻ và quản lý khách mời.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-              <button className="group bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 flex items-center space-x-2">
+              <button onClick={handleGoCreateLayout} className="group bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 flex items-center space-x-2">
                 <span>Bắt đầu miễn phí</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
@@ -234,124 +312,87 @@ export default function WeddingLayoutLanding() {
               Lựa chọn gói dịch vụ tốt nhất cho sự kiện của bạn
             </p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {plans.map((plan) => {
-              const isSelected = selectedPlan === plan.planID;
-              const isPremium = plan.planName !== 'Free';
-              
-              return (
-                <div
-                  key={plan.planID}
-                  className={`relative bg-white rounded-2xl p-8 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl border-2 ${
-                    isSelected
-                      ? isPremium 
-                        ? 'border-purple-500 shadow-purple-200 shadow-lg'
-                        : 'border-green-500 shadow-green-200 shadow-lg'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => handleSelectPlan(plan.planID)}
-                >
-                  {/* Popular Badge cho gói VIP */}
-                  {isPremium && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                        Phổ Biến
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Selected indicator */}
-                  {isSelected && (
-                    <div className="absolute top-4 right-4">
-                      <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                        <CheckCircle className="w-4 h-4 text-white" />
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="text-center">
-                    {/* Icon */}
-                    <div className="mb-6">
-                      {plan.planName === 'Free' ? (
-                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                          <Heart className="w-8 h-8 text-green-600" />
-                        </div>
-                      ) : (
-                        <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto">
-                          <Award className="w-8 h-8 text-white" />
-                        </div>
-                      )}
-                    </div>
-                    
-                    <h4 className="text-2xl font-bold text-gray-900 mb-4">
-                      {getPlanDisplayName(plan.planName)}
-                    </h4>
-                    
-                    <div className="mb-6">
-                      <span className={`text-4xl font-bold ${plan.price === 0 ? 'text-green-600' : 'text-purple-600'}`}>
-                        {formatPrice(plan.price)}
-                      </span>
-                      {plan.price > 0 && (
-                        <span className="text-gray-500 text-lg ml-1">/tháng</span>
-                      )}
-                    </div>
-
-                    {/* Features */}
-                    <div className="space-y-4 mb-8 text-left">
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-700 flex items-center">
-                          <Palette className="w-4 h-4 mr-2 text-purple-500" />
-                          Bố cục tối đa
-                        </span>
-                        <span className="font-semibold text-gray-900">{plan.maxLayOut} mẫu</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-700 flex items-center">
-                          <Users className="w-4 h-4 mr-2 text-blue-500" />
-                          Số khách mời
-                        </span>
-                        <span className="font-semibold text-gray-900">{plan.maxGuests} người</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-700 flex items-center">
-                          <Heart className="w-4 h-4 mr-2 text-pink-500" />
-                          Số bàn tiệc
-                        </span>
-                        <span className="font-semibold text-gray-900">{plan.maxTable} bàn</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-700 flex items-center">
-                          <ArrowRight className="w-4 h-4 mr-2 text-green-500" />
-                          Xuất dữ liệu
-                        </span>
-                        <span className={`font-semibold ${plan.isExport ? 'text-green-600' : 'text-red-500'}`}>
-                          {plan.isExport ? 'Có' : 'Không'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Select Button */}
-                    <button
-                      className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200 ${
-                        isSelected
-                          ? 'bg-green-500 text-white'
-                          : plan.planName === 'Free'
-                          ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                          : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600'
-                      }`}
-                    >
-                      {isSelected ? 'Đã Chọn' : 'Chọn Gói Này'}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                     {plans.map((plan) => {
+                       const isSelected = selectedPlan === plan.planID;
+                       const isPremium = plan.planName !== 'Free';
+                       
+                       return (
+                         <div
+                           key={plan.planID}
+                           className={getCardStyle(plan.planName, isSelected)}
+                           onClick={() => handleGoCreatePlan()}
+                         >
+                           {isPremium && (
+                             <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                               <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                                 Phổ Biến
+                               </span>
+                             </div>
+                           )}
+           
+                           {isSelected && (
+                             <div className="absolute top-4 right-4">
+                               <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                 <CheckCircle className="w-4 h-4 text-white" />
+                               </div>
+                             </div>
+                           )}
+           
+                           <div className="flex flex-col items-center text-center">
+                             {getPlanIcon(plan.planName)}
+                             
+                             <h3 className="text-xl font-bold text-gray-900 mb-2">
+                               {getPlanDisplayName(plan)}
+                             </h3>
+                             
+                             <div className="mb-6">
+                               <span className={`text-3xl font-bold ${plan.price === 0 ? 'text-green-600' : 'text-purple-600'}`}>
+                                 {formatPrice(plan.price)}
+                               </span>
+                               {plan.price > 0 && (
+                                 <span className="text-gray-500 text-sm ml-1">/tháng</span>
+                               )}
+                             </div>
+                           </div>
+           
+                           <div className="space-y-3 mb-6">
+                             {getFeatures(plan).map((feature, index) => {
+                               const IconComponent = feature.icon;
+                               return (
+                                 <div key={index} className="flex items-center justify-between">
+                                   <div className="flex items-center">
+                                     <IconComponent className="mr-2 w-4 h-4 text-gray-600" />
+                                     <span className="text-gray-700 text-sm">{feature.label}</span>
+                                   </div>
+                                   <span className="font-semibold text-gray-900 text-sm">
+                                     {feature.value}
+                                   </span>
+                                 </div>
+                               );
+                             })}
+                           </div>
+           
+                           <button
+                             className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200 ${
+                               isSelected
+                                 ? 'bg-green-500 text-white'
+                                 : plan.planName === 'Free'
+                                 ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                 : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600'
+                             }`}
+                           >
+                             {isSelected ? 'Đã Chọn' : 'Chọn Gói Này'}
+                           </button>
+                         </div>
+                       );
+                     })}
+                   </div>   
+            
 
           {/* Get Started Button */}
           <div className="text-center mt-12">
-            <button className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 flex items-center space-x-2 mx-auto">
+            <button onClick={() => handleGoCreatePlan()} className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 flex items-center space-x-2 mx-auto">
               <span>Bắt đầu tạo ngay</span>
               <ArrowRight className="w-5 h-5" />
             </button>
@@ -409,7 +450,7 @@ export default function WeddingLayoutLanding() {
             Bắt đầu miễn phí ngay hôm nay và khám phá vô số khả năng sáng tạo
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button className="bg-white text-pink-600 px-8 py-4 rounded-full text-lg font-bold hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 flex items-center space-x-2">
+            <button onClick={handleGoCreateInvatition} className="bg-white text-pink-600 px-8 py-4 rounded-full text-lg font-bold hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 flex items-center space-x-2">
               <span>Tạo thiệp ngay</span>
               <ArrowRight className="w-5 h-5" />
             </button>
@@ -422,14 +463,78 @@ export default function WeddingLayoutLanding() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <Heart className="w-6 h-6 text-pink-500" />
-              <span className="text-xl font-bold">Wedding Layout</span>
+     {/* Footer */}
+<footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white py-16">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-8">
+      {/* Brand Section */}
+      <div className="text-center md:text-left">
+        <div className="flex items-center space-x-2 justify-center md:justify-start mb-4">
+          <Heart className="w-8 h-8 text-pink-500" />
+          <span className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
+            Wedding Layout
+          </span>
+        </div>
+        <p className="text-gray-400 text-sm leading-relaxed">
+          Tạo nên những khoảnh khắc đáng nhớ cho ngày trọng đại của bạn
+        </p>
+      </div>
+
+      {/* Contact Info */}
+      <div className="text-center md:text-left">
+        <h3 className="text-lg font-semibold mb-4 text-pink-400">Liên hệ</h3>
+        <div className="space-y-3">
+          <a href="tel:+84123456789" className="flex items-center justify-center md:justify-start space-x-3 text-gray-300 hover:text-pink-400 transition-colors group">
+            <Phone className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            <span>+84 123 456 789</span>
+          </a>
+          <a href="mailto:contact@weddinglayout.com" className="flex items-center justify-center md:justify-start space-x-3 text-gray-300 hover:text-pink-400 transition-colors group">
+            <Mail className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            <span>contact@weddinglayout.com</span>
+          </a>
+        </div>
+      </div>
+
+      {/* Social Media */}
+      <div className="text-center md:text-left">
+        <h3 className="text-lg font-semibold mb-4 text-pink-400">Kết nối với chúng tôi</h3>
+        <div className="flex justify-center md:justify-start space-x-4">
+          <a 
+            href="https://zalo.me/your-zalo-id" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gradient-to-br hover:from-blue-500 hover:to-blue-600 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/50"
+            aria-label="Zalo"
+          >
+            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12c0 4.08 2.45 7.57 5.95 9.08l.45-1.88C6.21 18.03 4.5 15.24 4.5 12c0-4.14 3.36-7.5 7.5-7.5s7.5 3.36 7.5 7.5c0 3.24-1.71 6.03-4.4 7.2l.45 1.88C18.55 19.57 21 16.08 21 12c0-5.52-4.48-10-10-10zm0 5.5c-1.38 0-2.5 1.12-2.5 2.5s1.12 2.5 2.5 2.5 2.5-1.12 2.5-2.5-1.12-2.5-2.5-2.5z"/>
+            </svg>
+          </a>
+          
+               <a 
+                  href="https://facebook.com/your-page" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gradient-to-br hover:from-blue-600 hover:to-blue-700 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-blue-600/50"
+                  aria-label="Facebook"
+                >
+                  <Facebook className="w-6 h-6" />
+                </a>
+                
+                <a 
+                  href="mailto:contact@weddinglayout.com"
+                  className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gradient-to-br hover:from-pink-500 hover:to-rose-600 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-pink-500/50"
+                  aria-label="Email"
+                >
+                  <Mail className="w-6 h-6" />
+                </a>
+              </div>
             </div>
-            <div className="text-gray-400 text-sm">
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-gray-700 pt-8">
+            <div className="text-center text-gray-400 text-sm">
               © 2024 Wedding Layout. Tất cả quyền được bảo lưu.
             </div>
           </div>

@@ -20,6 +20,7 @@ const Layout: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
     const [isUser, setUser] = useState<string | null>(null);
     const [isUserName, setUserName] = useState<string | null>("");
+    const [role,setRole] = useState<string>("")
   const navigate = useNavigate();
   useEffect(() => {
     const handleResize = () => {
@@ -36,6 +37,7 @@ const Layout: React.FC = () => {
        if(storeRole === "Admin"){
           setview(false)
        }
+       
        !storedUser && navigate("/");
       setUser(storedUser);
   }, []);
@@ -50,7 +52,7 @@ const Layout: React.FC = () => {
       const data = await response.json();
       var dataUser = data.find((x:any) => x.mail === isUser)
       setUserName(dataUser.userName)
-      
+      setRole(dataUser.role)
     } catch (error) {
         console.error(error);
     }
@@ -62,6 +64,16 @@ const Layout: React.FC = () => {
       localStorage.removeItem("userInvitation");
       localStorage.removeItem("passwordInvitation");
       navigate("/");
+  }
+  const handleGoLayout =() =>{
+     navigate("/layout/LayoutLanding");
+      localStorage.setItem("role","");
+     setview(true)
+  }
+  const handleGoAdmin =() =>{
+      navigate("/layout/PlanEditor");
+      localStorage.setItem("role","Admin");
+      setview(false)
   }
   return (
     <>
@@ -186,6 +198,15 @@ const Layout: React.FC = () => {
                  <i className="fa-solid fa-right-from-bracket text-[16px] mr-3 text-red-400"></i>
                    <span>Đăng xuất</span>
                  </button>
+                  {role === "Admin" && (
+                    <button onClick={handleGoAdmin}
+                      className="w-full cursor-pointer flex items-center  px-4 py-3 text-white 
+                              transition-colors duration-200 text-left text-sm"
+                    >
+                     <i className="fa-solid fa-forward-fast  text-[16px] mr-3 text-red-400"></i>
+                      <span>Về trang admin</span>
+                    </button>
+                  )}
                </div>
              )}
            </button>
@@ -317,7 +338,7 @@ const Layout: React.FC = () => {
           {/* Mobile Sidebar */}
           {isMobile ? (
             <nav
-              className={`fixed top-0 left-0 h-screen w-[75%] bg-[#0f172a] text-white shadow-lg z-50 transform transition-transform duration-300 ${
+              className={`fixed top-0 left-0 h-screen w-[50%] bg-[#0D3057] text-white shadow-lg z-50 transform transition-transform duration-300 ${
                 isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
               }`}
             >
@@ -377,7 +398,7 @@ const Layout: React.FC = () => {
                   }}
                 >
                   <Link to="/layout/TransactionReport" className="flex items-center space-x-2">
-                    <i className="fa fa-project-diagram text-lg"></i>
+                    <i className="fas fa-photo-video text-lg"></i>
                     <span className="whitespace-nowrap">Báo cáo giao dịch</span>
                   </Link>
                 </li>
@@ -396,7 +417,7 @@ const Layout: React.FC = () => {
           ) : (
             /* Desktop Sidebar */
             <div
-              className={`fixed top-0 left-0 h-screen bg-[#0f172a] text-white shadow-lg z-50 
+              className={`fixed top-0 left-0 h-screen bg-[#0D3057] text-white shadow-lg z-50 
               transition-all duration-300 ${isCollapsed ? "w-[70px]" : "w-[260px]"}`}
             >
               <div className="flex items-center justify-center h-16 border-b border-gray-700">
@@ -453,7 +474,7 @@ const Layout: React.FC = () => {
                   ${isActive("/layout/TransactionReport") ? "bg-blue-700" : ""}`}
                 >
                   <Link to="/layout/TransactionReport" className="flex items-center space-x-2">
-                    <i className="fa fa-project-diagram text-lg"></i>
+                    <i className="fas fa-photo-video text-lg"></i>
                     {!isCollapsed && (
                       <span className="whitespace-nowrap">Báo cáo giao dịch</span>
                     )}
@@ -475,62 +496,129 @@ const Layout: React.FC = () => {
       )}
 
       {/* ----------- MAIN CONTENT ----------- */}
-      <main  onClick={() => setIsOpen(false)}
+      <main  
         className={`${!isviews ? isMobile ? "ml-0": isCollapsed ? "ml-[70px]": "ml-[260px]": "mt-[65px]" } `}
       >
-        <div className="flex items-center fixed top-0 w-full bg-[#0d3057] h-[42px]">
+        <div className="flex items-center fixed top-0 w-full bg-[#0d3057] h-[55px]">
           {!isviews && !isMobile && (
             <>
-              <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              aria-label="Toggle menu"
-              className="text-white rounded shadow-lg ml-[5px]"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <line x1="3" y1="12" x2="21" y2="12" />
-                <line x1="3" y1="18" x2="21" y2="18" />
-              </svg>
-             
-            </button>
-             <span className="ml-[10px] text-[20px] font-bold font-roboto text-white">
-                {isTabNameAdmin}
-              </span>
+             <div className="flex justify-between items-center w-[85%] relative">
+                 <div className="flex justify-center items-center">
+                   <button
+                  onClick={() => setIsCollapsed(!isCollapsed)}
+                  aria-label="Toggle menu"
+                  className="text-white rounded shadow-lg ml-[5px]"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                  >
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
+                  </svg>
+                
+                </button>
+                <span className="ml-[10px] text-[22px] font-bold font-roboto text-white">
+                    {isTabNameAdmin}
+                  </span>
+                 </div>
+                 <div>
+                   <button onClick={() => setIsOpen(!isOpen)} className="relative flex justify-center items-center gap-[7px] from-pink-500 to-purple-600 text-white px-6 py-2 rounded-full hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
+                     <img
+                      className="rounded-full border-2 border-purple-600"
+                      width="32"
+                      height="32"
+                      src="https://storage.googleapis.com/a1aa/image/6d06e5fb-9656-43f0-52d4-6719f873aab5.jpg"
+                      alt="User"
+                    />
+                  {isUserName}
+                     {isOpen && (
+                    <div
+                      className="absolute  right-[10px] top-12 bg-gray-800 rounded-lg shadow-xl 
+                              min-w-[130px] py-1 z-50 animate-in fade-in slide-in-from-top-2 
+                              duration-200"
+                    >
+                      <button  onClick={handleGoLayout}
+                        className="w-full cursor-pointer flex items-center  px-4 py-3 text-white 
+                                transition-colors duration-200 text-left text-sm"
+                      >
+                        
+                      <i className="fa-solid fa-forward-fast  text-[16px] mr-3 text-red-400"></i>
+                        <span>Tới trang web</span>
+                      </button>
+                </div>
+             )}
+           </button>
+                 </div>
+              </div>
+
             </>
             
           )}
           {!isviews && isMobile && (
             <>
-            <button
-              onClick={() => setIsMobileMenuOpen(true)}
-              aria-label="Open mobile menu"
-              className="text-white bg-gradient-to-r from-cyan-400 to-purple-600 p-2 rounded shadow-lg"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <line x1="3" y1="12" x2="21" y2="12" />
-                <line x1="3" y1="18" x2="21" y2="18" />
-              </svg>
-            </button>
-            <span className="ml-[10px] text-[20px] font-bold font-roboto text-white">
-                {isTabNameAdmin}
-              </span>
+              <div className="flex justify-between items-center w-full relative">
+                <div className="flex justify-center items-center">
+                    <button
+                      onClick={() => setIsMobileMenuOpen(true)}
+                      aria-label="Open mobile menu"
+                      className="text-white   p-2 rounded shadow-lg ms-2"
+                    >
+                      <svg
+                        className="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <line x1="3" y1="12" x2="21" y2="12" />
+                        <line x1="3" y1="18" x2="21" y2="18" />
+                      </svg>
+                    </button>
+                    <span className="ml-[10px] text-[22px] font-bold font-roboto text-white">
+                        {isTabNameAdmin}
+                      </span>
+                </div>
+                 <div>
+                   <button onClick={() => setIsOpen(!isOpen)} className="relative flex justify-center items-center gap-[7px] from-pink-500 to-purple-600 text-white px-6 py-2 rounded-full hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
+                     <img
+                      className="rounded-full border-2 border-purple-600"
+                      width="32"
+                      height="32"
+                      src="https://storage.googleapis.com/a1aa/image/6d06e5fb-9656-43f0-52d4-6719f873aab5.jpg"
+                      alt="User"
+                    />
+                        {isUserName}
+                          {isOpen && (
+                          <div
+                            className="absolute  right-[10px] top-12 bg-gray-800 rounded-lg shadow-xl 
+                                    min-w-[130px] py-1 z-50 animate-in fade-in slide-in-from-top-2 
+                                    duration-200"
+                          >
+                            <button  onClick={handleGoLayout}
+                              className="w-full cursor-pointer flex items-center  px-4 py-3 text-white 
+                                      transition-colors duration-200 text-left text-sm"
+                            >
+                              
+                            <i className="fa-solid fa-forward-fast  text-[16px] mr-3 text-red-400"></i>
+                              <span>Tới trang web</span>
+                            </button>
+                      </div>
+                  )}
+                </button>
+                 </div>
+              </div>
             </>
           )}
         </div>
-        <Outlet  />
+       <div onClick={() => setIsOpen(false)}>
+         <Outlet  />
+       </div>
       </main>
     </>
   );
