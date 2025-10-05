@@ -10,25 +10,53 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 3000,
-    // THÊM PHẦN NÀY - quan trọng hơn
     hmr: {
       overlay: true
     }
   },
   plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
   
-  // Thêm phần này
-  build: {
+  // // SỬA PHẦN NÀY - bỏ manualChunks để gộp tất cả
+  // build: {
+  //   rollupOptions: {
+  //     output: {
+  //       manualChunks: undefined, // Tắt code splitting - gộp tất cả thành 1 file
+  //     }
+  //   },
+  //   chunkSizeWarningLimit: 2000, // Tăng limit vì file sẽ lớn hơn
+  // },
+  
+  // // Giữ nguyên optimizeDeps
+  // optimizeDeps: {
+  //   include: ['react', 'react-dom', 'react-router']
+  // }
+    build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router']
+        // QUAY LẠI code splitting nhưng tối ưu hơn
+        manualChunks: (id) => {
+          // Tách vendor ra để cache lâu dài
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
+          // Các page nặng tách riêng
+          if (id.includes('/PlanEditor/')) return 'plan-editor';
+          if (id.includes('/StatisticsPage/')) return 'statistics';
         }
+      }
+    },
+    
+    // Minify code
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true, // Xóa console.log
+        drop_debugger: true
       }
     }
   },
   
-  // Optimze deps
+  // Optimize deps
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router']
   }

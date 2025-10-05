@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Heart, Star, Palette, Smartphone, Users, Award, ArrowRight, Play, CheckCircle, Sparkles } from 'lucide-react';
 import { XCircle, Layout, Download, BarChart3, UserPlus, Utensils, FileDown, X,Facebook,Mail,Phone } from 'lucide-react';
-
 import { useNavigate } from "react-router-dom";
 import type { Plan } from '~/Plan/PlanSelection';
+import '../layoutEven/layoutEven.css'
 export default function WeddingLayoutLanding() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [selectedPlan, setSelectedPlan] = useState<string>('');

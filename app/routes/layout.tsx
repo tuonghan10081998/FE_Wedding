@@ -75,6 +75,14 @@ const Layout: React.FC = () => {
       localStorage.setItem("role","Admin");
       setview(false)
   }
+  useEffect(() => {
+    // CHỈ preload các trang người dùng hay vào
+    requestIdleCallback(() => {
+      import('../InvitationCard/InvitationThiep');
+      import('../layoutEven/layoutEven');
+      import('../Invitationpage/Invitation')
+    });
+  }, []);
   return (
     <>
       {/* ----------- NAVBAR (khi isviews = true) ----------- */}
