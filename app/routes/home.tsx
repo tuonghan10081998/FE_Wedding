@@ -108,7 +108,7 @@ const AuthPage: React.FC = () => {
         // ✅ Nếu trả về 201 -> đọc json
         if (response.status === 200) {
           const data = await response.json();
-          if(data.userName === ""){
+          if(data.accessToken=== ""){
              toast.warning("Vui lòng xác thực email");
              return;
           }
