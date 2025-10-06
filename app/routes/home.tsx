@@ -108,7 +108,10 @@ const AuthPage: React.FC = () => {
         // ✅ Nếu trả về 201 -> đọc json
         if (response.status === 200) {
           const data = await response.json();
-
+          if(data.userName === ""){
+             toast.warning("Vui lòng xác thực email");
+             return;
+          }
          if (rememberMe) {
             localStorage.setItem("userInvitation", loginForm.user);
             localStorage.setItem("passwordInvitation", loginForm.password);
