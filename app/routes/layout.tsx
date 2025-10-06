@@ -81,6 +81,7 @@ const Layout: React.FC = () => {
       import('../InvitationCard/InvitationThiep');
       import('../layoutEven/layoutEven');
       import('../Invitationpage/Invitation')
+       import('../LayoutLanding/WeddingLayoutLanding')
     });
   }, []);
   return (
