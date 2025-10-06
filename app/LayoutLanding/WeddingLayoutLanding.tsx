@@ -198,7 +198,7 @@ export default function WeddingLayoutLanding() {
               Bộ Sưu Tập Template Layout
             </h2>
             <p className="text-xl text-gray-600">
-              Chọn từ những mẫu thiết kế website đám cưới đẹp nhất test config
+              Chọn từ những mẫu thiết kế website đám cưới đẹp nhất
             </p>
           </div>
 
