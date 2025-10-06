@@ -332,14 +332,15 @@ const iconMap: Record<string, React.ReactElement> = {
 
       <text
         x="160"
-        y="138"
+        y="90"
         fontFamily="system-ui, -apple-system, sans-serif"
-        fontSize="16"
+        fontSize="27"
         fontWeight="700"
         textAnchor="middle"
         fill="#92400E"
         letterSpacing="1px"
       >
+        Sân khấu
       </text>
 
       <path
@@ -461,6 +462,18 @@ const iconMap: Record<string, React.ReactElement> = {
           M289.1 281.05H327.5
           M289.1 213.7H327.5"
         />
+        <text
+          x="175"
+          y="168"
+          fontFamily="system-ui, -apple-system, sans-serif"
+          fontSize="40"
+          fontWeight="700"
+          textAnchor="middle"
+          fill="#92400E"
+          letterSpacing="1px"
+        >
+        Cổng hoa
+      </text>
          <g className="handle rotateSvg" transform="translate(45, 43)" onMouseDown={handleRotateMouseDown} style={{ cursor: 'pointer' }} >
             <circle r="15" fill="#ff9900" />
          </g>
