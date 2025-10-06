@@ -585,7 +585,9 @@ useEffect(() => {
         // ✅ Đợi một chút để state reset hoàn toàn
         await new Promise(resolve => setTimeout(resolve, 10));
         await getDataProjectID(isProjectID);
-         await GetGuest(isProjectID)
+        setTimeout(() => {
+           GetGuest(isProjectID)
+        }, 2000);
       }else{
        await handleAddItem("sankhau",200,200,"#155DFC","Sân khấu",(window.innerWidth / 2) + 182,150,1);
        await handleAddItem("cong",150,200,"transparent","Cổng",(window.innerWidth / 2) + 182,window.innerHeight + 200,2);
