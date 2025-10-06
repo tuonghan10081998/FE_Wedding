@@ -338,7 +338,7 @@ const getDataProject = async () => {
       const dataProjectLocal = data.find((x:any) => x.projectID === isProjectLocal)
       if(!dataProjectLocal){
         setProjectLocal("")
-        setProjectNameLocal("")
+        setProjectNameLocal("0")
       }
       setData(data)
     } catch (error) {
