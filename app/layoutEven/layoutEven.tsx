@@ -336,9 +336,15 @@ const getDataProject = async () => {
       const data = await response.json();
       setCountMaxProject(data.length)
       const dataProjectLocal = data.find((x:any) => x.projectID === isProjectLocal)
+      console.log(dataProjectLocal)
       if(!dataProjectLocal){
-        setProjectLocal("")
+        setProjectLocal("0")
         setProjectNameLocal("0")
+        setTables([]);
+        setLayoutItems([]);
+        setLayoutContainer({ x: 0, y: 0, zoomLevel: 0.7 });
+        setGuests([])
+        setZoneCollection([])
       }
       setData(data)
     } catch (error) {

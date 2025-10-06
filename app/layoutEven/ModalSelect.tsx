@@ -55,12 +55,12 @@ if (!isOpen) return null;
       onWheel={(e) => e.stopPropagation()}
       onMouseDown={(e) => e.stopPropagation()}
     >
-      <div className="bg-white rounded-lg p-6 px-2 py-2" style={{ width: "297px" }}>
+      <div className="bg-white rounded-lg p-6 px-2 py-1" style={{ width: "297px" }}>
         <h2 className="text-lg font-bold border-b mb-5">Tạo Bàn Mới</h2>
           {/* Dãy + SL bàn */}
-        <div className="mb-3 flex gap-4 mb-2">
+        <div className="mb-2 flex gap-4 mb-2">
           <div className="flex-1">
-            <label className="block text-sm font-medium mb-1">Chọn bên <span className="text-red-500">(*)</span></label>
+            <label className="block text-sm font-medium text-sm mb-1">Chọn bên <span className="text-red-500">(*)</span></label>
               <Select
               options={filterOptions}
                value={filterOptions.find(opt => opt.value === selectedValue)}
@@ -76,10 +76,10 @@ if (!isOpen) return null;
 
         
         </div>
-          <div className="mb-3 flex gap-4 mb-2">
+          <div className="mb-2 flex gap-4 mb-2">
           {/* Dãy */}
           <div className="flex-1">
-            <label className="block text-sm font-medium mb-1">Dãy:</label>
+            <label className="block text-sm font-medium text-sm mb-1">Dãy:</label>
             <input
               type="number"
               value={row}
@@ -90,7 +90,7 @@ if (!isOpen) return null;
 
           {/* SL bàn */}
           <div className="flex-1">
-            <label className="block text-sm font-medium mb-1">SL bàn:</label>
+            <label className="block text-sm font-medium text-sm mb-1">SL bàn:</label>
             <input
               type="number"
               min={1}
@@ -101,8 +101,8 @@ if (!isOpen) return null;
           </div>
         </div>
         {/* Kiểu dãy */}
-        <div className="mb-3">
-          <label className="block text-sm font-medium mb-1">Chọn kiểu dãy:</label>
+        <div className="mb-2">
+          <label className="block text-sm font-medium text-sm mb-1">Chọn kiểu dãy:</label>
           <div className="flex space-x-4">
             {/* Nhiều dãy */}
             <label className="flex-1 cursor-pointer">
@@ -114,10 +114,10 @@ if (!isOpen) return null;
                 onChange={(e) => setCheckRow(e.target.value)}
                 className="hidden peer"
               />
-              <div className="border border-gray-300 rounded-lg p-4 py-2 text-center text-gray-700 
+              <div className="border border-gray-300 rounded-lg p-4 py-1 text-center text-gray-700 
                               peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-600 transition">
-                <i className="fas fa-th-large text-3xl mb-2"></i>
-                <div className="font-medium">Nhiều dãy</div>
+                <i className="fas fa-th-large text-1xl mb-2"></i>
+                <div className="font-medium text-sm">Nhiều dãy</div>
               </div>
             </label>
 
@@ -131,10 +131,10 @@ if (!isOpen) return null;
                 onChange={(e) => setCheckRow(e.target.value)}
                 className="hidden peer"
               />
-              <div className="border border-gray-300 rounded-lg p-4 py-2 text-center text-gray-700 
+              <div className="border border-gray-300 rounded-lg p-4 py-1 text-center text-gray-700 
                               peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-600 transition">
-                <i className="fas fa-th-list text-3xl mb-2"></i>
-                <div className="font-medium">Từng dãy</div>
+                <i className="fas fa-th-list text-1xl mb-2"></i>
+                <div className="font-medium text-sm">Từng dãy</div>
               </div>
             </label>
           </div>
@@ -142,8 +142,8 @@ if (!isOpen) return null;
 
        
         {/* Vị trí */}
-        <div className="mb-3">
-          <label className="block text-sm font-medium mb-1">Vị trí:</label>
+        <div className="mb-2">
+          <label className="block text-sm font-medium text-sm mb-1">Vị trí:</label>
           <div className="flex space-x-4">
             {/* Trái */}
             <label className="flex-1 cursor-pointer">
@@ -155,10 +155,10 @@ if (!isOpen) return null;
                 onChange={(e) => setPosition(e.target.value)}
                 className="hidden peer"
               />
-              <div className="border border-gray-300 rounded-lg p-4 py-2 text-center text-gray-700 
+              <div className="border border-gray-300 rounded-lg p-4 py-1 text-center text-gray-700 
                               peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-600 transition">
-                <i className="fas fa-arrow-left text-3xl mb-2"></i>
-                <div className="font-medium">Trái</div>
+                <i className="fas fa-arrow-left text-1xl mb-2"></i>
+                <div className="font-medium text-sm">Trái</div>
               </div>
             </label>
 
@@ -172,18 +172,18 @@ if (!isOpen) return null;
                 onChange={(e) => setPosition(e.target.value)}
                 className="hidden peer"
               />
-              <div className="border border-gray-300 rounded-lg p-4 py-2 text-center text-gray-700 
+              <div className="border border-gray-300 rounded-lg p-4 py-1 text-center text-gray-700 
                               peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-600 transition">
-                <i className="fas fa-arrow-right text-3xl mb-2"></i>
-                <div className="font-medium">Phải</div>
+                <i className="fas fa-arrow-right text-1xl mb-2"></i>
+                <div className="font-medium text-sm">Phải</div>
               </div>
             </label>
           </div>
         </div>
 
         {/* Hình bàn */}
-        <div className="mb-3">
-          <label className="block text-sm font-medium mb-1">Hình bàn:</label>
+        <div className="mb-2">
+          <label className="block text-sm font-medium text-sm mb-1">Hình bàn:</label>
           <div className="flex space-x-4">
             {/* Ngang */}
             <label className="flex-1 cursor-pointer">
@@ -195,10 +195,10 @@ if (!isOpen) return null;
                 onChange={(e) => setLayout(e.target.value)}
                 className="hidden peer"
               />
-              <div className="border border-gray-300 rounded-lg p-4 py-2 text-center text-gray-700 
+              <div className="border border-gray-300 rounded-lg p-4 py-1 text-center text-gray-700 
                               peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-600 transition">
-                <i className="fas fa-arrows-alt-h text-3xl mb-2"></i>
-                <div className="font-medium">Ngang</div>
+                <i className="fas fa-arrows-alt-h text-1xl mb-2"></i>
+                <div className="font-medium text-sm">Ngang</div>
               </div>
             </label>
 
@@ -212,20 +212,20 @@ if (!isOpen) return null;
                 onChange={(e) => setLayout(e.target.value)}
                 className="hidden peer"
               />
-              <div className="border border-gray-300 rounded-lg p-4 py-2 text-center text-gray-700 
+              <div className="border border-gray-300 rounded-lg p-4 py-1 text-center text-gray-700 
                               peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-600 transition">
-                <i className="fas fa-arrows-alt-v text-3xl mb-2"></i>
-                <div className="font-medium">Dọc</div>
+                <i className="fas fa-arrows-alt-v text-1xl mb-2"></i>
+                <div className="font-medium text-sm">Dọc</div>
               </div>
             </label>
           </div>
         </div>
 
         {/* Kiểu bàn */}
-        <div className="mb-3">
+        <div className="mb-2">
          
-          <div className="mb-3">
-            <label className="block text-sm font-medium mb-1">Kiểu bàn:</label>
+          <div className="mb-2">
+            <label className="block text-sm font-medium text-sm mb-1">Kiểu bàn:</label>
 
             <div className="grid grid-cols-3 gap-2">
               {/* Tròn */}
@@ -238,10 +238,10 @@ if (!isOpen) return null;
                   onChange={(e) => setType(e.target.value)}
                   className="hidden peer"
                 />
-                <div className="border border-gray-300 rounded-lg p-3 py-2 text-center text-gray-700
+                <div className="border border-gray-300 rounded-lg p-3 py-1 text-center text-gray-700
                                 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-600 transition">
                   <i className="fas fa-circle text-2xl mb-1"></i>
-                  <div className="text-sm font-medium">Tròn</div>
+                  <div className="text-sm font-medium text-sm">Tròn</div>
                 </div>
               </label>
 
@@ -255,10 +255,10 @@ if (!isOpen) return null;
                   onChange={(e) => setType(e.target.value)}
                   className="hidden peer"
                 />
-                <div className="border border-gray-300 rounded-lg p-3 py-2 text-center text-gray-700
+                <div className="border border-gray-300 rounded-lg p-3 py-1 text-center text-gray-700
                                 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-600 transition">
                   <i className="fas fa-square text-2xl mb-1"></i>
-                  <div className="text-sm font-medium">Vuông</div>
+                  <div className="text-sm font-medium text-sm">Vuông</div>
                 </div>
               </label>
 
@@ -272,10 +272,10 @@ if (!isOpen) return null;
                   onChange={(e) => setType(e.target.value)}
                   className="hidden peer"
                 />
-                <div className="border border-gray-300 rounded-lg p-3 py-2 text-center text-gray-700
+                <div className="border border-gray-300 rounded-lg p-3 py-1 text-center text-gray-700
                                 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-600 transition">
                   <i className="fas fa-couch text-2xl mb-1"></i>
-                  <div className="text-sm font-medium">Ghế dài</div>
+                  <div className="text-sm font-medium text-sm">Ghế dài</div>
                 </div>
               </label>
             </div>
@@ -288,20 +288,20 @@ if (!isOpen) return null;
           <div className="flex flex-col items-center space-y-2">
             <button
              onClick={onComBack}
-             className="flex items-center space-x-2 px-3 py-2 bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-pink-300 transform hover:rotate-1">
+             className="flex items-center space-x-2 px-3 py-1 bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-pink-300 transform hover:rotate-1">
               Quay lại
             </button>
         </div>
          <div className="flex ">
            <button
             onClick={onClose}
-            className="px-4 py-2 mr-2 rounded bg-gray-200 hover:bg-gray-300"
+            className="px-4 py-1 mr-2 rounded bg-gray-200 hover:bg-gray-300"
           >
             Hủy
           </button>
           <button
             onClick={handleConfirm}
-            className="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600"
+            className="px-4 py-1 rounded bg-blue-500 text-white hover:bg-blue-600"
           >
             Xác nhận
           </button>
