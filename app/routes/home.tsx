@@ -132,7 +132,12 @@ const AuthPage: React.FC = () => {
             navigate("/layout/LayoutLanding"); // chuyển trang
           }
          
-        } else {
+        }
+        else if(response.status === 204) {
+            toast.warning("Tài khoản chưa được đăng ký");
+             return;
+        }
+         else {
           // ❌ Nếu fail -> đọc text
           const errorText = await response.text();
           toast.error(errorText || "Đăng nhập thất bại");
