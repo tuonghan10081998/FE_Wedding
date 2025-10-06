@@ -190,6 +190,34 @@ export default function WeddingLayoutLanding() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50">
+          {/* Invitation Templates Section - With Title and Optimized Images */}
+      <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50">
+             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Bộ Sưu Tập Template Layout
+            </h2>
+            <p className="text-xl text-gray-600">
+              Chọn từ những mẫu thiết kế website đám cưới đẹp nhất
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {layoutImages.map((item) => (
+              <div key={item.id} className="group cursor-pointer">
+                <div className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+                  <img
+                    src={item.image}
+                    alt={`Layout Template ${item.id}`}
+                    className="bg-white object-contain w-full h-64  group-hover:scale-110 transition-transform duration-500"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Hero Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -273,33 +301,7 @@ export default function WeddingLayoutLanding() {
         </div>
       </section>
 
-      {/* Invitation Templates Section - With Title and Optimized Images */}
-      <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50">
-             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Bộ Sưu Tập Template Layout
-            </h2>
-            <p className="text-xl text-gray-600">
-              Chọn từ những mẫu thiết kế website đám cưới đẹp nhất
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {layoutImages.map((item) => (
-              <div key={item.id} className="group cursor-pointer">
-                <div className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
-                  <img
-                    src={item.image}
-                    alt={`Layout Template ${item.id}`}
-                    className="bg-white object-contain w-full h-64  group-hover:scale-110 transition-transform duration-500"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+  
 
       {/* Pricing Plans Section */}
       <section className="py-20 bg-white">
