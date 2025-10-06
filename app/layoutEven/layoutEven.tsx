@@ -335,6 +335,11 @@ const getDataProject = async () => {
 
       const data = await response.json();
       setCountMaxProject(data.length)
+      const dataProjectLocal = data.find((x:any) => x.projectID === isProjectLocal)
+      if(!dataProjectLocal){
+        setProjectLocal("")
+        setProjectNameLocal("")
+      }
       setData(data)
     } catch (error) {
         console.error(error);
