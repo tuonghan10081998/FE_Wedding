@@ -1217,16 +1217,17 @@ for (let r = startRow; r <= totalRows; r++) {
     }
     const dataSanKhan = layoutItems.find((x:LayoutItem) => x.id === `item1`)
     
-    const padLeftPx = (dataSanKhan?.x ?? 0) * (parseFloat(zoomLevel.toFixed(2))) - (type === 'tron' ? 150 : type === 'vuong' ? 180 : 180);
-    const padTopPx = type === 'tron' ? 53 : type === 'vuong' ? 60 : 53;
-    let left = toLocalX(padLeftPx + offsetRef.current.x);
-    let top = toLocalY(padTopPx + 70 + offsetRef.current.y); 
+    
+    const padLeftPx = (dataSanKhan?.x ?? 0) - (type === 'tron' ? 180 : type === 'vuong' ? 240 : 260);
+    const padTopPx = (dataSanKhan?.y ?? 0) + (type === 'tron' ? 53 : type === 'vuong' ? 60 : 53);
 
-    const containerWidth = 
-    toLocalX((dataSanKhan?.x ?? 0) * (parseFloat(zoomLevel.toFixed(2))) + (type === 'tron' ? 50 : type === 'vuong' ? -10 : 30) + offsetRef.current.x)  
-   
+    // Tọa độ bàn bắt đầu (đã ở không gian local)
+    let left = padLeftPx;
+    let top = padTopPx + 70;
+
+    // Container width cũng không cần nhân zoom
+    const containerWidth = (dataSanKhan?.x ?? 0) + (type === 'tron' ? 50 : type === 'vuong' ? -10 : 30);
     const containerWidthd = containerWidth;
-
     const rowOffset = (r - 1) * (type === 'tron' ? 225 : type === 'vuong' ? 230 : 110);
     const rowOffsetD = (r - 1) * (type === 'tron' ? 225 : type === 'vuong' ? 310 : 230);
 
