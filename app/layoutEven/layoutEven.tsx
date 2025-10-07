@@ -28,6 +28,7 @@ import ModalSearchGuest from '~/layoutEven/ModalSearchGuest';
 import type { Plan } from '~/Plan/PlanSelection';
 import UpgradeModal from '~/layoutEven/UpgradeModalLayout';
 import LimitNotificationModal from '~/layoutEven/LimitNotificationModalProps ';
+import ItemLayout from '~/layoutEven/ItemLayout';
 export interface ZoneRegion {
   zoneId: string;
   zoneName: string;
@@ -336,7 +337,6 @@ const getDataProject = async () => {
       const data = await response.json();
       setCountMaxProject(data.length)
       const dataProjectLocal = data.find((x:any) => x.projectID === isProjectLocal)
-      console.log(dataProjectLocal)
       if(!dataProjectLocal){
         setProjectLocal("0")
         setProjectNameLocal("0")
@@ -1215,15 +1215,16 @@ for (let r = startRow; r <= totalRows; r++) {
       setIsTableLimitModalOpen(true);
       break; // Dừng vòng lặp
     }
+    const dataSanKhan = layoutItems.find((x:LayoutItem) => x.id === `item1`)
     
-    const padLeftPx = type === 'tron' ? 50 : type === 'vuong' ? 55 : 30;
+    const padLeftPx = (dataSanKhan?.x ?? 0) * (parseFloat(zoomLevel.toFixed(2))) - (type === 'tron' ? 150 : type === 'vuong' ? 180 : 180);
     const padTopPx = type === 'tron' ? 53 : type === 'vuong' ? 60 : 53;
-    let left = toLocalX(padLeftPx );
-    let top = toLocalY(padTopPx + 50);
+    let left = toLocalX(padLeftPx + offsetRef.current.x);
+    let top = toLocalY(padTopPx + 70 + offsetRef.current.y); 
 
-    const containerWidth = toLocalX(
-      window.innerWidth - (type === 'tron' ? 270 : type === 'vuong' ? 258 : 315)
-    );
+    const containerWidth = 
+    toLocalX((dataSanKhan?.x ?? 0) * (parseFloat(zoomLevel.toFixed(2))) + (type === 'tron' ? 50 : type === 'vuong' ? -10 : 30) + offsetRef.current.x)  
+   
     const containerWidthd = containerWidth;
 
     const rowOffset = (r - 1) * (type === 'tron' ? 225 : type === 'vuong' ? 230 : 110);
@@ -1232,17 +1233,17 @@ for (let r = startRow; r <= totalRows; r++) {
     if (layout === 'ngang') {
       top += rowOffset;
       if (position === 'left') {
-        left += i * (type === 'tron' ? 225 : type === 'vuong' ? 310 : 230);
+        left -= i * (type === 'tron' ? 225 : type === 'vuong' ? 310 : 230);
       } else if (position === 'right') {
-        left = containerWidth - (i + 1) * (type === 'tron' ? 225 : type === 'vuong' ? 310 : 230);
+        left = containerWidth + (i + 1) * (type === 'tron' ? 225 : type === 'vuong' ? 310 : 230);
       }
     } else if (layout === 'doc') {
       top += i * (type === 'tron' ? 225 : type === 'vuong' ? 230 : 110);
 
       if (position === 'left') {
-        left += rowOffsetD;
+        left -= rowOffsetD;
       } else if (position === 'right') {
-        left = containerWidthd - r * (type === 'tron' ? 225 : type === 'vuong' ? 310 : 230);
+        left = containerWidthd + r * (type === 'tron' ? 225 : type === 'vuong' ? 310 : 230);
       }
     }
    
@@ -2564,13 +2565,14 @@ useEffect(() => {
           {checkLoai === 2 && (
             <ItemForm
               itemName={isNameTable}
+              idItem={itemDelete.id}
               onDelete={(e) => handleDelete(e)}
             />
           )}
           {checkLoai === 3 && (
             <DeleteList
               onDelete={(e) => handleDeleteList(e)}
-             onConfirm={(newtable:string) => handleConfirmChangeTableName(newtable)}
+              onConfirm={(newtable:string) => handleConfirmChangeTableName(newtable)}
             />
 
           )}

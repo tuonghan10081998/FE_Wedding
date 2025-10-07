@@ -365,7 +365,7 @@ const AuthPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleTogglePassword("login")}
-                      className="absolute right-3 top-3.5 text-pink-400 hover:text-pink-600 focus:outline-none transition-colors duration-300"
+                      className="absolute right-3 top-[10px] text-pink-400 hover:text-pink-600 focus:outline-none transition-colors duration-300"
                     >
                       <i className={`fas ${showPassword.login ? "fa-eye-slash" : "fa-eye"}`} />
                     </button>

@@ -2,10 +2,12 @@ import React from 'react';
 interface ItemProps {
   itemName: string;
   onDelete:(e:React.MouseEvent) => void;
+  idItem:string
 }
 const ItemForm: React.FC<ItemProps> = ({
     itemName,
-    onDelete
+    onDelete,
+    idItem
 }) => {
     return (
         <div className="space-y-4">
@@ -15,6 +17,7 @@ const ItemForm: React.FC<ItemProps> = ({
                 <span>Loại:</span>
                 <span id="tableShape" className="text-gray-900">{itemName}</span>
                 </div>
+                 { (idItem !== "item1" && idItem !== "item2") &&(
                   <button onClick={(e) => { onDelete(e); }}
                     type="button"
                     className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded-md transition"
@@ -23,6 +26,7 @@ const ItemForm: React.FC<ItemProps> = ({
                     <i className="fas fa-trash-alt"></i>
                     Xóa
                 </button>
+                 ) }
                 </div>
                
         </div>

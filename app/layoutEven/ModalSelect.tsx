@@ -182,6 +182,7 @@ if (!isOpen) return null;
         </div>
 
         {/* Hình bàn */}
+       {layout === "1" && (
         <div className="mb-2">
           <label className="block text-sm font-medium text-sm mb-1">Hình bàn:</label>
           <div className="flex space-x-4">
@@ -191,7 +192,7 @@ if (!isOpen) return null;
                 type="radio"
                 name="layout"
                 value="ngang"
-                checked={layout === "ngang"}
+                // checked={layout === "ngang"}
                 onChange={(e) => setLayout(e.target.value)}
                 className="hidden peer"
               />
@@ -203,7 +204,7 @@ if (!isOpen) return null;
             </label>
 
             {/* Dọc */}
-            <label className="flex-1 cursor-pointer">
+            {/* <label className="flex-1 cursor-pointer">
               <input
                 type="radio"
                 name="layout"
@@ -217,9 +218,10 @@ if (!isOpen) return null;
                 <i className="fas fa-arrows-alt-v text-1xl mb-2"></i>
                 <div className="font-medium text-sm">Dọc</div>
               </div>
-            </label>
+            </label> */}
           </div>
         </div>
+       )}
 
         {/* Kiểu bàn */}
         <div className="mb-2">
