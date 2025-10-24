@@ -29,6 +29,7 @@ import type { Plan } from '~/Plan/PlanSelection';
 import UpgradeModal from '~/layoutEven/UpgradeModalLayout';
 import LimitNotificationModal from '~/layoutEven/LimitNotificationModalProps ';
 import ItemLayout from '~/layoutEven/ItemLayout';
+import ModalNotiGuest from '~/layoutEven/ModalNotiGuest';
 export interface ZoneRegion {
   zoneId: string;
   zoneName: string;
@@ -211,7 +212,11 @@ export default function TablePlanner() {
   const [isModalOpenUpgra, setIsModalOpenUpgra] = useState<boolean>(false);
   const [isTableLimitModalOpen, setIsTableLimitModalOpen] = useState(false);
   const [isGuestLimitModalOpen, setIsGuestLimitModalOpen] = useState(false);
-   const [isExportlimit, setExportlimit] = useState(false);
+  const [isExportlimit, setExportlimit] = useState(false);
+
+  const [isModalNotiGuest,setModalNotiGuest] = useState<boolean>(false)
+
+  const [ismessNotiGuest,setmessNotiGuest] = useState<string>("")
   const handleUpgrade = () => {
     navigate("/layout/Plan");
     setIsModalOpenUpgra(false);
@@ -1932,19 +1937,26 @@ const handleDeleteList = (e: React.MouseEvent) => {
 
   // 🔹 Nếu có khách trong bàn
   if (guestsInTables.length > 0) {
-    const tablesWithGuests = [
-      ...new Set(guestsInTables.map((g) => g.tableName || g.tableID)),
-    ];
+        const tablesWithGuests = [
+          ...new Set(guestsInTables.map((g) => g.tableName || g.tableID)),
+        ];
+       
 
-    const confirmMessage = `⚠️ Các bàn sau đang có khách mời:\n\n${tablesWithGuests.join(
-      ", "
-    )}\n\nBạn có chắc chắn muốn xoá không?`;
+     setmessNotiGuest(tablesWithGuests.join(", "))
+      setModalNotiGuest(true)
+  }else{
+    handleDeleteTable(false)
+  }
 
-    if (!window.confirm(confirmMessage)) {
-      return; // Người dùng chọn "Hủy"
-    }
 
-    // ✅ Nếu đồng ý xoá, xoá luôn thông tin chỗ ngồi của khách trong các bàn này
+ 
+
+}
+const handleDeleteTable =(checkGuest:boolean = true) => {
+  // 🔹 Danh sách bàn sẽ bị xoá
+  const deletingTableIDs = multiSelectedItems.map((m) => m.tableNumber);
+
+  
   setGuests((prevGuests) =>
       prevGuests.map((g) => {
         if (g.tableID && deletingTableIDs.includes(Number(g.tableID))) {
@@ -1959,10 +1971,8 @@ const handleDeleteList = (e: React.MouseEvent) => {
         return g;
       })
     );
-  }
-  
 
-  // ✅ Tiến hành xoá bàn
+     // ✅ Tiến hành xoá bàn
   setTables((prevTables) =>
     prevTables.filter(
       (t) => !multiSelectedItems.some((m) => m.tableNumber === t.tableNumber)
@@ -1976,10 +1986,11 @@ const handleDeleteList = (e: React.MouseEvent) => {
 
   // ✅ Reset danh sách chọn
   setMultiSelectedItems([]);
-
-  toast.success("🗑️ Đã xoá bàn và cập nhật khách mời thành công!");
-};
-
+  if(checkGuest)
+     toast.success("🗑️ Đã xoá bàn và cập nhật khách mời thành công!");
+  else  toast.success("🗑️ Đã xoá bàn thành công!");
+}
+  
 useClickOutsideItemSave();
 const handleResetZoom =() => {
     zoomRef.current = 0.7;
@@ -2382,6 +2393,17 @@ useEffect(() => {
                   dataGuest={guests}
               />
           )} 
+          </>
+          <>
+            {isModalNotiGuest && (
+              <ModalNotiGuest
+                isOpen = {isModalNotiGuest}
+                onClose = {() => setModalNotiGuest(false)}
+                onSave = {() => handleDeleteTable()}
+                Noti={ismessNotiGuest}
+               />
+
+            )}
           </>
           <div onClick={() => {
              if( isProjectID == "" ) {

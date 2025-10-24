@@ -78,7 +78,6 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
 
       return matchName && matchPhone && matchGender && matchNhom && matchBan;
     });
-    console.log(filteredTable)
     setListData(filteredTable);
   }, [table, filters, selectedValue]);
 
