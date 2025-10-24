@@ -706,22 +706,26 @@ useEffect(() => {
         }
     }
     if (response.status === 201 || response.status === 200) {
-      await getDataProject()  
+     
       if(checkSave){
         toast.success("Lưu thành công");
         await setProjectID(data.projectID)
         await setProjectName(data.projectName)
+        await getDataProject()  
+        localStorage.setItem("projectid", data.projectID); 
+        localStorage.setItem("projectidName", data.projectName);
         handleSaveGuest(data.projectID,access)
-
+        setIsModalSaveOpenProject(false)
       }else {
         toast.success("Cập nhật thành công");
          handleSaveGuest(isProjectID,access)
       }
     }
      else if(response.status === 401){
-      ReFreshToken(1)
-    }
+       ReFreshToken(1)
     
+    }
+     
   };
 const handleSaveGuest = (projectid: string,access:string) => {
   // Lấy danh sách guestID trong subget
@@ -749,8 +753,8 @@ const handleSaveGuest = (projectid: string,access:string) => {
       tableName: x.tableName,
       mail: x.mail ?? ""
     }));
-
-  PostGuest(arrSaveGuest, projectid,access);
+    if(arrSaveGuest.length > 0)
+     PostGuest(arrSaveGuest, projectid,access);
 };
 const PostGuest = async (save: any,projectid:string,access:string) => {
     const request = new Request(`${import.meta.env.VITE_API_URL}/api/Guest`, {
