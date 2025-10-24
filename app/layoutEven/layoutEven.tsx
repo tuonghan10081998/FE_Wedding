@@ -113,12 +113,17 @@ export interface Project {
   status?:string
   updatedAt?:Date
   user?:string
-  projectID?:string
+  projectID?:string,
+  fontSize:object
 }
 export interface GroupGuest {
   parentID: string;
   parentName:string
   createDate?:Date
+}
+export interface FontSize {
+  fontSizeTable: number;
+  fontSizeSeat:number
 }
 export default function TablePlanner() {
   const navigate = useNavigate();
@@ -137,7 +142,11 @@ export default function TablePlanner() {
   const [seatInput, setSeatInput] = useState<string | number>('');
   const [seatInputMaxSize, setSeatInputMaxSize] = useState(0);
   const [zoomLevel, setZoomLevel] = useState(0.7);
-  
+
+  const [fontSize, setFontSize] = useState<FontSize>({
+    fontSizeTable: 14,
+    fontSizeSeat: 12
+  });
   const containerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const zoomRef = useRef(0.7);
@@ -184,7 +193,7 @@ export default function TablePlanner() {
   const[isModalSearchGuest,setModalSearchGuest] = useState<boolean>(false)
   const[isParentGroupSearch,setParentGroupSearch]= useState<string>("0")
   const [isInvatition,setInvatition] = useState<string>("")
-
+  const [side, setSide] = useState("left");
   // plan
   const [maxTable,setMaxTable] = useState<number>(0)
   const [maxGuest,setMaxGuest] = useState<number>(0)
@@ -639,7 +648,8 @@ useEffect(() => {
         layout:layout,
         userID: isUserID ?? "",
         projectID:isProjectID,
-        invitationID:isInvatition
+        invitationID:isInvatition,
+        fontSize:fontSize
     };
     
      isProjectID === "0" &&  PostProject(Save,true,access);
@@ -1707,18 +1717,121 @@ const handleAddItem = async (
     resolve(); // ✅ báo cho await biết là xong
   });
 };
-const handleAddBan = (index: number,groupParentID:number) => {
+const handleAddBan = (index: number,groupParentID:number,type:string = "left") => {
   if(groupParentID === 0){
     toast.error("Vui lòng chọn bên!");
     return
   }
-  const currentTableCount = tables.length + 1;
-  const maxTableLimit = maxTable; // Giới hạn của gói
-  if(currentTableCount > maxTableLimit){
-    // Nếu đã đầy hoàn toàn
-    setIsTableLimitModalOpen(true);
-    return;
+  let topTable = 0;
+let leftTable = 0;
+
+const currentTableCount = tables.length + 1;
+const maxTableLimit = maxTable; // Giới hạn tổng bàn
+if (currentTableCount > maxTableLimit) {
+  setIsTableLimitModalOpen(true);
+  return;
+}
+ 
+const dataSanKhan = layoutItems.find((x: LayoutItem) => x.id === "item1");
+
+if (dataSanKhan) {
+  if (type === "right") {
+    const containerWidth = (dataSanKhan?.x ?? 0) + (index === 1 ? 50 : index === 2 ? -10 : 30);
+    const tablesRight = tables.filter(t => t.left > dataSanKhan.x);
+    const lastTable = tablesRight[tablesRight.length - 1]; 
+    
+    if (!lastTable) {
+      leftTable = containerWidth + (index === 1 ? 225 : index === 2 ? 310 : 230);
+      topTable = (dataSanKhan?.y ?? 0) + (index === 1 ? 53 : index === 2 ? 60 : 53) + 70;
+    } else {
+      const minTop = Math.min(...tablesRight.map(t => t.top));
+      const firstRowTables = tablesRight.filter(t => Math.abs(t.top - minTop) < 1);
+      const uniqueLeftValues = [...new Set(firstRowTables.map(t => t.left))];
+      const actualMaxLeftGroups = uniqueLeftValues.length;
+
+      const uniqueTopValues = [...new Set(tablesRight.map(t => t.top))];
+      const maxTopGroups = uniqueTopValues.length;
+
+      const maxLeftGroups = (maxTopGroups > 1 && actualMaxLeftGroups < 4) 
+        ? 4 
+        : actualMaxLeftGroups;
+
+      const sameRowTables = tablesRight.filter(
+        t => Math.abs(t.top - lastTable.top) < 1
+      );
+      
+      if (maxTopGroups > 1) {
+        if (sameRowTables.length >= maxLeftGroups) {
+          // Rớt xuống hàng mới
+          const maxTop = lastTable?.top ?? 0;
+          topTable = maxTop + (index === 1 ? 225 : index === 2 ? 230 : 110);
+          leftTable = containerWidth + (index === 1 ? 225 : index === 2 ? 310 : 230);
+        } else {
+          topTable = lastTable.top;
+          leftTable = lastTable.left + (index === 1 ? 225 : index === 2 ? 310 : 230);
+        }
+      } else {
+        if (maxLeftGroups >= 4) {
+          // Rớt xuống hàng mới
+          const maxTop = lastTable?.top ?? 0;
+          topTable = maxTop + (index === 1 ? 225 : index === 2 ? 230 : 110);
+          leftTable = containerWidth + (index === 1 ? 225 : index === 2 ? 310 : 230);
+        } else {
+          topTable = lastTable.top;
+          leftTable = lastTable.left + (index === 1 ? 225 : index === 2 ? 310 : 230);
+        }
+      }
+    }
+   
+  } else {
+    // type === "left"
+    const containerWidth = (dataSanKhan?.x ?? 0) - (index === 1 ? 180 : index === 2 ? 240 : 260);
+    const tablesLeft = tables.filter(t => t.left < dataSanKhan.x);
+    const lastTable = tablesLeft[tablesLeft.length - 1]; 
+    
+    if (!lastTable) {
+      leftTable = containerWidth;
+      topTable = (dataSanKhan?.y ?? 0) + (index === 1 ? 53 : index === 2 ? 60 : 53) + 70;
+    } else {
+      const minTop = Math.min(...tablesLeft.map(t => t.top));
+      const firstRowTables = tablesLeft.filter(t => Math.abs(t.top - minTop) < 1);
+      const uniqueLeftValues = [...new Set(firstRowTables.map(t => t.left))];
+      const actualMaxLeftGroups = uniqueLeftValues.length;
+      
+      const uniqueTopValues = [...new Set(tablesLeft.map(t => t.top))];
+      const maxTopGroups = uniqueTopValues.length;
+      
+      const maxLeftGroups = (maxTopGroups > 1 && actualMaxLeftGroups < 4) 
+        ? 4 
+        : actualMaxLeftGroups;
+
+      const sameRowTables = tablesLeft.filter(
+        t => Math.abs(t.top - lastTable.top) < 1
+      );
+     
+      if (maxTopGroups > 1) {
+        if (sameRowTables.length >= maxLeftGroups) {
+          const maxTop = lastTable?.top ?? 0;
+          topTable = maxTop + (index === 1 ? 225 : index === 2 ? 230 : 110);
+          leftTable = containerWidth;
+        } else {
+          topTable = lastTable.top;
+          leftTable = lastTable.left - (index === 1 ? 225 : index === 2 ? 310 : 230);
+        }
+      } else {
+        if (maxLeftGroups >= 4) {
+          const maxTop = lastTable?.top ?? 0;
+          topTable = maxTop + (index === 1 ? 225 : index === 2 ? 230 : 110);
+          leftTable = containerWidth;
+        } else {
+          topTable = lastTable.top;
+          leftTable = lastTable.left - (index === 1 ? 225 : index === 2 ? 310 : 230);
+        }
+      }
+    }
   }
+}
+ 
   let newTable: UnifiedTableData;
    const maxTableNumber =
         tables.length > 0
@@ -1729,13 +1842,13 @@ const handleAddBan = (index: number,groupParentID:number) => {
   if (index === 1) {
     // Round table
     newTable = {
-      tableNumber: maxTableNumber,
+      tableNumber: maxTableNumber,  
       shape: 'round',
       width: 0,
       height: 0,
       size: 100,
-      top: centerY - 50,   // size/2
-      left: centerX - 50,
+      top: topTable,   // size/2
+      left: leftTable,
       rotation: 0,
       currentSeatCount: 10,
       sourceType: 1,
@@ -1757,8 +1870,8 @@ const handleAddBan = (index: number,groupParentID:number) => {
       width,
       height,
       size: 0,
-       top: centerY - height / 2,
-      left: centerX - width / 2,
+      top: topTable,   // size/2
+      left: leftTable,
       rotation: 0,
       currentSeatCount: totalSeats,
       sourceType: 2,
@@ -1774,8 +1887,8 @@ const handleAddBan = (index: number,groupParentID:number) => {
       width: 195,
       height: 10,
       size: 0,
-     top: centerY - 5,
-      left: centerX - 195 / 2,
+       top: topTable,   // size/2
+      left: leftTable,
       rotation: 0,
       currentSeatCount: 5,
       sourceType: 3,
@@ -1799,17 +1912,70 @@ const handleDelete = (e:React.MouseEvent) => {
     prev.map(g => (g.seatID && g.seatID.includes(`${itemDelete.tableNumber}`) ? { ...g, seatId: null } : g))
   );
 };
-const handleDeleteList = (e:React.MouseEvent) =>{
-     setTables((prevTables) =>
-        prevTables.filter(
-          (t) => !multiSelectedItems.some((m) => m.tableNumber === t.tableNumber)
-        )
-      );
-      setLayoutItems((prevTables) =>
-          prevTables.filter((t) => !multiSelected.some((x) => x.id === t.id))
-      )
-    setMultiSelectedItems([])
-}
+const handleDeleteList = (e: React.MouseEvent) => {
+  if (multiSelectedItems.length === 0) {
+    toast.warn("⚠️ Vui lòng chọn bàn cần xoá!");
+    return;
+  }
+
+  // 🔹 Danh sách bàn sẽ bị xoá
+  const deletingTableIDs = multiSelectedItems.map((m) => m.tableNumber);
+
+  // 🔹 Kiểm tra xem có khách nào thuộc các bàn đó không
+  const guestsInTables = guests.filter(
+    (g) => g.tableID && deletingTableIDs.includes(Number(g.tableID))
+  );
+
+  // 🔹 Nếu có khách trong bàn
+  if (guestsInTables.length > 0) {
+    const tablesWithGuests = [
+      ...new Set(guestsInTables.map((g) => g.tableName || g.tableID)),
+    ];
+
+    const confirmMessage = `⚠️ Các bàn sau đang có khách mời:\n\n${tablesWithGuests.join(
+      ", "
+    )}\n\nBạn có chắc chắn muốn xoá không?`;
+
+    if (!window.confirm(confirmMessage)) {
+      return; // Người dùng chọn "Hủy"
+    }
+
+    // ✅ Nếu đồng ý xoá, xoá luôn thông tin chỗ ngồi của khách trong các bàn này
+  setGuests((prevGuests) =>
+      prevGuests.map((g) => {
+        if (g.tableID && deletingTableIDs.includes(Number(g.tableID))) {
+          return {
+            ...g,
+            seatID: "",
+            tableID: "",
+            tableName: "",
+            seatName: "",
+          };
+        }
+        return g;
+      })
+    );
+  }
+  
+
+  // ✅ Tiến hành xoá bàn
+  setTables((prevTables) =>
+    prevTables.filter(
+      (t) => !multiSelectedItems.some((m) => m.tableNumber === t.tableNumber)
+    )
+  );
+
+  // ✅ Xoá layout item tương ứng
+  setLayoutItems((prevTables) =>
+    prevTables.filter((t) => !multiSelected.some((x) => x.id === t.id))
+  );
+
+  // ✅ Reset danh sách chọn
+  setMultiSelectedItems([]);
+
+  toast.success("🗑️ Đã xoá bàn và cập nhật khách mời thành công!");
+};
+
 useClickOutsideItemSave();
 const handleResetZoom =() => {
     zoomRef.current = 0.7;
@@ -1975,7 +2141,7 @@ useEffect(() => {
                 }}
               >
                 <i className="fa-solid fa-file-lines text-[16px] mr-3 text-blue-500 group-hover:text-blue-600"></i>
-                <span className="font-medium">Xuất file mẫu</span>
+                <span className="font-medium">File mẫu import khách</span>
               </button>
               
               {/* Xuất PDF */}
@@ -2132,6 +2298,8 @@ useEffect(() => {
                     selectedValue={selectedParentGroup}
                     onSelectedChange={(v) => setSelectedParentGroup(v)}
                     data={isDataParentGroup}
+                    isSide={side}
+                    setSide={(side:string) => setSide(side)}
                   />
                 )}
               <button
@@ -2148,7 +2316,7 @@ useEffect(() => {
                 type="button"
                 aria-label="Select Project"
                 onClick={() => setIsModalSaveOpenProject(true)}
-                className="absolute top-[3px] left-[3px] flex items-center space-x-2 cursor-pointer p-1 px-3 rounded-lg bg-gray-700 text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-1 transition font-semibold select-none"
+                className="absolute top-[5px] left-[177px] flex items-center space-x-2 cursor-pointer p-1 px-3 rounded-lg bg-gray-700 text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-1 transition font-semibold select-none"
                 title="Select Project"
               >
                 <i className="fas fa-folder-open fa-lg me-1"></i>
@@ -2168,6 +2336,23 @@ useEffect(() => {
              
             />
          </>
+          <>
+            <div className='absolute top-[3px] left-[3px] flex'>
+                <label 
+                    htmlFor="totalTables" 
+                    className="text-lg  text-black bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 whitespace-nowrap flex items-center gap-2"
+                  >
+                Tổng bàn:
+              </label>
+             <input
+            type="text"
+            value={tables.length}
+            readOnly
+            className="border-2 border-blue-500 bg-blue-50 text-blue-700 font-semibold rounded-lg px-4 py-1 text-center shadow-sm w-[90px] hover:outline-none focus:outline-none hover:border-blue-600"
+          />
+            </div>
+          
+          </>    
           <>
           {isModalSearchGuest && (
               <ModalSearchGuest
@@ -2354,6 +2539,7 @@ useEffect(() => {
                       index={index}
                       selected={selectedTableIndex === index}
                       setNextTableNumber={nextTableNumber}
+                      fontSize={fontSize}
                       onClick={(i, event) => {
                         const seatEl = (event.target as HTMLElement).closest('.seat');
 
@@ -2415,6 +2601,7 @@ useEffect(() => {
                       onRotate={handleRotate}
                       onDrag={handleDrag}
                       zoomLevel={zoomLevel}
+                      fontSize={fontSize}
                       isActive={multiSelectedItems.some(x => x.tableNumber === table.tableNumber)} 
                       onClick={(i, event) => {
                        const seatEl = (event.target as HTMLElement).closest('.seat');
@@ -2469,6 +2656,7 @@ useEffect(() => {
                       index={index}
                       selected={selectedBenchIndex === index}
                       guests={guests}
+                      fontSize={fontSize}
                       onClick={(i, event) => {
                         const seatEl = (event.target as HTMLElement).closest('.seat');
                        if (seatEl) {
@@ -2561,6 +2749,14 @@ useEffect(() => {
               seatInput={seatInput}
                onDelete={(e) => handleDelete(e)}
                onChangeName = {hanldleRenderTableNameInput}
+               fontSizeTable= {fontSize.fontSizeTable}
+               fontSizeSeat = {fontSize.fontSizeSeat}
+              onChangeFontSizeTable={(val: number) =>
+                setFontSize(prev => ({ ...prev, fontSizeTable: val }))
+              }
+              onChangeFontSizeSeat={(val: number) =>
+                setFontSize(prev => ({ ...prev, fontSizeSeat: val }))
+              }
             />
           )}
           {checkLoai === 2 && (

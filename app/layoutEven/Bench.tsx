@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import type { Guest, UnifiedTableData } from './layoutEven';
+import type { Guest, UnifiedTableData,FontSize } from './layoutEven';
 import Badge from '~/layoutEven/ItemSVGUser';
 import BadgeMan from '~/layoutEven/ItemSVGUserMan';
 import BlingDot from '~/layoutEven/BlingDot';
@@ -15,6 +15,7 @@ interface BenchTableRenderProps {
   onDrag?: (index: number, newTop: number, newLeft: number, type: number) => void;
   onClick: (index: number, event: React.MouseEvent) => void;
   isActive: boolean;
+    fontSize:FontSize
 }
 
 const seatSize = 35;
@@ -54,7 +55,8 @@ const BenchTableRender: React.FC<BenchTableRenderProps> = ({
   zoomLevel = 1,
   onDrag,
   onClick,
-  isActive
+  isActive,
+  fontSize
 }) => {
   const [isResizing, setIsResizing] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
@@ -104,6 +106,7 @@ const BenchTableRender: React.FC<BenchTableRenderProps> = ({
         width: seatSize,
         height: seatSize,
         backgroundColor: guest ? '#fafffcc15' : '#fff',
+        fontSize:fontSize.fontSizeTable
       }}
     >
       <div
@@ -334,6 +337,7 @@ const BenchTableRender: React.FC<BenchTableRenderProps> = ({
           height: 12,
           fontWeight: '600',
           zIndex: 100,
+          fontSize:fontSize.fontSizeTable
         }}
       >
         {table.nameTable}

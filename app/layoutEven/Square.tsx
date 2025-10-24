@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import type { Guest, UnifiedTableData } from './layoutEven';
+import type { Guest, UnifiedTableData,FontSize } from './layoutEven';
 import Badge from '~/layoutEven/ItemSVGUser';
 import BadgeMan from '~/layoutEven/ItemSVGUserMan';
 import BlingDot from '~/layoutEven/BlingDot';
@@ -15,6 +15,7 @@ interface SquareTableRenderProps {
   onDrag?: (index: number, newTop: number, newLeft: number, type: number) => void;
   onClick: (index: number, event: React.MouseEvent) => void;
   isActive: boolean;
+  fontSize:FontSize
 }
 
 const seatSize = 32;
@@ -102,7 +103,8 @@ const SquareTableRender: React.FC<SquareTableRenderProps> = ({
   zoomLevel = 1,
   onDrag,
   onClick,
-  isActive
+  isActive,
+   fontSize
 }) => {
   const [isResizing, setIsResizing] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
@@ -156,6 +158,7 @@ const SquareTableRender: React.FC<SquareTableRenderProps> = ({
         width: seatSize,
         height: seatSize,
         backgroundColor: guest ? '#fff' : '#fff',
+        fontSize:fontSize.fontSizeSeat
       }}
     >
       <div
@@ -410,7 +413,7 @@ const SquareTableRender: React.FC<SquareTableRenderProps> = ({
           width: '100%',
           height: '100%',
           fontWeight: '600',
-          fontSize: '16px',
+          fontSize:fontSize.fontSizeTable
         }}
       >
         {table.nameTable}

@@ -172,12 +172,12 @@
   transform: translate(-50%, -50%);
 }
 .itemgd {
-  font-size: 11px !important;
+  font-size: 11px;
   background-color: #e9d5ff !important;
 }
 .table-rect,
 .listBanTron {
-  font-size: 13px !important;
+  font-size: 13px;
   color: #000 !important;
 }
 .usercutomer {
@@ -322,7 +322,7 @@ button.close-btn:hover {
   z-index: 9999 !important;
 }
 .highlight {
-  background-color: #d5b8b8 !important;
+  background-color: #d5b8b8;
 }
 @media print {
   #tableContainer {

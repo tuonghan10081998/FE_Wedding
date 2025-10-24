@@ -351,7 +351,7 @@ const getPlanDisplayName = (plan: Plan) => {
     return 'Gói VIP Platinum';
   }
 };
-  const getPlanIcon = (planName: string) => {
+const getPlanIcon = (planName: string) => {
     if (planName === 'Free') {
       return (
         <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
@@ -364,7 +364,7 @@ const getPlanDisplayName = (plan: Plan) => {
         <Sparkles className="w-6 h-6 text-white" />
       </div>
     );
-  };
+};
 
   const getCardStyle = (planName: string, isSelected: boolean) => {
     const baseStyle = "relative bg-white rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl border-2";

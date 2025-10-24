@@ -1,14 +1,16 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import type { Guest, UnifiedTableData } from './layoutEven';
+import type { Guest, UnifiedTableData,FontSize } from './layoutEven';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import Badge from '~/layoutEven/ItemSVGUser';
 import BadgeMan from '~/layoutEven/ItemSVGUserMan';
 import BlingDot from '~/layoutEven/BlingDot';
+
 interface RoundTableProps {
   table: UnifiedTableData;
   index: number;
   selected: boolean;
   setNextTableNumber: number;
+  fontSize:FontSize
   onClick: (index: number, event: React.MouseEvent) => void;
   onResize: (index: number, newTable: UnifiedTableData) => void;
   onRotate?: (index: number, newRotation: number) => void;
@@ -33,7 +35,8 @@ const RoundTable: React.FC<RoundTableProps> = ({
   guests,
   onGuestSeatChange,
   isActive,
-  onClickSeat
+  onClickSeat,
+  fontSize
 }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const startPos = useRef({ x: 0, y: 0, size: 0 });
@@ -248,6 +251,7 @@ const RoundTable: React.FC<RoundTableProps> = ({
             width: seatSize,
             height: seatSize,
             backgroundColor: guest ? '#fff' : '#fff',
+            fontSize:fontSize.fontSizeSeat
           }}
         >
           <div
@@ -413,7 +417,8 @@ const RoundTable: React.FC<RoundTableProps> = ({
           fontWeight: '600',
           zIndex: 99999,
           textAlign:"center",
-          padding:"0px 6px"
+          padding:"0px 6px",
+          fontSize:fontSize.fontSizeTable
         }}
       >
         {table.nameTable}

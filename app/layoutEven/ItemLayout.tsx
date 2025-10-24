@@ -78,7 +78,7 @@ const GenericItem: React.FC<GenericItemProps> = ({
   const currentPosition = useRef({ y: item.y, x: item.x });
   const currentRotate = useRef({rotation:item.rotation})
  const currentSize = useRef({ width: item.width, height: item.height });
-  
+ 
   const handleResizeMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsResizing(true);

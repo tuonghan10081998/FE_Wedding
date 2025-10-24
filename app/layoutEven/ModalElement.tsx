@@ -5,24 +5,26 @@ import type { SingleValue } from "react-select";
 interface ModalEllement {
   onClose: () => void;
   onAddItem: (type: string, width: number, height: number,color:string,nameItem:string) => void;
-  onAddTable: (index:number,groupParentID:number) => void;
+  onAddTable: (index:number,groupParentID:number,type:string) => void;
   selectedValue: string;
   onSelectedChange: (v: string) => void;
-  data?:GroupGuest[]
+  data?:GroupGuest[],
+  isSide:string,
+  setSide:(v:string) => void
 }
 interface OptionType {
   value: string;
   label: string;
 }
 const ModalElement: React.FC<ModalEllement> = ({ onClose, 
-  onAddItem,onAddTable,data,selectedValue,onSelectedChange}) => {
+  onAddItem,onAddTable,data,selectedValue,onSelectedChange,isSide,setSide}) => {
   const filterOptions: OptionType[] = [
         ...(data?.map((card) => ({
           value: card.parentID.toString() ?? "",
           label: card.parentName,
         })) ?? []),
       ];
-   
+  const [side, setSideMD] = useState(isSide);
   return (
    <div
       className="fixed top-27 right-0 z-20 w-[570px] h-full"
@@ -33,8 +35,9 @@ const ModalElement: React.FC<ModalEllement> = ({ onClose,
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header cố định */}
-        <div className="sticky top-0 z-10 bg-white border-b p-4 flex justify-between items-center">
-          <h2 className="text-xl font-bold">📌 Chọn Element </h2>
+        <div className="sticky top-0 z-10 bg-white border-b p-4 ">
+          <div className='flex justify-between items-center'>
+            <h2 className="text-xl font-bold">📌 Chọn Element </h2>
            <div className="flex gap-4">
              <div className="flex  gap-4 items-center">
             <div className="">Chọn bên <span className="text-red-500">(*)</span></div>
@@ -57,8 +60,47 @@ const ModalElement: React.FC<ModalEllement> = ({ onClose,
             &times;
           </button>
           </div>
+          <div>
+           
+          </div>
+         
         </div>
+   
+      <div className="flex items-center gap-6 mt-2">
+        {/* Bên trái */}
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="radio"
+            name="side"
+            value="left"
+            checked={side === "left"}
+            onChange={(e) =>{
+               setSide(e.target.value)
+               setSideMD(e.target.value)
+            } }
+            className="w-4 h-4 accent-blue-600"
+          />
+          <span className="text-gray-700">Bên trái sân khấu</span>
+        </label>
 
+        {/* Bên phải */}
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="radio"
+            name="side"
+            value="right"
+            checked={side === "right"}
+            onChange={(e) => {
+              setSideMD(e.target.value)
+              setSide(e.target.value)
+            }}
+            className="w-4 h-4 accent-blue-600"
+          />
+          <span className="text-gray-700">Bên phải sân khấu</span>
+        </label>
+      </div>
+        </div>
+         
         {/* Body có thể cuộn */}
         <div className="overflow-y-auto h-[calc(100vh-180px)] p-4"
         onWheel={(e) => e.stopPropagation()} onMouseDown ={(e) => e.stopPropagation()}>
@@ -66,7 +108,7 @@ const ModalElement: React.FC<ModalEllement> = ({ onClose,
           <div className="icon-container">
             <div className="mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <div className="flex flex-col items-center">
-                <div onClick={() => onAddTable(2,parseInt(selectedValue))} className="icon-item">
+                <div onClick={() => onAddTable(2,parseInt(selectedValue),side)} className="icon-item">
                   <svg style={{ height: '70px' }} className="icon-svg w-20" viewBox="0 0 80 50" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#9B9B9B" strokeWidth="1.5">
                     <rect x="20" y="15" width="40" height="20" fill="#EDE9F1" rx="2"></rect>
                     <circle cx="12" cy="20" r="4"></circle>
@@ -85,7 +127,7 @@ const ModalElement: React.FC<ModalEllement> = ({ onClose,
               </div>
 
               <div className="flex flex-col items-center">
-                <div onClick={() => onAddTable(1,parseInt(selectedValue))} className="icon-item">
+                <div onClick={() => onAddTable(1,parseInt(selectedValue),side)} className="icon-item">
                   <svg className="icon-svg w-20 h-auto" viewBox="0 0 80 50" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#9B9B9B" strokeWidth="1.5">
                     <circle cx="40" cy="27" r="17" fill="#EDE9F1"></circle>
                     <circle cx="26" cy="9" r="4"></circle>
@@ -101,7 +143,7 @@ const ModalElement: React.FC<ModalEllement> = ({ onClose,
                 </div>
               </div>
 
-              <div onClick={() => onAddTable(3,parseInt(selectedValue))} className="flex flex-col items-center">
+              <div onClick={() => onAddTable(3,parseInt(selectedValue),side)} className="flex flex-col items-center">
                 <div className="icon-item">
                   <svg className="icon-svg w-20 h-auto" viewBox="0 0 80 50" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#9B9B9B" strokeWidth="1.5">
                     <circle cx="11" cy="27" r="4"></circle>
