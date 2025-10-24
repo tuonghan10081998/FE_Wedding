@@ -114,7 +114,7 @@ export interface Project {
   updatedAt?:Date
   user?:string
   projectID?:string,
-  fontSize:object
+  fontSize?:object
 }
 export interface GroupGuest {
   parentID: string;
@@ -648,8 +648,8 @@ useEffect(() => {
         layout:layout,
         userID: isUserID ?? "",
         projectID:isProjectID,
-        invitationID:isInvatition,
-        fontSize:fontSize
+        invitationID:isInvatition
+        // fontSize:fontSize
     };
     
      isProjectID === "0" &&  PostProject(Save,true,access);
