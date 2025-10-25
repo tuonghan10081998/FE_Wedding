@@ -435,7 +435,6 @@ const getDataProject = async () => {
       const layoutRaw = (dataLayout as any).layout ?? (dataLayout as any).layoutData;
       if (layoutRaw) {
       const parsed = JSON.parse(layoutRaw);
-      
       // ✅ Batch update tất cả state cùng lúc
       const normalizedTables:UnifiedTableData[] = (parsed.Table || []).map((t: any) => ({
         tableNumber: t.TableNumber,
@@ -452,6 +451,15 @@ const getDataProject = async () => {
         groupParentID:t.GroupParentID,
         isComeback:0
       }));
+      const fontSizeData = parsed.FontSize
+
+    const normalizedFontSize: FontSize | null = 
+       {
+          fontSizeTable: fontSizeData ? fontSizeData.FontSizeTable : 14,
+          fontSizeSeat:fontSizeData ?   fontSizeData.FontSizeSeat : 12,
+        }
+     
+      console.log(normalizedFontSize)
      const maxTableNumber =
         normalizedTables.length > 0
           ? Math.max(...normalizedTables.map(t => t.tableNumber ?? 0)) + 1
@@ -499,7 +507,6 @@ const getDataProject = async () => {
         alphaLevel: (item.AlphaLevel / 100),
         active:item.Active
       }));
-      // ✅ Sử dụng requestAnimationFrame để đảm bảo DOM đã clear
       requestAnimationFrame(() => {
         setTables(normalizedTables);
         setLayoutItems(normalizedItemLayout);
@@ -509,6 +516,8 @@ const getDataProject = async () => {
         offsetRef.current = { x: normalizedLayoutContainer.x, y: normalizedLayoutContainer.y };
         setlayoutBackZoom(normalizedLayoutContainer.zoomLevel)
         setZoomLevel(normalizedLayoutContainer.zoomLevel)
+       
+        normalizedFontSize && setFontSize(normalizedFontSize)
       });
       
     }
@@ -641,7 +650,8 @@ useEffect(() => {
         table: tables,
         itemLayout: layoutItems,
         layoutContainer: layoutCurent,
-        zoneRegion: dataZone
+        zoneRegion: dataZone,
+        fontSize:fontSize
       };
       if (!layout) {
         toast.error("Chưa có bàn nào để lưu!");
@@ -653,8 +663,8 @@ useEffect(() => {
         layout:layout,
         userID: isUserID ?? "",
         projectID:isProjectID,
-        invitationID:isInvatition
-        // fontSize:fontSize
+        invitationID:isInvatition,
+       
     };
     
      isProjectID === "0" &&  PostProject(Save,true,access);
@@ -2327,11 +2337,12 @@ useEffect(() => {
               </button>
             </div>
              <>
-                <button
+                <div className='flex items-center absolute top-[2px] left-[3px] gap-2'>
+                  <button
                 type="button"
                 aria-label="Select Project"
                 onClick={() => setIsModalSaveOpenProject(true)}
-                className="absolute top-[5px] left-[177px] flex items-center space-x-2 cursor-pointer p-1 px-3 rounded-lg bg-gray-700 text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-1 transition font-semibold select-none"
+                className=" flex items-center space-x-2 cursor-pointer p-1 px-3 rounded-lg bg-gray-700 text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-1 transition font-semibold select-none"
                 title="Select Project"
               >
                 <i className="fas fa-folder-open fa-lg me-1"></i>
@@ -2350,24 +2361,20 @@ useEffect(() => {
               } 
              
             />
-         </>
-          <>
-            <div className='absolute top-[3px] left-[3px] flex'>
-                <label 
-                    htmlFor="totalTables" 
-                    className="text-lg  text-black bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 whitespace-nowrap flex items-center gap-2"
+            <label 
+                htmlFor="totalTables" 
+                    className="text-lg  text-black bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 whitespace-nowrap flex items-center gap-1"
                   >
                 Tổng bàn:
               </label>
-             <input
-            type="text"
-            value={tables.length}
-            readOnly
-            className="border-2 border-blue-500 bg-blue-50 text-blue-700 font-semibold rounded-lg px-4 py-1 text-center shadow-sm w-[90px] hover:outline-none focus:outline-none hover:border-blue-600"
-          />
-            </div>
-          
-          </>    
+                  <label
+                className="text-blue-700 font-semibold rounded-lg px-2 py-1 text-center  inline-block"
+              >
+                {tables.length}
+              </label>
+                </div>
+         </>
+         
           <>
           {isModalSearchGuest && (
               <ModalSearchGuest
