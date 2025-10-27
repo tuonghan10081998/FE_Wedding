@@ -33,7 +33,7 @@ const ModalSelect: React.FC<ModalSelectProps> = ({
   onSelectedChange
 }) => {
   const [row, setRow] = useState<number | string>("");
-  const [layout, setLayout] = useState<string>("ngang");
+  const [layout, setLayout] = useState<string>("doc");
   const [type, setType] = useState<string>("tron");
   const [seatCount, setSeatCount] = useState<number | string>("");
   const [checkRow, setCheckRow] = useState<string>("nhieuday");

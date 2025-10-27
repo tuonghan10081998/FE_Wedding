@@ -11,13 +11,15 @@ interface ModalEllement {
   data?:GroupGuest[],
   isSide:string,
   setSide:(v:string) => void
+  numberDay:number
+  setNumberDay:(v:number) => void
 }
 interface OptionType {
   value: string;
   label: string;
 }
 const ModalElement: React.FC<ModalEllement> = ({ onClose, 
-  onAddItem,onAddTable,data,selectedValue,onSelectedChange,isSide,setSide}) => {
+  onAddItem,onAddTable,data,selectedValue,onSelectedChange,isSide,setSide,numberDay,setNumberDay}) => {
   const filterOptions: OptionType[] = [
         ...(data?.map((card) => ({
           value: card.parentID.toString() ?? "",
@@ -41,7 +43,7 @@ const ModalElement: React.FC<ModalEllement> = ({ onClose,
            <div className="flex gap-4">
              <div className="flex  gap-4 items-center">
             <div className="">Chọn bên <span className="text-red-500">(*)</span></div>
-           <Select
+             <Select
               options={filterOptions}
               value={filterOptions.find(opt => opt.value === selectedValue)}
               onChange={(option: SingleValue<OptionType>) =>
@@ -65,25 +67,25 @@ const ModalElement: React.FC<ModalEllement> = ({ onClose,
           </div>
          
         </div>
-   
-      <div className="flex items-center gap-6 mt-2">
-        {/* Bên trái */}
+   <div className="flex flex-wrap items-center justify-between gap-2 mt-4 bg-gray-50 px-5 py-3 rounded-xl shadow-sm border border-gray-200">
+  {/* Chọn bên trái */}
+      <div className='flex flex-col gap-2 flex-wrap'>
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="radio"
             name="side"
             value="left"
             checked={side === "left"}
-            onChange={(e) =>{
-               setSide(e.target.value)
-               setSideMD(e.target.value)
-            } }
+            onChange={(e) => {
+              setSide(e.target.value);
+              setSideMD(e.target.value);
+            }}
             className="w-4 h-4 accent-blue-600"
           />
-          <span className="text-gray-700">Bên trái sân khấu</span>
+          <span className="text-gray-700 font-medium">Bên trái sân khấu</span>
         </label>
 
-        {/* Bên phải */}
+        {/* Chọn bên phải */}
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="radio"
@@ -91,15 +93,30 @@ const ModalElement: React.FC<ModalEllement> = ({ onClose,
             value="right"
             checked={side === "right"}
             onChange={(e) => {
-              setSideMD(e.target.value)
-              setSide(e.target.value)
+              setSide(e.target.value);
+              setSideMD(e.target.value);
             }}
             className="w-4 h-4 accent-blue-600"
           />
-          <span className="text-gray-700">Bên phải sân khấu</span>
+          <span className="text-gray-700 font-medium">Bên phải sân khấu</span>
         </label>
       </div>
-        </div>
+
+      <div className='gap-4'>
+         {/* Nhập số bàn */}
+          <label className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-300 hover:border-blue-400 transition-colors duration-200">
+            <span className="text-gray-800 font-medium">Số bàn / dãy:</span>
+            <input
+              type="number"
+              value={numberDay}
+              onChange={(e) => setNumberDay(parseFloat(e.target.value))}
+              className="w-20 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+              min="0"
+            />
+          </label>
+      </div>
+</div>
+    </div>
          
         {/* Body có thể cuộn */}
         <div className="overflow-y-auto h-[calc(100vh-180px)] p-4"
