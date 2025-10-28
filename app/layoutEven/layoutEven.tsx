@@ -1472,9 +1472,52 @@ const handleAssignGuestsToSeats = () => {
     const parts = id.split('_@');
     return { el, tableNumber: parseInt(parts[1]) };
   });
-  
+  const dataSanKhan = layoutItems.find((x: LayoutItem) => x.id === "item1");
   const sortedTables = tablesWithNumbers.sort((a, b) => a.tableNumber - b.tableNumber);
-  
+const mergedTables = sortedTables.map(item => {
+  const found = tables.find(t => t.tableNumber === item.tableNumber);
+  return {
+    ...item,
+    top: Number(found?.top ?? 0),
+    left: Number(found?.left ?? 0),
+    groupParentID: found?.groupParentID ?? null
+  };
+});
+
+const filteredTables = mergedTables.filter(item => {
+  if (isParentGroup && item.groupParentID != null) {
+    return String(item.groupParentID) === String(isParentGroup);
+  }
+  return true;
+});
+
+const sanKhanX = Number(dataSanKhan?.x || 0);
+
+// Phân loại
+const leftTables = filteredTables.filter(t => t.left < sanKhanX);
+const rightTables = filteredTables.filter(t => t.left >= sanKhanX);
+
+// Sắp xếp từng nhóm theo top
+const sortedLeft = [...leftTables].sort((a, b) => Number(a.top) - Number(b.top));
+const sortedRight = [...rightTables].sort((a, b) => Number(a.top) - Number(b.top));
+
+// ✅ Xác định bàn nhỏ nhất
+const minTable = filteredTables.reduce((prev, curr) => {
+  return curr.tableNumber < prev.tableNumber ? curr : prev;
+}, filteredTables[0]);
+
+// ✅ Quyết định thứ tự ghép
+let finalSortedTables = [];
+if (minTable.left < sanKhanX) {
+  // Bàn nhỏ nhất nằm bên trái → trái trước
+  finalSortedTables = [...sortedLeft, ...sortedRight];
+} else {
+  // Bàn nhỏ nhất nằm bên phải → phải trước
+  finalSortedTables = [...sortedRight, ...sortedLeft];
+}
+
+console.log(finalSortedTables)
+
   // Theo dõi bàn nào đã được sử dụng bởi nhóm nào
   const tableUsedByGroup: Record<string, string[]> = {}; // groupName -> [maBan1, maBan2, ...]
   
@@ -1495,7 +1538,7 @@ const handleAssignGuestsToSeats = () => {
   Object.entries(guestsByGroup).forEach(([groupName, groupGuests]) => {
     let currentGuestIndex = 0;
     
-    for (const table of sortedTables) {
+    for (const table of finalSortedTables) {
       if (currentGuestIndex >= groupGuests.length) break;
       
       const seatElements = table.el.querySelectorAll('.seat');

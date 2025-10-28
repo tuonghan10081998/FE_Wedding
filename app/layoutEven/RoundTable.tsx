@@ -390,7 +390,7 @@ const RoundTable: React.FC<RoundTableProps> = ({
     <div
       ref={wrapperRef}
       id={`banghe_@${table.tableNumber}`}
-      className={`table-wrapper ${selected ? "zindexitem border-2 border-blue-400" : ""} item_banghe item_save absolute`}
+      className={`table-wrapper  ${selected ? "zindexitem border-2 border-blue-400" : ""} item_banghe item_save absolute`}
       style={{
         top: localTop,
         left: localLeft,
