@@ -101,7 +101,7 @@ if (!isOpen) return null;
           </div>
         </div>
         {/* Kiểu dãy */}
-        <div className="mb-2">
+        <div className="mb-2 hidden">
           <label className="block text-sm font-medium text-sm mb-1">Chọn kiểu dãy:</label>
           <div className="flex space-x-4">
             {/* Nhiều dãy */}

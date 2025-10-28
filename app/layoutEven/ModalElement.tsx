@@ -11,15 +11,13 @@ interface ModalEllement {
   data?:GroupGuest[],
   isSide:string,
   setSide:(v:string) => void
-  numberDay:number
-  setNumberDay:(v:number) => void
 }
 interface OptionType {
   value: string;
   label: string;
 }
 const ModalElement: React.FC<ModalEllement> = ({ onClose, 
-  onAddItem,onAddTable,data,selectedValue,onSelectedChange,isSide,setSide,numberDay,setNumberDay}) => {
+  onAddItem,onAddTable,data,selectedValue,onSelectedChange,isSide,setSide}) => {
   const filterOptions: OptionType[] = [
         ...(data?.map((card) => ({
           value: card.parentID.toString() ?? "",
@@ -102,14 +100,14 @@ const ModalElement: React.FC<ModalEllement> = ({ onClose,
         </label>
       </div>
 
-      <div className='gap-4'>
+      <div className='gap-4 hidden'>
          {/* Nhập số bàn */}
           <label className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-300 hover:border-blue-400 transition-colors duration-200">
             <span className="text-gray-800 font-medium">Số bàn / dãy:</span>
             <input
               type="number"
-              value={numberDay}
-              onChange={(e) => setNumberDay(parseFloat(e.target.value))}
+              // value={numberDay}
+              // onChange={(e) => setNumberDay(parseFloat(e.target.value))}
               className="w-20 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
               min="0"
             />

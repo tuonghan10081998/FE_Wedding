@@ -215,8 +215,8 @@ export default function TablePlanner() {
   const [isExportlimit, setExportlimit] = useState(false);
 
   const [isModalNotiGuest,setModalNotiGuest] = useState<boolean>(false)
+
   const [ismessNotiGuest,setmessNotiGuest] = useState<string>("")
-  const [isNumberDay,setNumberDay] = useState<number>(5)
   const handleUpgrade = () => {
     navigate("/layout/Plan");
     setIsModalOpenUpgra(false);
@@ -1232,71 +1232,94 @@ const startRow = checkRow === 'nhieuday' ? 1 : rowNumA;
 // chia ghế cho từng row
 const baseSeatsPerRow = Math.floor(count / totalRows);
 const remainder = checkRow === 'nhieuday' ? count % totalRows : count;
+
 for (let r = startRow; r <= totalRows; r++) {
-  // số ghế thực tế của row hiện tại
   const seatsInThisRow = checkRow === 'nhieuday' ? baseSeatsPerRow + (r - startRow < remainder ? 1 : 0) : count;
-  const dataSanKhan = layoutItems.find((x:LayoutItem) => x.id === `item1`)
-    
-    const tablesLeft = tables.filter(t => t.left < (dataSanKhan?.x ?? 0));
-    const tablesRight = tables.filter(t => t.left > (dataSanKhan?.x ?? 0));
-    let minLeft = Math.min(...tablesLeft.map(t => t.left)) ?? 0;
-    if (!isFinite(minLeft)) {
-        minLeft = 0; // nếu Infinity thì gán bằng x của sân khán
-    }
-    let minRight = Math.max(...tablesRight.map(t => t.left)) ?? 0;
-    if (!isFinite(minRight)) {
-        minRight = 0; // nếu Infinity thì gán bằng x của sân khán
-    }
+  const dataSanKhan = layoutItems.find((x:LayoutItem) => x.id === `item1`);
+  
+  // Lọc bàn theo left (trái/phải sân khán)
+  const tablesLeft = tables.filter(t => t.left < (dataSanKhan?.x ?? 0));
+  const tablesRight = tables.filter(t => t.left > (dataSanKhan?.x ?? 0));
+  
+  let minLeft = Math.min(...tablesLeft.map(t => t.left)) ?? 0;
+  if (!isFinite(minLeft)) {
+    minLeft = 0;
+  }
+  
+  let maxRight = Math.max(...tablesRight.map(t => t.left)) ?? 0;
+  if (!isFinite(maxRight)) {
+    maxRight = 0;
+  }
+  
+  // Tìm top lớn nhất (bàn thấp nhất) ở bên trái và phải
+  let maxTopLeft = Math.max(...tablesLeft.map(t => t.top)) ?? 0;
+  if (!isFinite(maxTopLeft)) {
+    maxTopLeft = 0;
+  }
+  
+  let maxTopRight = Math.max(...tablesRight.map(t => t.top)) ?? 0;
+  if (!isFinite(maxTopRight)) {
+    maxTopRight = 0;
+  }
+  
   for (let i = 0; i < seatsInThisRow; i++) {
     const currentTableCount = tables.length + newTables.length + 1;
     const maxTableLimit = maxTable;
     
     if(currentTableCount > maxTableLimit){
       setIsTableLimitModalOpen(true);
-      break; // Dừng vòng lặp
+      break;
     }
-    
     
     const padLeftPx = (dataSanKhan?.x ?? 0) - (type === 'tron' ? 180 : type === 'vuong' ? 240 : 260);
     const padRightPx = (dataSanKhan?.x ?? 0) + (type === 'tron' ? 280 : type === 'vuong' ? 340 : 360);
     const padTopPx = (dataSanKhan?.y ?? 0) + (type === 'tron' ? 53 : type === 'vuong' ? 60 : 53);
 
-    // Tọa độ bàn bắt đầu (đã ở không gian local)
-    let left = minLeft == 0 ? padLeftPx :  minLeft ;
+    // Tọa độ bàn bắt đầu
+    let left = minLeft == 0 ? padLeftPx : padLeftPx;
     if(position === 'right'){
-      left =  minRight == 0 ? padRightPx :   minRight ;
-      console.log(left)
+      left = maxRight == 0 ? padRightPx : padRightPx;
     }
+    
+    // Tính top: nếu đã có bàn thì tiếp tục từ bàn cuối + khoảng cách
     let top = padTopPx + 70;
+    if(position === 'left' && maxTopLeft > 0){
+      top = maxTopLeft + (type === 'tron' ? 225 : type === 'vuong' ? 230 : 110);
+    } else if(position === 'right' && maxTopRight > 0){
+      top = maxTopRight + (type === 'tron' ? 225 : type === 'vuong' ? 230 : 110);
+    }
 
     const containerWidth = (dataSanKhan?.x ?? 0) + (type === 'tron' ? 50 : type === 'vuong' ? -10 : 30);
-    const containerWidthd = containerWidth;
     const rowOffset = (r - 1) * (type === 'tron' ? 225 : type === 'vuong' ? 230 : 110);
     const rowOffsetD = (r - 1) * (type === 'tron' ? 225 : type === 'vuong' ? 310 : 230);
+    
     if (layout === 'ngang') {
       top += rowOffset;
       if (position === 'left') {
-        left -= i * (type === 'tron' ? 225 : type === 'vuong' ? 310 : 230) ;
+        left -= i * (type === 'tron' ? 225 : type === 'vuong' ? 310 : 230);
       } else if (position === 'right') {
         left = containerWidth + (i + 1) * (type === 'tron' ? 225 : type === 'vuong' ? 310 : 230);
       }
     } else if (layout === 'doc') {
-      top += i * (type === 'tron' ? 225 : type === 'vuong' ? 230 : 110);
+      // Với layout dọc: bàn xếp theo chiều dọc (top tăng dần)
+      top += (i * (type === 'tron' ? 225 : type === 'vuong' ? 230 : 110));
 
       if (position === 'left') {
-        left -= (rowOffsetD + (minLeft  == 0 ? 0 : (type === 'tron' ? 225 : type === 'vuong' ? 310 : 230)));
+        left -= rowOffsetD;
       } else if (position === 'right') {
-        left += (rowOffsetD + (minRight  == 0 ? 0 : (type === 'tron' ? 225 : type === 'vuong' ? 310 : 230)));
+        left += rowOffsetD;
       }
     }
+    
     const table = createTable(1, top, left, type, layout);
-      if (table !== null) {  // Chỉ push khi không null
-        newTables.push(table);
-      }
+    if (table !== null) {
+      newTables.push(table);
+    }
   }
 }
-  setTables((prev) => [...prev, ...newTables]);
-  setNextTableNumber((prev) => prev + newTables.length);
+
+setTables((prev) => [...prev, ...newTables]);
+setNextTableNumber((prev) => prev + newTables.length);
 };
   const handleResize = (index: number, newTable: UnifiedTableData) => {
     setTables((prev) => {
@@ -1811,47 +1834,57 @@ if (dataSanKhan) {
   if (type === "right") {
     const containerWidth = (dataSanKhan?.x ?? 0) + (index === 1 ? 50 : index === 2 ? -10 : 30);
     const tablesRight = tables.filter(t => t.left > dataSanKhan.x);
-    const lastTable = tablesRight[tablesRight.length - 1]; 
+    
+    // Sửa: Tìm bàn có top lớn nhất (thấp nhất), nếu bằng nhau thì lấy left lớn nhất (xa nhất)
+    const lastTable = tablesRight.length > 0 
+      ? tablesRight.reduce((prev, curr) => {
+          if (curr.top > prev.top) return curr;
+          if (curr.top === prev.top && curr.left > prev.left) return curr;
+          return prev;
+        })
+      : null;
     
     if (!lastTable) {
       leftTable = containerWidth + (index === 1 ? 225 : index === 2 ? 310 : 230);
       topTable = (dataSanKhan?.y ?? 0) + (index === 1 ? 53 : index === 2 ? 60 : 53) + 70;
     } else {
-      const minLeft = Math.min(...tablesRight.map(t => t.left));
-      const firstColumnTables = tablesRight.filter(t => Math.abs(t.left - minLeft) < 1);
-      const uniqueTopValues = [...new Set(firstColumnTables.map(t => t.top))];
-      const actualMaxTopGroups = uniqueTopValues.length;
+      const minTop = Math.min(...tablesRight.map(t => t.top));
+      const firstRowTables = tablesRight.filter(t => Math.abs(t.top - minTop) < 1);
+      const uniqueLeftValues = [...new Set(firstRowTables.map(t => t.left))];
+      const actualMaxLeftGroups = uniqueLeftValues.length;
 
-      const uniqueLeftValues = [...new Set(tablesRight.map(t => t.left))];
-      const maxLeftGroups = uniqueLeftValues.length;
+      const uniqueTopValues = [...new Set(tablesRight.map(t => t.top))];
+      const maxTopGroups = uniqueTopValues.length;
 
-      const maxTopGroups = (maxLeftGroups > 1 && actualMaxTopGroups < isNumberDay) 
-        ? isNumberDay 
-        : actualMaxTopGroups;
+      const maxLeftGroups = (maxTopGroups > 1 && actualMaxLeftGroups < 4) 
+        ? actualMaxLeftGroups 
+        : actualMaxLeftGroups;
 
-      const sameColumnTables = tablesRight.filter(
-        t => Math.abs(t.left - lastTable.left) < 1
+      const sameRowTables = tablesRight.filter(
+        t => Math.abs(t.top - lastTable.top) < 1
       );
       
-      if (maxLeftGroups > 1) {
-        if (sameColumnTables.length >= maxTopGroups) {
-          // Sang cột mới
-          const maxLeft = lastTable?.left ?? 0;
-          leftTable = maxLeft + (index === 1 ? 225 : index === 2 ? 310 : 230);
-          topTable = (dataSanKhan?.y ?? 0) + (index === 1 ? 53 : index === 2 ? 60 : 53) + 70;
+      if (maxTopGroups > 1) {
+        if (sameRowTables.length >= maxLeftGroups) {
+          // Rớt xuống hàng mới
+          const maxTop = lastTable?.top ?? 0;
+          topTable = maxTop + (index === 1 ? 225 : index === 2 ? 230 : 110);
+          leftTable = containerWidth + (index === 1 ? 225 : index === 2 ? 310 : 230);
         } else {
-          leftTable = lastTable.left;
-          topTable = lastTable.top + (index === 1 ? 225 : index === 2 ? 230 : 110);
+          // Thêm vào cùng hàng, bên phải bàn cuối
+          topTable = lastTable.top;
+          leftTable = lastTable.left + (index === 1 ? 225 : index === 2 ? 310 : 230);
         }
       } else {
-        if (maxTopGroups >= isNumberDay) {
-          // Sang cột mới
-          const maxLeft = lastTable?.left ?? 0;
-          leftTable = maxLeft + (index === 1 ? 225 : index === 2 ? 310 : 230);
-          topTable = (dataSanKhan?.y ?? 0) + (index === 1 ? 53 : index === 2 ? 60 : 53) + 70;
+        if (maxLeftGroups >= 4) {
+          // Rớt xuống hàng mới
+          const maxTop = lastTable?.top ?? 0;
+          topTable = maxTop + (index === 1 ? 225 : index === 2 ? 230 : 110);
+          leftTable = containerWidth + (index === 1 ? 225 : index === 2 ? 310 : 230);
         } else {
-          leftTable = lastTable.left;
-          topTable = lastTable.top + (index === 1 ? 225 : index === 2 ? 230 : 110);
+          // Thêm vào cùng hàng, bên phải bàn cuối
+          topTable = lastTable.top;
+          leftTable = lastTable.left + (index === 1 ? 225 : index === 2 ? 310 : 230);
         }
       }
     }
@@ -1860,50 +1893,61 @@ if (dataSanKhan) {
     // type === "left"
     const containerWidth = (dataSanKhan?.x ?? 0) - (index === 1 ? 180 : index === 2 ? 240 : 260);
     const tablesLeft = tables.filter(t => t.left < dataSanKhan.x);
-    const lastTable = tablesLeft[tablesLeft.length - 1]; 
+    
+    // Sửa: Tìm bàn có top lớn nhất (thấp nhất), nếu bằng nhau thì lấy left nhỏ nhất (xa nhất bên trái)
+    const lastTable = tablesLeft.length > 0
+      ? tablesLeft.reduce((prev, curr) => {
+          if (curr.top > prev.top) return curr;
+          if (curr.top === prev.top && curr.left < prev.left) return curr;
+          return prev;
+        })
+      : null;
     
     if (!lastTable) {
       leftTable = containerWidth;
       topTable = (dataSanKhan?.y ?? 0) + (index === 1 ? 53 : index === 2 ? 60 : 53) + 70;
     } else {
-      const maxLeft = Math.max(...tablesLeft.map(t => t.left));
-      const firstColumnTables = tablesLeft.filter(t => Math.abs(t.left - maxLeft) < 1);
-      const uniqueTopValues = [...new Set(firstColumnTables.map(t => t.top))];
-      const actualMaxTopGroups = uniqueTopValues.length;
+      const minTop = Math.min(...tablesLeft.map(t => t.top));
+      const firstRowTables = tablesLeft.filter(t => Math.abs(t.top - minTop) < 1);
+      const uniqueLeftValues = [...new Set(firstRowTables.map(t => t.left))];
+      const actualMaxLeftGroups = uniqueLeftValues.length;
       
-      const uniqueLeftValues = [...new Set(tablesLeft.map(t => t.left))];
-      const maxLeftGroups = uniqueLeftValues.length;
+      const uniqueTopValues = [...new Set(tablesLeft.map(t => t.top))];
+      const maxTopGroups = uniqueTopValues.length;
       
-      const maxTopGroups = (maxLeftGroups > 1 && actualMaxTopGroups < isNumberDay) 
-        ? isNumberDay 
-        : actualMaxTopGroups;
+      const maxLeftGroups = (maxTopGroups > 1 && actualMaxLeftGroups < 4) 
+        ? actualMaxLeftGroups
+        : actualMaxLeftGroups;
 
-      const sameColumnTables = tablesLeft.filter(
-        t => Math.abs(t.left - lastTable.left) < 1
+      const sameRowTables = tablesLeft.filter(
+        t => Math.abs(t.top - lastTable.top) < 1
       );
      
-      if (maxLeftGroups > 1) {
-        if (sameColumnTables.length >= maxTopGroups) {
-          const minLeft = lastTable?.left ?? 0;
-          leftTable = minLeft - (index === 1 ? 225 : index === 2 ? 310 : 230);
-          topTable = (dataSanKhan?.y ?? 0) + (index === 1 ? 53 : index === 2 ? 60 : 53) + 70;
+      if (maxTopGroups > 1) {
+        if (sameRowTables.length >= maxLeftGroups) {
+          const maxTop = lastTable?.top ?? 0;
+          topTable = maxTop + (index === 1 ? 225 : index === 2 ? 230 : 110);
+          leftTable = containerWidth;
         } else {
-          leftTable = lastTable.left;
-          topTable = lastTable.top + (index === 1 ? 225 : index === 2 ? 230 : 110);
+          // Thêm vào cùng hàng, bên trái bàn cuối
+          topTable = lastTable.top;
+          leftTable = lastTable.left - (index === 1 ? 225 : index === 2 ? 310 : 230);
         }
       } else {
-        if (maxTopGroups >= isNumberDay) {
-          const minLeft = lastTable?.left ?? 0;
-          leftTable = minLeft - (index === 1 ? 225 : index === 2 ? 310 : 230);
-          topTable = (dataSanKhan?.y ?? 0) + (index === 1 ? 53 : index === 2 ? 60 : 53) + 70;
+        if (maxLeftGroups >= 4) {
+          const maxTop = lastTable?.top ?? 0;
+          topTable = maxTop + (index === 1 ? 225 : index === 2 ? 230 : 110);
+          leftTable = containerWidth;
         } else {
-          leftTable = lastTable.left;
-          topTable = lastTable.top + (index === 1 ? 225 : index === 2 ? 230 : 110);
+          // Thêm vào cùng hàng, bên trái bàn cuối
+          topTable = lastTable.top;
+          leftTable = lastTable.left - (index === 1 ? 225 : index === 2 ? 310 : 230);
         }
       }
     }
   }
 }
+ 
   let newTable: UnifiedTableData;
    const maxTableNumber =
         tables.length > 0
@@ -2378,8 +2422,6 @@ useEffect(() => {
                     data={isDataParentGroup}
                     isSide={side}
                     setSide={(side:string) => setSide(side)}
-                    numberDay={isNumberDay}
-                    setNumberDay={(numberDay:number) => setNumberDay(numberDay)}
                   />
                 )}
               <button
