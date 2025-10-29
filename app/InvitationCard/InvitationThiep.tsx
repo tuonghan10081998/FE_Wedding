@@ -43,16 +43,16 @@ const InvitationCard: React.FC = () => {
       useEffect(() => {
         switch (isThiep) {
           case "1":
-            setViews([<SaveTheDateCard1 type={"SaveTheDateCard1"}/>, <WeddingInvitationCard1  type={"WeddingInvitationCard1"}/>, <WeddingInvitation1 type={"WeddingInvitationCard1"} />]);
+            setViews([<SaveTheDateCard1 type={"SaveTheDateCard1"}/>, <WeddingInvitationCard1  type={"WeddingInvitationCard1"}/>, <WeddingInvitation1 type={"WeddingInvitation1"} />]);
             break;
           case "2":
-            setViews([<SaveTheDateCard2 type={"SaveTheDateCard2"} />, <WeddingInvitationCard2 type={"WeddingInvitationCard2"}/>, <WeddingInvitation2 type={"WeddingInvitationCard2"}/>]);
+            setViews([<SaveTheDateCard2 type={"SaveTheDateCard2"} />, <WeddingInvitationCard2 type={"WeddingInvitationCard2"}/>, <WeddingInvitation2 type={"WeddingInvitation2"}/>]);
             break;
           case "3":
-            setViews([<SaveTheDateCard3 type={"SaveTheDateCard3"} />, <WeddingInvitationCard3 type={"WeddingInvitationCard3"}/>, <WeddingInvitation3 type={"WeddingInvitationCard3"}/>]);
+            setViews([<SaveTheDateCard3 type={"SaveTheDateCard3"} />, <WeddingInvitationCard3 type={"WeddingInvitationCard3"}/>, <WeddingInvitation3 type={"WeddingInvitation3"}/>]);
             break;
           case "4":
-            setViews([<SaveTheDateCard4 type={"SaveTheDateCard4"} />, <WeddingInvitationCard4 type={"WeddingInvitationCard4"}/>, <WeddingInvitation4 type={"WeddingInvitationCard4"}/>]);
+            setViews([<SaveTheDateCard4 type={"SaveTheDateCard4"} />, <WeddingInvitationCard4 type={"WeddingInvitationCard4"}/>, <WeddingInvitation4 type={"WeddingInvitation4"}/>]);
             break;
           default:
             setViews([]);
