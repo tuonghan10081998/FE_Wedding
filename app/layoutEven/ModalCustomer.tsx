@@ -24,6 +24,7 @@ interface ModalCustomerProps {
   isView: boolean
   onSetLimit:() => void
   maxGuest:number
+  onClickFile:() => void
 }
 
 interface OptionType {
@@ -35,7 +36,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
   onResetGhe, onClose, table,
   onAddSeat, onClickSeat, onDelete, handleDataImported,
   data, setParentGroup, setGuest, selectedValue, onSelectedChange,
-  isView,onSetLimit,maxGuest
+  isView,onSetLimit,maxGuest,onClickFile
 }) => {
   const filterOptions: OptionType[] = [
     ...(data?.map((card) => ({
@@ -231,8 +232,9 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header cố định */}
-        <div className="sticky top-0 z-10 bg-white border-b p-4 flex justify-between items-center">
-          <h2 className="text-xl font-bold">Danh sách khách mời</h2>
+        <div className="sticky top-0 z-10 bg-white border-b p-4 flex justify-between items-center flex-col">
+          <div className='flex justify-between items-center w-full'>
+            <h2 className="text-xl font-bold">Danh sách khách mời</h2>
           <div className="flex gap-4">
             <div className="flex gap-4 items-center">
               <div className="">Chọn bên <span className="text-red-500">(*)</span></div>
@@ -255,7 +257,23 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
               &times;
             </button>
           </div>
+          </div>
+         <div className="flex flex-wrap items-center justify-start gap-2 mt-4 bg-gray-50 px-5 py-3 rounded-xl shadow-sm border border-gray-200 w-full">
+           <div className='flex flex-col gap-2 flex-wrap'>
+                 <button 
+                className="w-full cursor-pointer flex items-center px-4 py-3 border border-[#cccccc] rounded-[7px] text-gray-700 hover:bg-gray-50 focus:bg-gray-100 focus:outline-none transition-colors duration-200 text-left text-sm group"
+                onClick={() => {
+                 onClickFile()
+                }}
+              >
+                <i className="fa-solid fa-file-lines text-[16px] mr-3 text-blue-500 group-hover:text-blue-600"></i>
+                <span className="font-medium">File mẫu import khách</span>
+              </button>
+      </div>
+
+     
         </div>
+       </div>
 
         {/* Body có thể cuộn */}
         <div className="overflow-y-auto flex-1" onWheel={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>

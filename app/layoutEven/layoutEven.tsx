@@ -215,7 +215,7 @@ export default function TablePlanner() {
   const [isExportlimit, setExportlimit] = useState(false);
 
   const [isModalNotiGuest,setModalNotiGuest] = useState<boolean>(false)
-
+const [isCheckDeleteSinger,setCheckDeleteSinger] = useState<boolean>(false)
   const [ismessNotiGuest,setmessNotiGuest] = useState<string>("")
     const [isNumberDay,setNumberDay] = useState<number>(3)
   const handleUpgrade = () => {
@@ -1967,24 +1967,32 @@ if (dataSanKhan) {
   setTables((prev) => [...prev, newTable]);
   setNextTableNumber((prev) => prev + 1);
 };
+const handleDeleteSingle = (tableNumber: number) => {
+  // 🔹 Kiểm tra khách trong bàn
+  const guestsInTables = guests.filter(
+    (g) => Number(g.tableID) === tableNumber
+  );
+ if (guestsInTables.length > 0) {
+        const tablesWithGuests = [
+          ...new Set(guestsInTables.map((g) => g.tableName || g.tableID)),
+        ];
+     setmessNotiGuest(tablesWithGuests.join(", "))
+     setModalNotiGuest(true)
+  }else{
+    handleDeleteTable(false)
+  }
+  
+};
 const handleDelete = (e:React.MouseEvent) => {
-
     if (itemDeleteID === 1) {
-      const deletingTableIDs = tables
-        .filter((m) => m.tableNumber === itemDelete.tableNumber)
-        .map((m) => m.tableNumber); // 👈 lấy mảng các số tableNumber
-
-      const guestsInTables = guests.filter(
-        (g) => g.tableID && deletingTableIDs.includes(Number(g.tableID))
-      );
-
-      setTables(prev => prev.filter(i => i.tableNumber !== itemDelete.tableNumber));
-
+      setCheckDeleteSinger(false)
+      handleDeleteSingle(itemDelete.tableNumber)
     } else if (itemDeleteID === 4) {
       setLayoutItems(prev => prev.filter(i => i.id !== itemDelete.id));
     }
+
      setGuests(prev =>
-    prev.map(g => (g.seatID && g.seatID.includes(`${itemDelete.tableNumber}`) ? { ...g, seatId: null } : g))
+        prev.map(g => (g.seatID && g.seatID.includes(`${itemDelete.tableNumber}`) ? { ...g, seatId: null } : g))
   );
 };
 const handleDeleteList = (e: React.MouseEvent) => {
@@ -1992,7 +2000,7 @@ const handleDeleteList = (e: React.MouseEvent) => {
     toast.warn("⚠️ Vui lòng chọn bàn cần xoá!");
     return;
   }
-
+  setCheckDeleteSinger(true)
   // 🔹 Danh sách bàn sẽ bị xoá
   const deletingTableIDs = multiSelectedItems.map((m) => m.tableNumber);
 
@@ -2012,46 +2020,28 @@ const handleDeleteList = (e: React.MouseEvent) => {
     handleDeleteTable(false)
   }
 }
-// const handleDeleteSingle = (itemDelete:number) => {
-//   // 🔹 Lấy danh sách tableNumber cần xoá (ở đây chỉ 1)
-//   const deletingTableIDs = itemDelete;
 
-//   // 🔹 Kiểm tra khách trong bàn
-//   const guestsInTables = guests.filter(
-//     (g) => g.tableID && deletingTableIDs.includes(Number(g.tableID))
-//   );
-
-//   // 🔹 Nếu có khách → reset khách ra khỏi bàn đó
-//   if (guestsInTables.length > 0) {
-//     setGuests((prevGuests) =>
-//       prevGuests.map((g) =>
-//         deletingTableIDs.includes(Number(g.tableID))
-//           ? {
-//               ...g,
-//               seatID: "",
-//               tableID: "",
-//               tableName: "",
-//               seatName: "",
-//             }
-//           : g
-//       )
-//     );
-//   }
-
-//   // ✅ Xoá bàn khỏi danh sách
-//   setTables((prev) =>
-//     prev.filter((t) => !deletingTableIDs.includes(t.tableNumber))
-//   );
-
-//   // ✅ Xoá khỏi layout nếu có
-//   setLayoutItems((prev) =>
-//     prev.filter((t) => t.tableNumber !== itemDelete.tableNumber)
-//   );
-
-//   toast.success("🗑️ Đã xoá bàn thành công!");
-// };
 
 const handleDeleteTable =(checkGuest:boolean = true) => {
+  if(!isCheckDeleteSinger){
+    setGuests((prevGuests) =>
+      prevGuests.map((g) =>
+        Number(g.tableID) === itemDelete.tableNumber
+          ? {
+              ...g,
+              seatID: "",
+              tableID: "",
+              tableName: "",
+              seatName: "",
+            }
+          : g
+      )
+    );
+  setTables(prev => prev.filter(i => i.tableNumber !== itemDelete.tableNumber));
+
+    toast.success("🗑️ Đã xoá bàn thành công!");
+    return;
+  }
   // 🔹 Danh sách bàn sẽ bị xoá
   const deletingTableIDs = multiSelectedItems.map((m) => m.tableNumber);
 
@@ -2247,7 +2237,7 @@ useEffect(() => {
             <div className="absolute right-[0px] top-[35px] bg-white border border-gray-200 rounded-lg shadow-xl min-w-[180px] py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
               {/* Xuất file mẫu */}
               <button 
-                className="w-full cursor-pointer flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 focus:bg-gray-100 focus:outline-none transition-colors duration-200 text-left text-sm group"
+                className="hidden w-full cursor-pointer flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 focus:bg-gray-100 focus:outline-none transition-colors duration-200 text-left text-sm group"
                 onClick={() => {
                   // Logic xuất file mẫu
                   handleEmportTemplates()
@@ -2538,6 +2528,7 @@ useEffect(() => {
                     selectedValue={isParentGroup}
                     onSelectedChange={(v) => setParentGroup(v)}
                     isView={isViewIconUser}
+                    onClickFile={() => handleEmportTemplates()}
                    />
                 )}
               <button

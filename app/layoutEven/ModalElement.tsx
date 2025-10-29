@@ -119,7 +119,7 @@ const ModalElement: React.FC<ModalEllement> = ({ onClose,
     </div>
          
         {/* Body có thể cuộn */}
-        <div className="overflow-y-auto h-[calc(100vh-180px)] p-4"
+        <div className="overflow-y-auto h-[calc(100vh-280px)] p-4"
         onWheel={(e) => e.stopPropagation()} onMouseDown ={(e) => e.stopPropagation()}>
          <div className="">
           <div className="icon-container">
