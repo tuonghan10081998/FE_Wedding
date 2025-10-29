@@ -95,6 +95,7 @@ const WeddingCardCreate: React.FC<WeddingCardCreateProps> = ({
     document.removeEventListener('mousedown', handleClickOutside);
   };
 }, [isOpen]);
+console.log(images)
 return (
     <div className="w-full max-w-sm rounded-2xl shadow-lg bg-white p-4 relative">
       <div className="absolute right-2 top-1 text-red-500 ">

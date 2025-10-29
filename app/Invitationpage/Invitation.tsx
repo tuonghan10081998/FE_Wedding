@@ -281,7 +281,7 @@ const handleCreateCard = (checkForm: number,invatition:string) => {
               title={inva.name || `Thiệp đã tạo ${index + 1}`}
               images={card?.views ?? []}
               layoutData={layoutData}
-               userID={isUserID ??""}
+              userID={isUserID ??""}
               onPreview={() => {
                 navigate(
                   `/layout/InvitationCard?thiep=${layoutData?.checkForm}&xt=0&id=${inva.invitationID}`
