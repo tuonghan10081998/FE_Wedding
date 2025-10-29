@@ -250,11 +250,9 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
      useEffect(() => {
         if(!dataProject) return
         if(!resultPayment && !storedGuests){
-            console.log(1)
             setRsvpGuests(dataProject.partnerCount + 1)
             setRsvpMessage(dataProject.message)
         }else{
-            console.log(2)
              setRsvpGuests(storedGuests)
              setRsvpMessage(storedMessage)
         }
@@ -666,6 +664,7 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
                                             const view = View;
                                             if (React.isValidElement(view)) {
                                                 const typeName = (view.props as any).type
+                                                 console.log(typeName)
                                                 if (typeName === "SaveTheDateCard1" || typeName === "SaveTheDateCard2" || typeName === "SaveTheDateCard3" || typeName === "SaveTheDateCard4") {
                                                     return React.cloneElement(view as React.ReactElement<{
                                                         groomName?: string;
@@ -676,6 +675,7 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
                                                     }>,
                                                     { groomName, brideName, nameCutomer: guest });
                                                 }
+                                               
                                                 else if (typeName === "WeddingInvitationCard1" || typeName === "WeddingInvitationCard2" || typeName === "WeddingInvitationCard3" || typeName === "WeddingInvitationCard4") {
                                                     return React.cloneElement(view as React.ReactElement<{
                                                         width?: number;
