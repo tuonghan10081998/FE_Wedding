@@ -43,7 +43,7 @@ const InvitationCard: React.FC = () => {
       useEffect(() => {
         switch (isThiep) {
           case "1":
-            setViews([<SaveTheDateCard1 type={"SaveTheDateCard1"}/>, <WeddingInvitationCard1  type={"SaveTheDateCard1"}/>, <WeddingInvitation1 type={"SaveTheDateCard1"} />]);
+            setViews([<SaveTheDateCard1 type={"SaveTheDateCard1"}/>, <WeddingInvitationCard1  type={"WeddingInvitationCard1"}/>, <WeddingInvitation1 type={"WeddingInvitationCard1"} />]);
             break;
           case "2":
             setViews([<SaveTheDateCard2 type={"SaveTheDateCard2"} />, <WeddingInvitationCard2 type={"WeddingInvitationCard2"}/>, <WeddingInvitation2 type={"WeddingInvitationCard2"}/>]);
