@@ -48,7 +48,7 @@ const WeddingCardCreate: React.FC<WeddingCardCreateProps> = ({
       const [checkNhaHang,setCheckNhaHang] = useState<boolean>(true)
       const[projectid,setProject] = useState<string>(""); 
       const [isOpen, setIsOpen] = useState(false);
-  console.log(layoutData)
+  
   useEffect(() => {
     if(!layoutData) return
      setProject(layoutData.projectID)

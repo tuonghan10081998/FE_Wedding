@@ -1970,7 +1970,16 @@ if (dataSanKhan) {
 const handleDelete = (e:React.MouseEvent) => {
 
     if (itemDeleteID === 1) {
+      const deletingTableIDs = tables
+        .filter((m) => m.tableNumber === itemDelete.tableNumber)
+        .map((m) => m.tableNumber); // 👈 lấy mảng các số tableNumber
+
+      const guestsInTables = guests.filter(
+        (g) => g.tableID && deletingTableIDs.includes(Number(g.tableID))
+      );
+
       setTables(prev => prev.filter(i => i.tableNumber !== itemDelete.tableNumber));
+
     } else if (itemDeleteID === 4) {
       setLayoutItems(prev => prev.filter(i => i.id !== itemDelete.id));
     }
@@ -1997,18 +2006,51 @@ const handleDeleteList = (e: React.MouseEvent) => {
         const tablesWithGuests = [
           ...new Set(guestsInTables.map((g) => g.tableName || g.tableID)),
         ];
-       
-
      setmessNotiGuest(tablesWithGuests.join(", "))
-      setModalNotiGuest(true)
+    setModalNotiGuest(true)
   }else{
     handleDeleteTable(false)
   }
-
-
- 
-
 }
+// const handleDeleteSingle = (itemDelete:number) => {
+//   // 🔹 Lấy danh sách tableNumber cần xoá (ở đây chỉ 1)
+//   const deletingTableIDs = itemDelete;
+
+//   // 🔹 Kiểm tra khách trong bàn
+//   const guestsInTables = guests.filter(
+//     (g) => g.tableID && deletingTableIDs.includes(Number(g.tableID))
+//   );
+
+//   // 🔹 Nếu có khách → reset khách ra khỏi bàn đó
+//   if (guestsInTables.length > 0) {
+//     setGuests((prevGuests) =>
+//       prevGuests.map((g) =>
+//         deletingTableIDs.includes(Number(g.tableID))
+//           ? {
+//               ...g,
+//               seatID: "",
+//               tableID: "",
+//               tableName: "",
+//               seatName: "",
+//             }
+//           : g
+//       )
+//     );
+//   }
+
+//   // ✅ Xoá bàn khỏi danh sách
+//   setTables((prev) =>
+//     prev.filter((t) => !deletingTableIDs.includes(t.tableNumber))
+//   );
+
+//   // ✅ Xoá khỏi layout nếu có
+//   setLayoutItems((prev) =>
+//     prev.filter((t) => t.tableNumber !== itemDelete.tableNumber)
+//   );
+
+//   toast.success("🗑️ Đã xoá bàn thành công!");
+// };
+
 const handleDeleteTable =(checkGuest:boolean = true) => {
   // 🔹 Danh sách bàn sẽ bị xoá
   const deletingTableIDs = multiSelectedItems.map((m) => m.tableNumber);
