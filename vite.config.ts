@@ -50,7 +50,7 @@ export default defineConfig({
     minify: 'terser',
     terserOptions: {
       compress: {
-         drop_console: true, // Xóa console.log
+        // drop_console: true, // Xóa console.log
         drop_debugger: true,
         keep_classnames: true, // ✅ Giữ tên class
        keep_fnames: true,     // ✅ Giữ tên function

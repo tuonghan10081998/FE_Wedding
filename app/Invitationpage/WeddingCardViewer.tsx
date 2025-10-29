@@ -310,8 +310,8 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
             {(() => {
                 const view = views[currentIndex];
                 if (React.isValidElement(view)) {
-                  const typeName = (view.type as any).name;
-
+                  const typeName = (view.props as any).type
+                  console.log(typeName)
                   if (typeName === "SaveTheDateCard1" || typeName === "SaveTheDateCard2" || typeName === "SaveTheDateCard3" || typeName === "SaveTheDateCard4") {
                     return React.cloneElement(view as React.ReactElement<{
                       groomName?: string;
