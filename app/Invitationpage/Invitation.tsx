@@ -144,8 +144,8 @@ const Invitation = () => {
       ],
       views: [
         <SaveTheDateCard4 width={600} height={650} type={"SaveTheDateCard4"} />,
-        <WeddingInvitationCard4 width={600} height={650} />,
-        <WeddingInvitation4 width={600} height={650} />,
+        <WeddingInvitationCard4 width={600} height={650} type={"WeddingInvitationCard4"} />,
+        <WeddingInvitation4 width={600} height={650}  type={"WeddingInvitation4"} />,
       
       ],
     },
@@ -159,8 +159,8 @@ const Invitation = () => {
       ],
       views: [
         <SaveTheDateCard2 width={600} height={650} type={"SaveTheDateCard2"} />,
-        <WeddingInvitationCard2 width={600} height={650} />,
-        <WeddingInvitation2 width={600} height={650} />,
+        <WeddingInvitationCard2 width={600} height={650} type={"WeddingInvitationCard2"}/>,
+        <WeddingInvitation2 width={600} height={650} type={"WeddingInvitation2"}/>,
       
       ],
     },
@@ -173,8 +173,8 @@ const Invitation = () => {
       ],
       views: [
         <SaveTheDateCard3 width={600} height={650} type={"SaveTheDateCard3"}/>,
-        <WeddingInvitationCard3 width={600} height={650} />,
-        <WeddingInvitation3 width={600} height={650} />,
+        <WeddingInvitationCard3 width={600} height={650} type={"SaveTheDateCard3"} />,
+        <WeddingInvitation3 width={600} height={650} type={"WeddingInvitation3"} />,
       
       ],
     },

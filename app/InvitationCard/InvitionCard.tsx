@@ -665,8 +665,7 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
                                         {(() => {
                                             const view = View;
                                             if (React.isValidElement(view)) {
-                                                const typeName = (view.type as any).name;
-
+                                                const typeName = (view.props as any).type
                                                 if (typeName === "SaveTheDateCard1" || typeName === "SaveTheDateCard2" || typeName === "SaveTheDateCard3" || typeName === "SaveTheDateCard4") {
                                                     return React.cloneElement(view as React.ReactElement<{
                                                         groomName?: string;
