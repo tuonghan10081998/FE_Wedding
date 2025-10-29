@@ -291,7 +291,7 @@ if (!isOpen) return null;
             <button
              onClick={onComBack}
              className="flex items-center space-x-2 px-3 py-1 bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-pink-300 transform hover:rotate-1">
-              Quay lại
+              Hoàn tác
             </button>
         </div>
          <div className="flex ">

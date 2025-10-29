@@ -50,6 +50,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
   const [isResetModal, setResetModal] = useState<boolean>(false);
   const [editingGuest, setEditingGuest] = useState<Guest | undefined>(undefined);
   const [listData, setListData] = useState<Guest[]>([])
+  const [expandedGroups, setExpandedGroups] = useState<{ [key: string]: boolean }>({});
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -79,6 +80,16 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
       return matchName && matchPhone && matchGender && matchNhom && matchBan;
     });
     setListData(filteredTable);
+    
+    // Mặc định expand tất cả các nhóm khi load dữ liệu
+    const groups: { [key: string]: boolean } = {};
+    filteredTable.forEach((guest) => {
+      const groupName = guest.groupInfo?.groupName || 'Chưa phân nhóm';
+      if (!(groupName in groups)) {
+        groups[groupName] = true; // Mặc định mở tất cả
+      }
+    });
+    setExpandedGroups(groups);
   }, [table, filters, selectedValue]);
 
   const handleSaveGuest = (guest: Guest) => {
@@ -86,24 +97,128 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
       ? Math.max(...table.map(t => t.sort ?? 0)) + 1
       : 1;
     const currentGuestCount = table.length + 1;
-     const maxGuestLimit = maxGuest; // Giới hạn của gói (bạn có thể thay đổi)
-     // Nếu đã đầy hoàn toàn
+     const maxGuestLimit = maxGuest;
     if (currentGuestCount >  maxGuestLimit) {
       onSetLimit();
-      return []; // Không thêm khách nào
+      return [];
     }
     const newGuest = { ...guest, sort: maxTableNumber };
     const newTable = [...table, newGuest];
     setGuest(newTable);
   };
 
-  // Hàm xử lý click vào label import
   const handleImportClick = (e: React.MouseEvent) => {
     if (!selectedValue || selectedValue === "" || selectedValue === "0") {
-      e.preventDefault(); // Ngăn không cho mở dialog chọn file
+      e.preventDefault();
       toast.error("Vui lòng chọn bên trước khi import file!");
       return false;
     }
+  };
+
+  // Toggle expand/collapse nhóm
+  const toggleGroup = (groupName: string) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [groupName]: !prev[groupName]
+    }));
+  };
+
+  // Nhóm dữ liệu theo mã nhóm và sắp xếp theo min sort
+  const groupedByGroupName = () => {
+    const grouped: { [key: string]: Guest[] } = {};
+    
+    listData.forEach((guest) => {
+      const groupName = guest.groupInfo?.groupName || 'Chưa phân nhóm';
+      if (!grouped[groupName]) {
+        grouped[groupName] = [];
+      }
+      grouped[groupName].push(guest);
+    });
+    
+    // Sắp xếp các nhóm theo min sort của từng nhóm
+    return Object.entries(grouped).sort(([aName, aGuests], [bName, bGuests]) => {
+      const minSortA = Math.min(...aGuests.map(g => Number(g.sort) || 0));
+      const minSortB = Math.min(...bGuests.map(g => Number(g.sort) || 0));
+      return minSortA - minSortB;
+    });
+  };
+
+  const renderTableRows = () => {
+    const groupedData = groupedByGroupName();
+    let globalIndex = 0;
+    
+    return groupedData.map(([groupName, guests]) => {
+      const isExpanded = expandedGroups[groupName] ?? true;
+      
+      // Sắp xếp guests trong nhóm theo sort
+      const sortedGuests = [...guests].sort((a, b) => {
+        const sortA = Number(a.sort) || 0;
+        const sortB = Number(b.sort) || 0;
+        return sortA - sortB;
+      });
+      
+      return (
+        <React.Fragment key={groupName}>
+          {/* Header nhóm với icon expand/collapse */}
+          <tr className="bg-indigo-200 cursor-pointer hover:bg-indigo-300" onClick={() => toggleGroup(groupName)}>
+            <td colSpan={7} className="px-6 py-3 text-left font-bold text-indigo-900">
+              <div className="flex items-center gap-2">
+                <i className={`fas fa-chevron-${isExpanded ? 'down' : 'right'} transition-transform`}></i>
+                <span>Nhóm: {groupName} ({guests.length} khách)</span>
+              </div>
+            </td>
+          </tr>
+          {/* Danh sách khách trong nhóm - chỉ hiện khi expanded */}
+          {isExpanded && sortedGuests.map((guest) => {
+            globalIndex++;
+            return (
+              <tr key={guest.guestID} className="hover:bg-indigo-50">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {globalIndex}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {guest.name}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                  {guest.phone}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                  {guest.gender}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">
+                  {guest.groupInfo?.groupName}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">
+                  {guest.seatID && guest.seatName}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-center">
+                  <div className='flex gap-2 justify-center items-center'>
+                    <button
+                      className="cursor-pointer p-0 px-1 rounded-lg bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onClickSeat(guest.guestID, guest.seatID !== null);
+                      }}
+                    >
+                      <i className="fa-solid fa-plus"></i>
+                    </button>
+                    <button
+                      className="cursor-pointer p-0 px-1 rounded-lg bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(guest.guestID, guest.name)
+                      }}
+                    >
+                      <i className="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </React.Fragment>
+      );
+    });
   };
 
   return (
@@ -204,7 +319,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
                 <th className="px-6 py-2 border border-gray-300">
                   <input
                     type="text"
-                    name="nhom"
+                    name="groupName"
                     value={filters.groupName}
                     onChange={handleFilterChange}
                     className="w-full px-2 py-1 text-sm border-none focus:outline-none font-normal"
@@ -217,48 +332,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {listData?.map((guest,index) => (
-                <tr key={guest.guestID} className="hover:bg-indigo-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {index + 1}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {guest.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {guest.phone}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {guest.gender}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {guest.seatID && guest.groupInfo?.groupName}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {guest.seatID && guest.seatName}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className='flex gap-2 justify-between items-center'>
-                      <button
-                        className="cursor-pointer p-0 px-1 rounded-lg bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                        onClick={() => {
-                          onClickSeat(guest.guestID, guest.seatID !== null);
-                        }}
-                      >
-                        <i className="fa-solid fa-plus"></i>
-                      </button>
-                      <button
-                        className="cursor-pointer p-0 px-1 rounded-lg bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                        onClick={() => {
-                          onDelete(guest.guestID, guest.name)
-                        }}
-                      >
-                        <i className="fas fa-trash-alt "></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {renderTableRows()}
             </tbody>
           </table>
         </div>
