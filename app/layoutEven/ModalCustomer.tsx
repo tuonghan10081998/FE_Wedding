@@ -174,25 +174,25 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
             globalIndex++;
             return (
               <tr key={guest.guestID} className="hover:bg-indigo-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td className="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
                   {globalIndex}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td className="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
                   {guest.name}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-700">
                   {guest.phone}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-700">
                   {guest.gender}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">
+                <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-700 text-center">
                   {guest.groupInfo?.groupName}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">
+                <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-700 text-center">
                   {guest.seatID && guest.seatName}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-center">
+                <td className="px-6 py-2 whitespace-nowrap text-center">
                   <div className='flex gap-2 justify-center items-center'>
                     <button
                       className="cursor-pointer p-0 px-1 rounded-lg bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
@@ -224,18 +224,39 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
 
   return (
     <div
-      className="fixed top-27 right-0 z-20 w-[750px] h-full flex justify-end"
+      className="fixed top-[103px] right-0 z-20 w-[750px] h-full flex justify-end"
       onClick={onClose}
     >
       <div
-        className="bg-white max-h-screen shadow-lg relative h-[calc(100vh-115px)] w-full max-w-[750px] flex flex-col"
+        className="bg-white max-h-screen shadow-lg relative h-[calc(100vh-100px)] w-full max-w-[750px] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header cố định */}
-        <div className="sticky top-0 z-10 bg-white border-b p-4 flex justify-between items-center flex-col">
+        <div className="sticky top-0 z-10 bg-white border-b p-2 flex justify-between items-center flex-col">
           <div className='flex justify-between items-center w-full'>
-            <h2 className="text-xl font-bold">Danh sách khách mời</h2>
-          <div className="flex gap-4">
+           <div className='flex justify-between items-center'>
+             <h3 className="text-xl font-bold">Danh sách khách mời</h3>
+
+           </div>
+            <button
+              className="text-gray-500 hover:text-black text-2xl font-bold"
+              onClick={onClose}
+            >
+              &times;
+            </button>
+          </div>
+        
+           <div className='flex  gap-2 flex-wrap w-full justify-between items-center mt-2'>
+            <button 
+                className="w-[210px] cursor-pointer flex items-center px-4 py-3 border border-[#cccccc] rounded-[7px] text-gray-700 hover:bg-gray-50 focus:bg-gray-100 focus:outline-none transition-colors duration-200 text-left text-sm group"
+                onClick={() => {
+                 onClickFile()
+                }}
+              >
+                <i className="fa-solid fa-file-lines text-[16px] mr-3 text-blue-500 group-hover:text-blue-600"></i>
+                <span className="font-medium">File mẫu import khách</span>
+            </button>
+                  <div className="flex gap-4">
             <div className="flex gap-4 items-center">
               <div className="">Chọn bên <span className="text-red-500">(*)</span></div>
               <Select
@@ -250,26 +271,8 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
                 placeholder=""
               />
             </div>
-            <button
-              className="text-gray-500 hover:text-black text-2xl font-bold"
-              onClick={onClose}
-            >
-              &times;
-            </button>
+            
           </div>
-          </div>
-         <div className="flex flex-wrap items-center justify-start gap-2 mt-4 bg-gray-50 px-5 py-3 rounded-xl shadow-sm border border-gray-200 w-full">
-           <div className='flex flex-col gap-2 flex-wrap'>
-                 <button 
-                className="w-full cursor-pointer flex items-center px-4 py-3 border border-[#cccccc] rounded-[7px] text-gray-700 hover:bg-gray-50 focus:bg-gray-100 focus:outline-none transition-colors duration-200 text-left text-sm group"
-                onClick={() => {
-                 onClickFile()
-                }}
-              >
-                <i className="fa-solid fa-file-lines text-[16px] mr-3 text-blue-500 group-hover:text-blue-600"></i>
-                <span className="font-medium">File mẫu import khách</span>
-              </button>
-      </div>
 
      
         </div>
@@ -280,34 +283,34 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-indigo-600 sticky top-0 z-1">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-white whitespace-nowrap tracking-wider">
+                <th className="px-6 py-2 text-left text-xs font-semibold text-white whitespace-nowrap tracking-wider">
                   Stt
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-white whitespace-nowrap tracking-wider">
+                <th className="px-6 py-2 text-left text-xs font-semibold text-white whitespace-nowrap tracking-wider">
                   Tên
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-white whitespace-nowrap tracking-wider">
+                <th className="px-6 py-2 text-left text-xs font-semibold text-white whitespace-nowrap tracking-wider">
                   SĐT
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-white whitespace-nowrap tracking-wider">
+                <th className="px-6 py-2 text-left text-xs font-semibold text-white whitespace-nowrap tracking-wider">
                   Giới tính
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-semibold text-white whitespace-nowrap tracking-wider">
+                <th className="px-6 py-2 text-center text-xs font-semibold text-white whitespace-nowrap tracking-wider">
                   Nhóm
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-semibold text-white whitespace-nowrap tracking-wider">
+                <th className="px-6 py-2 text-center text-xs font-semibold text-white whitespace-nowrap tracking-wider">
                   Ghế
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-semibold text-white whitespace-nowrap tracking-wider">
+                <th className="px-6 py-2 text-center text-xs font-semibold text-white whitespace-nowrap tracking-wider">
                   Hành động
                 </th>
               </tr>
               {/* Filter row */}
               <tr className="bg-indigo-100">
-                <th className="px-6 py-2 border border-gray-300">
+                <th className="px-6 py-1 border border-gray-300">
                  
                 </th>
-                <th className="px-6 py-2 border border-gray-300">
+                <th className="px-6 py-1 border border-gray-300">
                   <input
                     type="text"
                     name="name"
@@ -316,7 +319,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
                     className="w-full px-2 py-1 text-sm border-none focus:outline-none font-normal"
                   />
                 </th>
-                <th className="px-6 py-2 border border-gray-300">
+                <th className="px-6 py-1 border border-gray-300">
                   <input
                     type="text"
                     name="phone"
@@ -325,7 +328,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
                     className="w-full px-2 py-1 text-sm border-none focus:outline-none font-normal"
                   />
                 </th>
-                <th className="px-6 py-2 border border-gray-300">
+                <th className="px-6 py-1 border border-gray-300">
                   <input
                     type="text"
                     name="gender"
@@ -334,7 +337,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
                     className="w-full px-2 py-1 text-sm border-none focus:outline-none font-normal"
                   />
                 </th>
-                <th className="px-6 py-2 border border-gray-300">
+                <th className="px-6 py-1 border border-gray-300">
                   <input
                     type="text"
                     name="groupName"
@@ -343,9 +346,9 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
                     className="w-full px-2 py-1 text-sm border-none focus:outline-none font-normal"
                   />
                 </th>
-                <th className="px-6 py-2 border border-gray-300">
+                <th className="px-6 py-1 border border-gray-300">
                 </th>
-                <th className="px-6 py-2 border border-gray-300">
+                <th className="px-6 py-1 border border-gray-300">
                 </th>
               </tr>
             </thead>
@@ -381,7 +384,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
                   setEditingGuest(undefined);
                   setIsGuestModalOpen(true);
                 }}
-                className="flex items-center space-x-2 px-4 h-12 rounded-lg bg-pink-600 text-white hover:bg-pink-700 font-semibold"
+                className="flex items-center space-x-2 px-4  rounded-lg bg-pink-600 text-white hover:bg-pink-700 font-semibold fs-[15px]"
               >
                 <i className="fas fa-user-plus me-1"></i>
                 Thêm khách mời
@@ -393,7 +396,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
               onClick={() => setResetModal(true)}
               type="button"
               aria-label="Confirm"
-              className="flex items-center space-x-2 px-4 h-12 rounded-lg bg-pink-600 text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-1 transition font-semibold select-none"
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-pink-600 text-white hover:bg-pink-700 fs-[15px] focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-1 transition font-semibold select-none"
               title="Confirm"
             >
               <i className="fa-solid fa-rotate-right"></i>
@@ -403,7 +406,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
               onClick={() => onAddSeat()}
               type="button"
               aria-label="Confirm"
-              className="flex items-center space-x-2 px-4 h-12 rounded-lg bg-pink-600 text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-1 transition font-semibold select-none"
+              className="flex items-center space-x-2 py-2 px-4 fs-[15px] rounded-lg bg-pink-600 text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-1 transition font-semibold select-none"
               title="Confirm"
             >
               <i className="fas fa-check fa-lg"></i>
