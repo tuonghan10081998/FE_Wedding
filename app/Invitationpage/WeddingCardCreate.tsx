@@ -50,6 +50,7 @@ const WeddingCardCreate: React.FC<WeddingCardCreateProps> = ({
       const [isOpen, setIsOpen] = useState(false);
   
   useEffect(() => {
+    console.log(layoutData)
     if(!layoutData) return
      setProject(layoutData.projectID)
             setGroomName(layoutData.groomName || "");
