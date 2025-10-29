@@ -217,6 +217,7 @@ export default function TablePlanner() {
   const [isModalNotiGuest,setModalNotiGuest] = useState<boolean>(false)
 
   const [ismessNotiGuest,setmessNotiGuest] = useState<string>("")
+    const [isNumberDay,setNumberDay] = useState<number>(3)
   const handleUpgrade = () => {
     navigate("/layout/Plan");
     setIsModalOpenUpgra(false);
@@ -1848,24 +1849,11 @@ if (dataSanKhan) {
       leftTable = containerWidth + (index === 1 ? 225 : index === 2 ? 310 : 230);
       topTable = (dataSanKhan?.y ?? 0) + (index === 1 ? 53 : index === 2 ? 60 : 53) + 70;
     } else {
-      const minTop = Math.min(...tablesRight.map(t => t.top));
-      const firstRowTables = tablesRight.filter(t => Math.abs(t.top - minTop) < 1);
-      const uniqueLeftValues = [...new Set(firstRowTables.map(t => t.left))];
-      const actualMaxLeftGroups = uniqueLeftValues.length;
-
-      const uniqueTopValues = [...new Set(tablesRight.map(t => t.top))];
-      const maxTopGroups = uniqueTopValues.length;
-
-      const maxLeftGroups = (maxTopGroups > 1 && actualMaxLeftGroups < 4) 
-        ? actualMaxLeftGroups 
-        : actualMaxLeftGroups;
-
       const sameRowTables = tablesRight.filter(
         t => Math.abs(t.top - lastTable.top) < 1
       );
       
-      if (maxTopGroups > 1) {
-        if (sameRowTables.length >= maxLeftGroups) {
+        if (sameRowTables.length >= isNumberDay) {
           // Rớt xuống hàng mới
           const maxTop = lastTable?.top ?? 0;
           topTable = maxTop + (index === 1 ? 225 : index === 2 ? 230 : 110);
@@ -1875,20 +1863,7 @@ if (dataSanKhan) {
           topTable = lastTable.top;
           leftTable = lastTable.left + (index === 1 ? 225 : index === 2 ? 310 : 230);
         }
-      } else {
-        if (maxLeftGroups >= 4) {
-          // Rớt xuống hàng mới
-          const maxTop = lastTable?.top ?? 0;
-          topTable = maxTop + (index === 1 ? 225 : index === 2 ? 230 : 110);
-          leftTable = containerWidth + (index === 1 ? 225 : index === 2 ? 310 : 230);
-        } else {
-          // Thêm vào cùng hàng, bên phải bàn cuối
-          topTable = lastTable.top;
-          leftTable = lastTable.left + (index === 1 ? 225 : index === 2 ? 310 : 230);
-        }
-      }
-    }
-   
+      } 
   } else {
     // type === "left"
     const containerWidth = (dataSanKhan?.x ?? 0) - (index === 1 ? 180 : index === 2 ? 240 : 260);
@@ -1907,24 +1882,10 @@ if (dataSanKhan) {
       leftTable = containerWidth;
       topTable = (dataSanKhan?.y ?? 0) + (index === 1 ? 53 : index === 2 ? 60 : 53) + 70;
     } else {
-      const minTop = Math.min(...tablesLeft.map(t => t.top));
-      const firstRowTables = tablesLeft.filter(t => Math.abs(t.top - minTop) < 1);
-      const uniqueLeftValues = [...new Set(firstRowTables.map(t => t.left))];
-      const actualMaxLeftGroups = uniqueLeftValues.length;
-      
-      const uniqueTopValues = [...new Set(tablesLeft.map(t => t.top))];
-      const maxTopGroups = uniqueTopValues.length;
-      
-      const maxLeftGroups = (maxTopGroups > 1 && actualMaxLeftGroups < 4) 
-        ? actualMaxLeftGroups
-        : actualMaxLeftGroups;
-
       const sameRowTables = tablesLeft.filter(
         t => Math.abs(t.top - lastTable.top) < 1
       );
-     
-      if (maxTopGroups > 1) {
-        if (sameRowTables.length >= maxLeftGroups) {
+      if (sameRowTables.length >= isNumberDay) {
           const maxTop = lastTable?.top ?? 0;
           topTable = maxTop + (index === 1 ? 225 : index === 2 ? 230 : 110);
           leftTable = containerWidth;
@@ -1932,17 +1893,6 @@ if (dataSanKhan) {
           // Thêm vào cùng hàng, bên trái bàn cuối
           topTable = lastTable.top;
           leftTable = lastTable.left - (index === 1 ? 225 : index === 2 ? 310 : 230);
-        }
-      } else {
-        if (maxLeftGroups >= 4) {
-          const maxTop = lastTable?.top ?? 0;
-          topTable = maxTop + (index === 1 ? 225 : index === 2 ? 230 : 110);
-          leftTable = containerWidth;
-        } else {
-          // Thêm vào cùng hàng, bên trái bàn cuối
-          topTable = lastTable.top;
-          leftTable = lastTable.left - (index === 1 ? 225 : index === 2 ? 310 : 230);
-        }
       }
     }
   }
@@ -2422,6 +2372,8 @@ useEffect(() => {
                     data={isDataParentGroup}
                     isSide={side}
                     setSide={(side:string) => setSide(side)}
+                    numberDay={isNumberDay}
+                    setNumberDay={(numberDay:number) => setNumberDay(numberDay)}
                   />
                 )}
               <button
