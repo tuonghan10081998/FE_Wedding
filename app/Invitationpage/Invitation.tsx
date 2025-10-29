@@ -143,7 +143,7 @@ const Invitation = () => {
         { src: "/image/image1_6.png", alt: "Thiệp 1" },
       ],
       views: [
-        <SaveTheDateCard4 width={600} height={650} />,
+        <SaveTheDateCard4 width={600} height={650} type={"SaveTheDateCard4"} />,
         <WeddingInvitationCard4 width={600} height={650} />,
         <WeddingInvitation4 width={600} height={650} />,
       
@@ -158,7 +158,7 @@ const Invitation = () => {
         { src: "/image/image1_5.png", alt: "Thiệp 1" },
       ],
       views: [
-        <SaveTheDateCard2 width={600} height={650} />,
+        <SaveTheDateCard2 width={600} height={650} type={"SaveTheDateCard2"} />,
         <WeddingInvitationCard2 width={600} height={650} />,
         <WeddingInvitation2 width={600} height={650} />,
       
@@ -172,7 +172,7 @@ const Invitation = () => {
         { src: "/image/image1_4.png", alt: "Thiệp 1" },
       ],
       views: [
-        <SaveTheDateCard3 width={600} height={650} />,
+        <SaveTheDateCard3 width={600} height={650} type={"SaveTheDateCard3"}/>,
         <WeddingInvitationCard3 width={600} height={650} />,
         <WeddingInvitation3 width={600} height={650} />,
       
@@ -185,7 +185,7 @@ const Invitation = () => {
       images: [
         { src: "/image/image1_1.png", alt: "Thiệp 1" },],
       views: [
-        <SaveTheDateCard1 width={600} height={650} />,
+        <SaveTheDateCard1 width={600} height={650} type={"SaveTheDateCard1"} />,
         <WeddingInvitationCard1 />,
         <WeddingInvitation1 />
       ],
