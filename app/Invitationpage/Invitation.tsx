@@ -165,7 +165,7 @@ const Invitation = () => {
       ],
     },
     {
-       title: "Mẫu thiệp 3",
+     title: "Mẫu thiệp 3",
       subtitle: "Gồm 3 mẫu thiệp",
       checkForm: 3,
       images: [

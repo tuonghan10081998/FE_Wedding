@@ -75,5 +75,5 @@ const SaveTheDateCard3: React.FC<SaveTheDateCard1Props> = ({width = 550,height =
     </div>
   );
 };
-SaveTheDateCard3.displayName = "SaveTheDateCard3
+SaveTheDateCard3.displayName = "SaveTheDateCard3"
 export default SaveTheDateCard3;
