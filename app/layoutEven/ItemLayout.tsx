@@ -297,6 +297,7 @@ const iconMap: Record<string, React.ReactElement> = {
          <svg
             viewBox="0 0 320 160"
             xmlns="http://www.w3.org/2000/svg"
+           
           >
       <defs>
         <radialGradient id="stageGradient" cx="50%" cy="30%" r="80%">
@@ -395,7 +396,7 @@ const iconMap: Record<string, React.ReactElement> = {
     </svg>
       ),
      quat:(
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 70">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 70"  >
         <defs>
           <path
             id="fan-body"
@@ -763,7 +764,7 @@ const iconMap: Record<string, React.ReactElement> = {
        </svg>
     ),
     tree3:(
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78 120">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78 120" fill={ isActive ? "#55CC55" : ""}>
         <defs>
           <path id="tree3" fill="none"stroke="#333"strokeLinecap="round" strokeLinejoin="round"strokeWidth="1.21875"
             d="M13.95 112.55h18V82.4q-2 .4-4.2.4-1.702 0-3.3-.25-6.104-.954-10.7-5.55Q8 71.25 8 63.1q0-8.2 5.75-14 1.6-1.6 3.4-2.7-.75-2.15-.75-4.55 0-5.75 4.05-9.8 1.838-1.804 4-2.8 1.014-.463 2.1-.75-1.65-3-1.65-6.65 0-5.75 4.05-9.8Q33.05 8 38.75 8q5.7 0 9.75 4.05t4.05 9.8q0 3.65-1.65 6.65 3.35.9 6 3.55 4.05 4.05 4.05 9.8 0 2.35-.7 4.45 2.05 1.25 3.85 3.05 5.85 5.8 5.85 14 0 8.15-5.85 13.9-5.75 5.8-13.9 5.8-6.45 0-11.45-3.6-3.1 2.15-6.8 2.95m-1.5-8q-1.5.4-3.2.4-1.468 0-2.8-.325-3.024-.715-5.35-3.075-3.35-3.35-3.35-8.15 0-3 1.35-5.45m27.85 24.9v29.85H62.7m-30.75 0h13"
@@ -1215,7 +1216,7 @@ const iconMap: Record<string, React.ReactElement> = {
         top: localY,
         left: localX,
         width: localWidth,
-        height: item.type === "sanh1" ? localHeight : 0, // Sử dụng localHeight cho sanh1
+        height: item.type === "sanh1" ? localHeight : 10, // Sử dụng localHeight cho sanh1
         transform: `rotate(${localRotation}rad)`,
         background:`${isActive ? "#55CC55" : ""}`,
       }}

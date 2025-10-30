@@ -30,6 +30,7 @@ import UpgradeModal from '~/layoutEven/UpgradeModalLayout';
 import LimitNotificationModal from '~/layoutEven/LimitNotificationModalProps ';
 import ItemLayout from '~/layoutEven/ItemLayout';
 import ModalNotiGuest from '~/layoutEven/ModalNotiGuest';
+import DeleteItems from '~/layoutEven/DeleteListItems';
 export interface ZoneRegion {
   zoneId: string;
   zoneName: string;
@@ -219,9 +220,9 @@ export default function TablePlanner() {
   const [isExportlimit, setExportlimit] = useState(false);
 
   const [isModalNotiGuest,setModalNotiGuest] = useState<boolean>(false)
-const [isCheckDeleteSinger,setCheckDeleteSinger] = useState<boolean>(false)
+  const [isCheckDeleteSinger,setCheckDeleteSinger] = useState<boolean>(false)
   const [ismessNotiGuest,setmessNotiGuest] = useState<string>("")
-    const [isNumberDay,setNumberDay] = useState<number>(3)
+  const [isNumberDay,setNumberDay] = useState<number>(3)
   const handleUpgrade = () => {
     navigate("/layout/Plan");
     setIsModalOpenUpgra(false);
@@ -1106,6 +1107,7 @@ const handleCtrlClick = (item: UnifiedTableData, event: React.MouseEvent,checkCl
     setIsModalSelectOpen(false)
     setModalOpen(false)
     setModalOpenKH(false)
+     setMultiSelected([])
   if(checkClick ){
       setCheckLoai(3)
       setMultiSelectedItems((prev) => {
@@ -1151,10 +1153,12 @@ const handleCtrlClickITem = (item: LayoutItem, event: React.MouseEvent,checkClic
     setIsModalSelectOpen(false)
     setModalOpen(false)
     setModalOpenKH(false)
-  if(checkClick ){
-      setCheckLoai(3)
+    setMultiSelectedItems([])
+    if(item.id ===  `item1`) return
+    if(checkClick ){
+      setCheckLoai(7)
       setMultiSelected((prev) => {
-        const exists = prev.some(x => x.id === item.id);
+        const exists = prev.some(x => x.id === item.id );
         if (exists) {
           return prev.filter(x => x.id !== item.id);
         } else {
@@ -1165,6 +1169,9 @@ const handleCtrlClickITem = (item: LayoutItem, event: React.MouseEvent,checkClic
     setMultiSelected([])
   }
 };
+useEffect(() => {
+  console.log(multiSelected)
+},[multiSelected])
  const toLocalX = (px: number) => (px - offsetRef.current.x) / zoomRef.current;
   const toLocalY = (px: number) => (px - offsetRef.current.y) / zoomRef.current;
 
@@ -1836,14 +1843,14 @@ const handleAddItem = async (
             return num + 1;
           })()
         : 1;
-
+   const dataSanKhan = layoutItems.find((x: LayoutItem) => x.id === "item1");
     const centerX = x ?? toLocalX(window.innerWidth / 2);
     const centerY = y ?? toLocalY(window.innerHeight / 2);
 
     const newItem: LayoutItem = {
       id: `item${id ?? maxTableNumberItem}`,
       type,
-      x: centerX - width / 2,
+      x: dataSanKhan?.x ?? centerX,
       y: centerY - height / 2,
       size: Math.min(width, height) * 1,
       width,
@@ -2078,7 +2085,13 @@ const handleDeleteList = (e: React.MouseEvent) => {
     handleDeleteTable(false)
   }
 }
-
+const handleDeleteListItem = (e: React.MouseEvent) => {
+  setLayoutItems((prevTables) =>
+    prevTables.filter(
+      (t) => !multiSelected.some((m) => m.id === t.id)
+    )
+  );
+}
 
 const handleDeleteTable =(checkGuest:boolean = true) => {
   if(!isCheckDeleteSinger){
@@ -2941,10 +2954,11 @@ useEffect(() => {
               selected={selectedLayoutIndex  === index}
               zoomLevel={zoomLevel}
                onClick={(i,event) =>{
-                 if (event.ctrlKey) {
+                  if (event.ctrlKey) {
                     handleCtrlClickITem(item, event,true);
                     return; 
                   }
+                  setMultiSelected([])
                   setSelectedLayoutIndex(i);
                   setSelectedBenchIndex(null);
                   setItemDelete(item)
@@ -2996,6 +3010,13 @@ useEffect(() => {
           {checkLoai === 3 && (
             <DeleteList
               onDelete={(e) => handleDeleteList(e)}
+              onConfirm={(newtable:string) => handleConfirmChangeTableName(newtable)}
+            />
+
+          )}
+           {checkLoai === 7 && (
+            <DeleteItems
+              onDelete={(e) => handleDeleteListItem(e)}
               onConfirm={(newtable:string) => handleConfirmChangeTableName(newtable)}
             />
 
