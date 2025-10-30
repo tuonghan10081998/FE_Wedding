@@ -322,8 +322,8 @@ button.close-btn:hover {
   z-index: 9999 !important;
 }
 .highlight {
-  background-color: #f40206;
-  color: #fff;
+  background-color: #038aa9;
+  color: #fff !important;
 }
 @media print {
   #tableContainer {

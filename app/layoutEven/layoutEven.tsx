@@ -67,6 +67,8 @@ export interface UnifiedTableData {
   groupParentID?:number
   isComeback?:number,
   isSearch?:boolean
+  groupParentName?:string
+  nameNhom?:string
 }
 
 export interface Guest {
@@ -167,6 +169,7 @@ export default function TablePlanner() {
   const [multiSelected, setMultiSelected] = useState<LayoutItem[]>([]);
   const [multiSelectedSeat, setMultiSelectedSeat] = useState<string>("");
   const [isNameTable,setNameTable] = useState<string>("")
+  const [isGroup,setGroup] = useState<string>("")
   const [isGuestItem,setGuestItem]= useState<Guest[]>([]);
   const [guests, setGuests] = useState<Guest[]>([]);
   const [subget, setSubget] = useState<Guest[]>([]);
@@ -204,7 +207,8 @@ export default function TablePlanner() {
   const [checkmaxProject,setCheckMaxProject] = useState<boolean>(false)
   const [planID,setPlanID] = useState<string>("")
   const [plans, setPlans] = useState<Plan | null>(null);
-
+  const [isViewBan,setViewBan] = useState<boolean>(false)
+   const [isTenNhom,setTenNhom] = useState<string>("")
   // token
   const [accessToken,setAccessToken] = useState<string>("")
   const [refreshToken,setRefreshToken] = useState<string>("") 
@@ -599,6 +603,7 @@ useEffect(() => {
     });
   });
 }, [tables, layoutItems]);
+
 useEffect(() => {
      const resetAndFetch = async () => {
       setTables([]);
@@ -700,6 +705,41 @@ useEffect(() => {
       navigate("/")
     }
   };
+function renumberTables(tablesToRenumber: UnifiedTableData[]) {
+  const dataSanKhan = layoutItems.find((x: LayoutItem) => x.id === `item1`);
+  const sanKhanX = dataSanKhan?.x ?? 0;
+  
+  const tablesLeft = tablesToRenumber.filter(t => t.left < sanKhanX);
+  const tablesRight = tablesToRenumber.filter(t => t.left > sanKhanX);
+  
+  const sortByPosition = (a: UnifiedTableData, b: UnifiedTableData) => {
+    const topDiff = a.top - b.top;
+    if (Math.abs(topDiff) < 50) {
+      return a.left - b.left;
+    }
+    return topDiff;
+  };
+
+  const sortedLeft = tablesLeft
+    .sort(sortByPosition)
+    .map((table, index) => ({
+      ...table,
+      tableNumber: index + 1,
+      nameTable: `Bàn ${index + 1}`
+    }));
+
+  const startNumberRight = sortedLeft.length + 1;
+  const sortedRight = tablesRight
+    .sort(sortByPosition)
+    .map((table, index) => ({
+      ...table,
+      tableNumber: startNumberRight + index,
+      nameTable: `Bàn ${startNumberRight + index}`
+    }));
+
+  // ← QUAN TRỌNG: Phải có return ở đây!
+  return [...sortedLeft, ...sortedRight];
+}
 
   const PostProject = async (save: Project,checkSave :boolean,access:string) => {
     const request = new Request(`${import.meta.env.VITE_API_URL}/api/Project`, {
@@ -1089,7 +1129,7 @@ const handleConfirmChangeTableName =(newtable:string) => {
     if (isSelected) {
       return {
         ...table,
-        nameTable: newtable, // update
+        nameNhom: newtable, // update
       };
     }
 
@@ -1128,19 +1168,19 @@ const handleCtrlClickITem = (item: LayoutItem, event: React.MouseEvent,checkClic
  const toLocalX = (px: number) => (px - offsetRef.current.x) / zoomRef.current;
   const toLocalY = (px: number) => (px - offsetRef.current.y) / zoomRef.current;
 
- const handleConfirmModal = (
+const handleConfirmModal = (
   row: number | string,
   layout: string,
   type: string,
   seatCount: number | string,
   checkRow: string,
-  position: string,  // thêm biến này
-  groupParentID:string
+  position: string,
+  groupParentID: string,
+  groupParentName:string
 ) => {
    
   if (!row || row === '') {
     toast.error("Vui lòng nhập dãy!");
-
     return;
   }
 
@@ -1152,13 +1192,13 @@ const handleCtrlClickITem = (item: LayoutItem, event: React.MouseEvent,checkClic
     toast.error("Vui lòng chọn bên!");
     return
   }
+
   const count = Number(seatCount); 
   const rowNum = Number(row);
   const newTables: UnifiedTableData[] = [];
-  let  maxTableNumber =
-  tables.length > 0 ? Math.max(...tables.map(t => t.tableNumber ?? 0)) : 0;
-   let maxTableComback =
-  tables.length > 0 ? Math.max(...tables.map(t => t.isComeback ?? 0)) + 1 : 1;
+  let maxTableNumber = tables.length > 0 ? Math.max(...tables.map(t => t.tableNumber ?? 0)) : 0;
+  let maxTableComback = tables.length > 0 ? Math.max(...tables.map(t => t.isComeback ?? 0)) + 1 : 1;
+
   const createTable = (
     tableNumber: number,
     top: number,
@@ -1166,11 +1206,10 @@ const handleCtrlClickITem = (item: LayoutItem, event: React.MouseEvent,checkClic
     type: string,
     layout: string
   ): UnifiedTableData => {
-    
     maxTableNumber++;
     if (type === 'tron') {
       return {
-        tableNumber : maxTableNumber,
+        tableNumber: maxTableNumber,
         shape: 'round',
         size: 100,
         top,
@@ -1180,17 +1219,19 @@ const handleCtrlClickITem = (item: LayoutItem, event: React.MouseEvent,checkClic
         width: 0,
         height: 0,
         sourceType: 1,
-        nameTable:`Bàn ${maxTableNumber}`,
-        groupParentID:parseInt(groupParentID),
-        isComeback:maxTableComback
+        nameTable: `Bàn ${maxTableNumber}`,
+        groupParentID: parseInt(groupParentID),
+        isComeback: maxTableComback,
+        groupParentName:groupParentName,
+         nameNhom:""
       };
     } else if (type === 'vuong') {
-      const width =  160 ;
-      const height = 80 ;
+      const width = 160;
+      const height = 80;
       const totalSeats = (Math.floor(width / 36) + Math.floor(height / 36)) * 2;
 
       return {
-        tableNumber : maxTableNumber,
+        tableNumber: maxTableNumber,
         shape: 'square',
         width,
         height,
@@ -1200,16 +1241,18 @@ const handleCtrlClickITem = (item: LayoutItem, event: React.MouseEvent,checkClic
         rotation: 0,
         currentSeatCount: totalSeats,
         sourceType: 2,
-       nameTable:`Bàn ${maxTableNumber}`,
-       groupParentID:parseInt(groupParentID),
-        isComeback:maxTableComback
+        nameTable: `Bàn ${maxTableNumber}`,
+        groupParentID: parseInt(groupParentID),
+        isComeback: maxTableComback,
+         groupParentName:groupParentName,
+          nameNhom:""
       };
     } else { 
-      const width = 195 
-      const height = 10 
+      const width = 195;
+      const height = 10;
 
       return {
-        tableNumber : maxTableNumber,
+        tableNumber: maxTableNumber,
         shape: 'bench',
         width,
         height,
@@ -1219,108 +1262,110 @@ const handleCtrlClickITem = (item: LayoutItem, event: React.MouseEvent,checkClic
         rotation: 0,
         currentSeatCount: 5,
         sourceType: 3,
-        nameTable:`${maxTableNumber}`,
-        groupParentID:parseInt(groupParentID),
-        isComeback:maxTableComback
+        nameTable: `${maxTableNumber}`,
+        groupParentID: parseInt(groupParentID),
+        isComeback: maxTableComback,
+         groupParentName:groupParentName,
+         nameNhom:""
       };
     }
   };
 
-const rowNumA = Number(row);
-const totalRows = checkRow === 'nhieuday' ? rowNumA : rowNumA;
-const startRow = checkRow === 'nhieuday' ? 1 : rowNumA;
+  const rowNumA = Number(row);
+  const totalRows = checkRow === 'nhieuday' ? rowNumA : rowNumA;
+  const startRow = checkRow === 'nhieuday' ? 1 : rowNumA;
 
-// chia ghế cho từng row
-const baseSeatsPerRow = Math.floor(count / totalRows);
-const remainder = checkRow === 'nhieuday' ? count % totalRows : count;
+  const baseSeatsPerRow = Math.floor(count / totalRows);
+  const remainder = checkRow === 'nhieuday' ? count % totalRows : count;
 
-for (let r = startRow; r <= totalRows; r++) {
-  const seatsInThisRow = checkRow === 'nhieuday' ? baseSeatsPerRow + (r - startRow < remainder ? 1 : 0) : count;
-  const dataSanKhan = layoutItems.find((x:LayoutItem) => x.id === `item1`);
-  
-  // Lọc bàn theo left (trái/phải sân khán)
-  const tablesLeft = tables.filter(t => t.left < (dataSanKhan?.x ?? 0));
-  const tablesRight = tables.filter(t => t.left > (dataSanKhan?.x ?? 0));
-  
-  let minLeft = Math.min(...tablesLeft.map(t => t.left)) ?? 0;
-  if (!isFinite(minLeft)) {
-    minLeft = 0;
-  }
-  
-  let maxRight = Math.max(...tablesRight.map(t => t.left)) ?? 0;
-  if (!isFinite(maxRight)) {
-    maxRight = 0;
-  }
-  
-  // Tìm top lớn nhất (bàn thấp nhất) ở bên trái và phải
-  let maxTopLeft = Math.max(...tablesLeft.map(t => t.top)) ?? 0;
-  if (!isFinite(maxTopLeft)) {
-    maxTopLeft = 0;
-  }
-  
-  let maxTopRight = Math.max(...tablesRight.map(t => t.top)) ?? 0;
-  if (!isFinite(maxTopRight)) {
-    maxTopRight = 0;
-  }
-  
-  for (let i = 0; i < seatsInThisRow; i++) {
-    const currentTableCount = tables.length + newTables.length + 1;
-    const maxTableLimit = maxTable;
+  for (let r = startRow; r <= totalRows; r++) {
+    const seatsInThisRow = checkRow === 'nhieuday' ? baseSeatsPerRow + (r - startRow < remainder ? 1 : 0) : count;
+    const dataSanKhan = layoutItems.find((x: LayoutItem) => x.id === `item1`);
     
-    if(currentTableCount > maxTableLimit){
-      setIsTableLimitModalOpen(true);
-      break;
+    const tablesLeft = tables.filter(t => t.left < (dataSanKhan?.x ?? 0));
+    const tablesRight = tables.filter(t => t.left > (dataSanKhan?.x ?? 0));
+    
+    let minLeft = Math.min(...tablesLeft.map(t => t.left)) ?? 0;
+    if (!isFinite(minLeft)) {
+      minLeft = 0;
     }
     
-    const padLeftPx = (dataSanKhan?.x ?? 0) - (type === 'tron' ? 180 : type === 'vuong' ? 240 : 260);
-    const padRightPx = (dataSanKhan?.x ?? 0) + (type === 'tron' ? 280 : type === 'vuong' ? 340 : 360);
-    const padTopPx = (dataSanKhan?.y ?? 0) + (type === 'tron' ? 53 : type === 'vuong' ? 60 : 53);
-
-    // Tọa độ bàn bắt đầu
-    let left = minLeft == 0 ? padLeftPx : padLeftPx;
-    if(position === 'right'){
-      left = maxRight == 0 ? padRightPx : padRightPx;
+    let maxRight = Math.max(...tablesRight.map(t => t.left)) ?? 0;
+    if (!isFinite(maxRight)) {
+      maxRight = 0;
     }
     
-    // Tính top: nếu đã có bàn thì tiếp tục từ bàn cuối + khoảng cách
-    let top = padTopPx + 70;
-    if(position === 'left' && maxTopLeft > 0){
-      top = maxTopLeft + (type === 'tron' ? 225 : type === 'vuong' ? 230 : 110);
-    } else if(position === 'right' && maxTopRight > 0){
-      top = maxTopRight + (type === 'tron' ? 225 : type === 'vuong' ? 230 : 110);
+    let maxTopLeft = Math.max(...tablesLeft.map(t => t.top)) ?? 0;
+    if (!isFinite(maxTopLeft)) {
+      maxTopLeft = 0;
     }
-
-    const containerWidth = (dataSanKhan?.x ?? 0) + (type === 'tron' ? 50 : type === 'vuong' ? -10 : 30);
-    const rowOffset = (r - 1) * (type === 'tron' ? 225 : type === 'vuong' ? 230 : 110);
-    const rowOffsetD = (r - 1) * (type === 'tron' ? 225 : type === 'vuong' ? 310 : 230);
     
-    if (layout === 'ngang') {
-      top += rowOffset;
-      if (position === 'left') {
-        left -= i * (type === 'tron' ? 225 : type === 'vuong' ? 310 : 230);
-      } else if (position === 'right') {
-        left = containerWidth + (i + 1) * (type === 'tron' ? 225 : type === 'vuong' ? 310 : 230);
+    let maxTopRight = Math.max(...tablesRight.map(t => t.top)) ?? 0;
+    if (!isFinite(maxTopRight)) {
+      maxTopRight = 0;
+    }
+    
+    for (let i = 0; i < seatsInThisRow; i++) {
+      const currentTableCount = tables.length + newTables.length + 1;
+      const maxTableLimit = maxTable;
+      
+      if(currentTableCount > maxTableLimit){
+        setIsTableLimitModalOpen(true);
+        break;
       }
-    } else if (layout === 'doc') {
-      // Với layout dọc: bàn xếp theo chiều dọc (top tăng dần)
-      top += (i * (type === 'tron' ? 225 : type === 'vuong' ? 230 : 110));
+      
+      const padLeftPx = (dataSanKhan?.x ?? 0) - (type === 'tron' ? 180 : type === 'vuong' ? 240 : 260);
+      const padRightPx = (dataSanKhan?.x ?? 0) + (type === 'tron' ? 280 : type === 'vuong' ? 340 : 360);
+      const padTopPx = (dataSanKhan?.y ?? 0) + (type === 'tron' ? 53 : type === 'vuong' ? 60 : 53);
 
-      if (position === 'left') {
-        left -= rowOffsetD;
-      } else if (position === 'right') {
-        left += rowOffsetD;
+      let left = minLeft == 0 ? padLeftPx : padLeftPx;
+      if(position === 'right'){
+        left = maxRight == 0 ? padRightPx : padRightPx;
+      }
+      
+      let top = padTopPx + 70;
+      if(position === 'left' && maxTopLeft > 0){
+        top = maxTopLeft + (type === 'tron' ? 225 : type === 'vuong' ? 230 : 110);
+      } else if(position === 'right' && maxTopRight > 0){
+        top = maxTopRight + (type === 'tron' ? 225 : type === 'vuong' ? 230 : 110);
+      }
+
+      const containerWidth = (dataSanKhan?.x ?? 0) + (type === 'tron' ? 50 : type === 'vuong' ? -10 : 30);
+      const rowOffset = (r - 1) * (type === 'tron' ? 225 : type === 'vuong' ? 230 : 110);
+      const rowOffsetD = (r - 1) * (type === 'tron' ? 225 : type === 'vuong' ? 310 : 230);
+      
+      if (layout === 'ngang') {
+        top += rowOffset;
+        if (position === 'left') {
+          left -= i * (type === 'tron' ? 225 : type === 'vuong' ? 310 : 230);
+        } else if (position === 'right') {
+          left = containerWidth + (i + 1) * (type === 'tron' ? 225 : type === 'vuong' ? 310 : 230);
+        }
+      } else if (layout === 'doc') {
+        top += (i * (type === 'tron' ? 225 : type === 'vuong' ? 230 : 110));
+
+        if (position === 'left') {
+          left -= rowOffsetD;
+        } else if (position === 'right') {
+          left += rowOffsetD;
+        }
+      }
+      
+      const table = createTable(1, top, left, type, layout);
+      if (table !== null) {
+        newTables.push(table);
       }
     }
-    
-    const table = createTable(1, top, left, type, layout);
-    if (table !== null) {
-      newTables.push(table);
-    }
   }
-}
 
-setTables((prev) => [...prev, ...newTables]);
-setNextTableNumber((prev) => prev + newTables.length);
+  // ✅ Add tất cả bàn mới VÀ renumber luôn trong 1 setState
+  setTables((prev) => {
+    const allTables = [...prev, ...newTables];
+    return renumberTables(allTables); // Renumber sau khi đã merge
+  });
+  
+  // ❌ Xóa dòng này vì không cần nữa
+   setNextTableNumber((prev) => prev + newTables.length);
 };
   const handleResize = (index: number, newTable: UnifiedTableData) => {
     setTables((prev) => {
@@ -1488,7 +1533,6 @@ const handleAssignGuestsToSeats = () => {
     return acc;
   }, {} as Record<string, typeof unassignedGuests>);
   
-  console.log(guestsByGroup)
   
   const tableElements = Array.from(document.querySelectorAll('.item_banghe'));
   const tablesWithNumbers = tableElements.map((el) => {
@@ -1618,7 +1662,7 @@ console.log(finalSortedTables)
               if (t.tableNumber === parseInt(maBan)) {
                 return {
                   ...t,
-                  nameTable: guest.groupInfo?.groupName || t.nameTable, 
+                  nameNhom: guest.groupInfo?.groupName || t.nameTable, 
                   isComeback: 0
                 };
               }
@@ -1730,14 +1774,16 @@ const hanldleRenderSeatInput = (seat:number ) => {
     );
 }
 const hanldleRenderTableNameInput = (nameTable:string ) => {
-   setNameTable(nameTable)
+  if(!isViewBan) return
      setTables(prevTables =>
        prevTables.map(table =>
          table.tableNumber === idTable
-           ? { ...table, nameTable: nameTable }
+           ? { ...table, nameNhom: nameTable }
            : table
        )
-   );
+
+      );
+      setTenNhom(nameTable)
 }
 function useClickOutsideItemSave() {
   useEffect(() => {
@@ -1820,7 +1866,11 @@ const handleAddBan = (index: number,groupParentID:number,type:string = "left") =
     return
   }
   let topTable = 0;
-let leftTable = 0;
+  let leftTable = 0;
+   const matched = isDataParentGroup.find(
+                (g) => String(g.parentID) === String(groupParentID)
+              );
+  const groupParentName = matched ? matched.parentName : "";
 
 const currentTableCount = tables.length + 1;
 const maxTableLimit = maxTable; // Giới hạn tổng bàn
@@ -1920,7 +1970,9 @@ if (dataSanKhan) {
       sourceType: 1,
       nameTable:`Bàn ${maxTableNumber}`,
       groupParentID:groupParentID,
-      isComeback:0
+      isComeback:0,
+      groupParentName:groupParentName,
+       nameNhom:""
     };
   } else if (index === 2) {
     // Square table
@@ -1943,7 +1995,9 @@ if (dataSanKhan) {
       sourceType: 2,
       nameTable:`Bàn ${maxTableNumber}`,
       groupParentID:groupParentID,
-       isComeback:0
+      isComeback:0,
+      groupParentName:groupParentName,
+       nameNhom:""
     };
   } else {
     // Bench table
@@ -1960,11 +2014,15 @@ if (dataSanKhan) {
       sourceType: 3,
       nameTable:`${maxTableNumber}`,
       groupParentID:groupParentID,
-      isComeback:0
+      isComeback:0,
+      groupParentName:groupParentName,
+       nameNhom:""
     };
   }
-
-  setTables((prev) => [...prev, newTable]);
+  setTables((prev) => {
+    const newArray = [...prev, newTable];
+    return renumberTables(newArray);
+  });
   setNextTableNumber((prev) => prev + 1);
 };
 const handleDeleteSingle = (tableNumber: number) => {
@@ -2325,27 +2383,48 @@ useEffect(() => {
               <i className="fas fa-layer-group fa-lg me-1"></i>
               Tạo layout
             </button>
-            <ModalSelect
-              isOpen={isModalSelectOpen}
-              onClose={() => setIsModalSelectOpen(false)}
-              selectedValue={selectedParentGroup}
-              onSelectedChange={(v) => setSelectedParentGroup(v)}
-              onConfirm={
+             <ModalSelect
+            isOpen={isModalSelectOpen}
+            onClose={() => setIsModalSelectOpen(false)}
+            selectedValue={selectedParentGroup}
+            onSelectedChange={(v) => setSelectedParentGroup(v)}
+            onConfirm={(
+              row: number | string,
+              layout: string,
+              type: string,
+              seatCount: number | string,
+              checkRow: string,
+              position: string,
+              groupParentID: string
+            ) => {
+              // 👉 tìm tên group tương ứng
+              const matched = isDataParentGroup.find(
+                (g) => String(g.parentID) === String(groupParentID)
+              );
+              const groupParentName = matched ? matched.parentName : "";
 
-                 (row: number | string, layout: string, type: string, seatCount: number | string,
-                  checkRow:string,position:string,groupParentID:string) =>
-                   handleConfirmModal(row,layout,type,seatCount,checkRow,position,groupParentID)}
-                  data={isDataParentGroup}
-                  onComBack={() => {
-                    let maxTableComback =
-                    tables.length > 0 ? Math.max(...tables.map(t => t.isComeback ?? 0)) : 1;
-                    setTables((prev) =>
-                      prev.filter(x =>
-                        x.isComeback === 0 || x.isComeback !== maxTableComback
-                    )
-                );
-              }}
-           />
+              handleConfirmModal(
+                row,
+                layout,
+                type,
+                seatCount,
+                checkRow,
+                position,
+                groupParentID,
+                groupParentName
+              );
+            }}
+            data={isDataParentGroup}
+            onComBack={() => {
+              let maxTableComback =
+                tables.length > 0 ? Math.max(...tables.map((t) => t.isComeback ?? 0)) : 1;
+              setTables((prev) =>
+                prev.filter(
+                  (x) => x.isComeback === 0 || x.isComeback !== maxTableComback
+                )
+              );
+            }}
+          />
           </>
             <>
              <button
@@ -2558,8 +2637,30 @@ useEffect(() => {
             backgroundSize: `${layoutBackZoom * 39}px ${layoutBackZoom * 39}px`,
             transition: "background-size 0.2s ease",
           }}
-        >
-          {!isExporting && ( <div className="absolute bottom-[55px] left-[10px] z-[99999] space-y-2">
+        > {!isExporting && ( <div className="absolute bottom-[90px] left-[10px] z-[99999] space-y-2">
+                  <div className="flex items-center bg-white rounded-lg px-2 py-1 shadow-sm">
+                    <input
+                      type="checkbox"
+                      id="userToggleViewBan"
+                      checked={isViewBan}
+                      onChange={() => {
+                      
+                        setViewBan(!isViewBan)
+                      }}
+                      className="w-4 h-4 text-purple-600 bg-gray-100  rounded "
+                    />
+                    <label 
+                      htmlFor="userToggleViewBan" 
+                      className="ml-2 text-sm font-medium text-gray-700 cursor-pointer select-none"
+                    >
+                      Xem tên nhóm
+                    </label>
+                  </div>
+                 
+                  
+                </div>)}
+            
+               {!isExporting && ( <div className="absolute bottom-[55px] left-[10px] z-[99999] space-y-2">
                   <div className="flex items-center bg-white rounded-lg px-2 py-1 shadow-sm">
                     <input
                       type="checkbox"
@@ -2655,6 +2756,7 @@ useEffect(() => {
                       selected={selectedTableIndex === index}
                       setNextTableNumber={nextTableNumber}
                       fontSize={fontSize}
+                      isViewBan={!isViewBan}
                       onClick={(i, event) => {
                         const seatEl = (event.target as HTMLElement).closest('.seat');
 
@@ -2689,6 +2791,8 @@ useEffect(() => {
                           setItemDelete(table);
                           setItemDeleteID(1);
                           setNameTable(`${table.nameTable}`);
+                          setGroup(`${table.groupParentName}`)
+                          setTenNhom(`${table.nameNhom}`)
                           setCheckLoai(1);
                           setTableShape("Bàn tròn");
                       }}
@@ -2717,6 +2821,7 @@ useEffect(() => {
                       onDrag={handleDrag}
                       zoomLevel={zoomLevel}
                       fontSize={fontSize}
+                       isViewBan={!isViewBan}
                       isActive={multiSelectedItems.some(x => x.tableNumber === table.tableNumber)} 
                       onClick={(i, event) => {
                        const seatEl = (event.target as HTMLElement).closest('.seat');
@@ -2756,6 +2861,8 @@ useEffect(() => {
                           setItemDelete(table);
                           setItemDeleteID(1);
                           setNameTable(` ${table.nameTable}`);
+                          setGroup(`${table.groupParentName}`)
+                          setTenNhom(`${table.nameNhom}`)
                           setCheckLoai(1);
                           setTableShape("Bàn vuông");
                         
@@ -2772,6 +2879,7 @@ useEffect(() => {
                       selected={selectedBenchIndex === index}
                       guests={guests}
                       fontSize={fontSize}
+                       isViewBan={!isViewBan}
                       onClick={(i, event) => {
                         const seatEl = (event.target as HTMLElement).closest('.seat');
                        if (seatEl) {
@@ -2801,6 +2909,8 @@ useEffect(() => {
                           setItemDelete(table);
                           setItemDeleteID(1);
                           setNameTable(`${table.nameTable}`);
+                          setGroup(`${table.groupParentName}`)
+                          setTenNhom(`${table.nameNhom}`)
                           setCheckLoai(1);
                           setTableShape("Ghế dài");
                           setSelectedBenchIndex(i);
@@ -2872,6 +2982,8 @@ useEffect(() => {
               onChangeFontSizeSeat={(val: number) =>
                 setFontSize(prev => ({ ...prev, fontSizeSeat: val }))
               }
+              isGroup={isGroup}
+              isTenNhom={isTenNhom ?? ""}
             />
           )}
           {checkLoai === 2 && (

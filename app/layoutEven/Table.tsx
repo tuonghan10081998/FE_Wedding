@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 interface TableFormProps {
   tableName: string;
@@ -12,6 +12,8 @@ interface TableFormProps {
   onChangeName: (val: string) => void;
   onChangeFontSizeTable: (val: number) => void;
   onChangeFontSizeSeat: (val: number) => void;
+  isGroup: string;
+  isTenNhom: string;
 }
 
 const TableForm: React.FC<TableFormProps> = ({
@@ -25,8 +27,13 @@ const TableForm: React.FC<TableFormProps> = ({
   onDelete,
   onChangeName,
   onChangeFontSizeTable,
-  onChangeFontSizeSeat
+  onChangeFontSizeSeat,
+  isGroup,
+  isTenNhom
 }) => {
+  // State local để lưu giá trị tạm thời
+  const [tempName, setTempName] = useState(isTenNhom ?? "");
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     if (val === "") {
@@ -39,8 +46,22 @@ const TableForm: React.FC<TableFormProps> = ({
     }
   };
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChangeName(e.target.value);
+  // Chỉ cập nhật state local khi typing
+  const handleNameInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTempName(e.target.value);
+  };
+
+  // Gọi onChangeName khi blur
+  const handleNameBlur = () => {
+    onChangeName(tempName);
+  };
+
+  // Gọi onChangeName khi nhấn Enter
+  const handleNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      onChangeName(tempName);
+      e.currentTarget.blur(); // Optional: blur input sau khi Enter
+    }
   };
 
   const handleFontSizeTableChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,6 +82,11 @@ const TableForm: React.FC<TableFormProps> = ({
     }
   };
 
+  // Cập nhật tempName khi isTenNhom thay đổi từ props
+  React.useEffect(() => {
+    setTempName(isTenNhom ?? "");
+  }, [isTenNhom]);
+
   return (
     <div className="space-y-4">
       <div className="bg-white shadow-md rounded-lg max-w-sm w-full p-6 space-y-6">
@@ -68,22 +94,27 @@ const TableForm: React.FC<TableFormProps> = ({
         
         <div className="space-y-4 text-gray-700">
           <div className="flex justify-between items-center">
-            <label className="font-medium">Tên bàn:</label>
+            <label className="font-medium">Tên nhóm:</label>
             <input
               id="nameTableInput"
               type="text"
-              value={tableName}
-              onChange={handleNameChange}
+              value={tempName}
+              onChange={handleNameInputChange}
+              onBlur={handleNameBlur}
+              onKeyDown={handleNameKeyDown}
               className="border border-gray-300 rounded-md w-40 text-center py-1 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
               aria-label="Tên"
             />
           </div>
 
           <div className="flex justify-between">
-            <span className="font-medium">Loại bàn:</span>
-            <span id="tableShape" className="text-gray-900">{tableShape}</span>
-          </div>
-
+            <span className="font-medium">Tên bàn:</span>
+            <span id="tableShape" className="text-gray-900">{tableName}</span>
+           </div>
+           <div className="flex justify-between">
+            <span className="font-medium">Bàn bên: </span>
+            <span id="tableShape" className="text-gray-900">{isGroup}</span>
+           </div>
           <div className="flex justify-between items-center">
             <label className="font-medium">Số ghế:</label>
             <input

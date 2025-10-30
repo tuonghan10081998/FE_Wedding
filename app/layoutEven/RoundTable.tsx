@@ -20,6 +20,7 @@ interface RoundTableProps {
   onGuestSeatChange?: (guestId: string, newSeatID: string | null) => void;
   isActive: boolean;
   onClickSeat: (e: React.MouseEvent, seatID: string) => void;
+  isViewBan:boolean
 }
 
 const RoundTable: React.FC<RoundTableProps> = ({
@@ -36,8 +37,10 @@ const RoundTable: React.FC<RoundTableProps> = ({
   onGuestSeatChange,
   isActive,
   onClickSeat,
-  fontSize
+  fontSize,
+  isViewBan
 }) => {
+  console.log(isViewBan)
   const wrapperRef = useRef<HTMLDivElement>(null);
   const startPos = useRef({ x: 0, y: 0, size: 0 });
   const centerRef = useRef({ x: 0, y: 0 });
@@ -421,7 +424,7 @@ const RoundTable: React.FC<RoundTableProps> = ({
           fontSize:fontSize.fontSizeTable
         }}
       >
-        {table.nameTable}
+        {isViewBan ? table.nameTable : table.nameNhom}
       </div>
 
       <div 

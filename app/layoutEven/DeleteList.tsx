@@ -17,7 +17,7 @@ const DeleteList: React.FC<DeleteListProps> = ({ onDelete, onConfirm }) => {
 
         {/* Input tên bàn */}
         <div className="text-gray-700 text-lg font-medium">
-          <label className="block mb-2">Tên bàn</label>
+          <label className="block mb-2">Tên nhóm</label>
           <input
             type="text"
             value={newTableName}
@@ -40,7 +40,10 @@ const DeleteList: React.FC<DeleteListProps> = ({ onDelete, onConfirm }) => {
           </button>
 
           <button
-            onClick={() => onConfirm?.(newTableName ?? "")}
+            onClick={() => {
+              onConfirm?.(newTableName ?? "")
+              setnewTableName("")
+            }}
             type="button"
             aria-label="Confirm"
             className="flex items-center justify-center gap-2 px-3 h-10 rounded-lg bg-teal-600 text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1 transition font-semibold select-none"

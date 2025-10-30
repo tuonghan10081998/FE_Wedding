@@ -15,7 +15,8 @@ interface SquareTableRenderProps {
   onDrag?: (index: number, newTop: number, newLeft: number, type: number) => void;
   onClick: (index: number, event: React.MouseEvent) => void;
   isActive: boolean;
-  fontSize:FontSize
+  fontSize:FontSize,
+  isViewBan:boolean
 }
 
 const seatSize = 32;
@@ -104,7 +105,8 @@ const SquareTableRender: React.FC<SquareTableRenderProps> = ({
   onDrag,
   onClick,
   isActive,
-   fontSize
+   fontSize,
+   isViewBan
 }) => {
   const [isResizing, setIsResizing] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
@@ -416,7 +418,7 @@ const SquareTableRender: React.FC<SquareTableRenderProps> = ({
           fontSize:fontSize.fontSizeTable
         }}
       >
-        {table.nameTable}
+        {isViewBan ? table.nameTable : table.nameNhom}
       </div>
 
       {seatElements}

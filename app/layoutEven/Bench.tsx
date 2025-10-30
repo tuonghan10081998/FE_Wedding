@@ -15,7 +15,8 @@ interface BenchTableRenderProps {
   onDrag?: (index: number, newTop: number, newLeft: number, type: number) => void;
   onClick: (index: number, event: React.MouseEvent) => void;
   isActive: boolean;
-    fontSize:FontSize
+  fontSize:FontSize
+  isViewBan:boolean
 }
 
 const seatSize = 35;
@@ -56,7 +57,8 @@ const BenchTableRender: React.FC<BenchTableRenderProps> = ({
   onDrag,
   onClick,
   isActive,
-  fontSize
+  fontSize,
+  isViewBan
 }) => {
   const [isResizing, setIsResizing] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
@@ -340,7 +342,7 @@ const BenchTableRender: React.FC<BenchTableRenderProps> = ({
           fontSize:fontSize.fontSizeTable
         }}
       >
-        {table.nameTable}
+       {isViewBan ? table.nameTable : table.nameNhom}
       </div>
 
       {seatElements}

@@ -55,7 +55,7 @@ if (!isOpen) return null;
       onWheel={(e) => e.stopPropagation()}
       onMouseDown={(e) => e.stopPropagation()}
     >
-      <div className="bg-white rounded-lg p-6 px-2 py-1 overflow-auto max-h-[calc(100vh-122px)]" style={{ width: "297px" }}>
+      <div className="bg-white rounded-lg p-6 px-2 py-1 overflow-auto h-full max-h-[calc(100vh-122px)]" style={{ width: "297px" }}>
         <h2 className="text-lg font-bold border-b mb-5">Tạo Bàn Mới</h2>
           {/* Dãy + SL bàn */}
         <div className="mb-2 flex gap-4 mb-2">
