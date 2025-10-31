@@ -424,10 +424,16 @@ const getDataProject = async () => {
             
           }else{
             toast.success(`Tạo dự án thành công`);
+            setTimeout( async ()  => {
+               await handleAddItem("sankhau",200,200,"#155DFC","Sân khấu",(window.innerWidth / 2) + 182,150,1);
+              await handleAddItem("cong",150,200,"transparent","Cổng",(window.innerWidth / 2) + 182,window.innerHeight + 200,2);
+           }, 400);
           }
       }
   }
+useEffect(() => {
 
+},[ItemLayout])
   const getDataProjectID = async (projectid: string) => {
     if(!projectid) return
     const url = `${import.meta.env.VITE_API_URL}/api/Project/${projectid}`;
@@ -630,8 +636,8 @@ useEffect(() => {
            GetGuest(isProjectID)
         }, 2000);
       }else{
-       await handleAddItem("sankhau",200,200,"#155DFC","Sân khấu",(window.innerWidth / 2) + 182,150,1);
-       await handleAddItem("cong",150,200,"transparent","Cổng",(window.innerWidth / 2) + 182,window.innerHeight + 200,2);
+      //  await handleAddItem("sankhau",200,200,"#155DFC","Sân khấu",(window.innerWidth / 2) + 182,150,1);
+      //  await handleAddItem("cong",150,200,"transparent","Cổng",(window.innerWidth / 2) + 182,window.innerHeight + 200,2);
       }
     };
     resetAndFetch();
@@ -772,7 +778,9 @@ function renumberTables(tablesToRenumber: UnifiedTableData[]) {
         localStorage.setItem("projectid", data.projectID); 
         localStorage.setItem("projectidName", data.projectName);
         handleSaveGuest(data.projectID,access)
-        setIsModalSaveOpenProject(false)
+        setTimeout(() => {
+          setIsModalSaveOpenProject(false)
+        }, 400);
       }else {
         toast.success("Cập nhật thành công");
          handleSaveGuest(isProjectID,access)
@@ -780,9 +788,7 @@ function renumberTables(tablesToRenumber: UnifiedTableData[]) {
     }
      else if(response.status === 401){
        ReFreshToken(1)
-    
     }
-     
   };
 const handleSaveGuest = (projectid: string,access:string) => {
   // Lấy danh sách guestID trong subget
@@ -1835,22 +1841,15 @@ const handleAddItem = async (
   id?:number
 ): Promise<void> => {
   return new Promise((resolve) => {
-    const maxTableNumberItem = 
-      layoutItems.length > 0
-        ? (() => {
-            const lastId = layoutItems[layoutItems.length - 1].id as string;
-            const num = Number(lastId.replace("item", "")) || 0;
-            return num + 1;
-          })()
-        : 1;
+   
    const dataSanKhan = layoutItems.find((x: LayoutItem) => x.id === "item1");
     const centerX = x ?? toLocalX(window.innerWidth / 2);
     const centerY = y ?? toLocalY(window.innerHeight / 2);
-
+     console.log(type)
     const newItem: LayoutItem = {
-      id: `item${id ?? maxTableNumberItem}`,
+      id: `item${id ?? nextTableNumberItem}`,
       type,
-      x: dataSanKhan?.x ?? centerX,
+      x: x?? dataSanKhan?.x ?? centerX,
       y: centerY - height / 2,
       size: Math.min(width, height) * 1,
       width,
@@ -1862,9 +1861,10 @@ const handleAddItem = async (
       nameItem,
     };
     setLayoutItems((prev) => [...prev, newItem]);
+    
     setNextTableNumberItem((prev) => prev + 1);
 
-    resolve(); // ✅ báo cho await biết là xong
+     resolve(); // ✅ báo cho await biết là xong
   });
 };
 const handleAddBan = (index: number,groupParentID:number,type:string = "left") => {
