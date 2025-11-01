@@ -1,4 +1,5 @@
 import React from "react";
+import { MapPin, ExternalLink, Trash2 } from 'lucide-react';
 interface WeddingInvitation1Props {
   width?: number;
   height?: number;
@@ -9,6 +10,8 @@ interface WeddingInvitation1Props {
   partyRank?:string;
   partyAddress?:string
   checkNhaHang?:boolean;
+  type?:string;
+  mapLink?: string;
 }
 const withDefault = (value: string | undefined, fallback: string) =>
   value && value.trim() !== "" ? value : fallback;
@@ -22,7 +25,13 @@ const WeddingInvitation2: React.FC<WeddingInvitation1Props> = ({
   partyRank,
   partyAddress,
   checkNhaHang,
+  mapLink
 })  => {
+  const handleMapClick = () => {
+    if (mapLink) {
+      window.open(mapLink, '_blank', 'noopener,noreferrer');
+    }
+  };
   return (
     <div className="flex items-center justify-center  font-[Montserrat]">
       <div
@@ -71,6 +80,21 @@ const WeddingInvitation2: React.FC<WeddingInvitation1Props> = ({
               Sự hiện diện của quý khách là niềm vinh hạnh của gia đình chúng
               tôi!
             </p>
+                {mapLink && (
+                   <div 
+                     onClick={handleMapClick}
+                     className="flex items-center mt-6 mb-4 mx-auto px-6  bg-pink-600 rounded-full w-fit hover:bg-pink-700 hover:scale-105 transition-all cursor-pointer shadow-md"
+                   >
+                     <div className="flex items-center justify-center w-7 h-10 bg-red bg-opacity-20 rounded-full">
+                       <MapPin className="w-5 h-4 text-white" />
+                     </div>
+ 
+                     <p className="text-sm text-white font-light leading-relaxed font-[Roboto] whitespace-nowrap">
+                       {/* {withDefault(mapLink,"")} */}
+                       Địa điểm 
+                     </p>
+                   </div>
+                 )}           
           </div>
         </div>
       </div>

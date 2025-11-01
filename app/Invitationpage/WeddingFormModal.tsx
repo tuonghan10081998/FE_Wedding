@@ -55,6 +55,8 @@ interface WeddingFormModalProps {
   data:Project[]
   setProjectID:(v:string) => void
   projectID:string
+  mapLink:string
+  setMapLink:(v:string)=> void
   onSummit: (e: React.FormEvent) => void;
 }
 // Dữ liệu thiệp
@@ -264,6 +266,7 @@ const WeddingFormModal: React.FC<WeddingFormModalProps> = (props) => {
               <div className="md:pe-3"> {renderInput(props.partyDateTimeAm, props.setPartyDateTimeAm, "Nhằm ngày", "input", 1)}</div>
               <div className="md:ps-3">{renderInput(props.partyVenue, props.setPartyVenue, props.checkNhaHang ? "Tên nhà hàng" : "Tại tư gia","input",1,true,true)}</div>
               <div className="md:pe-3"> {renderInput(props.partyAddress, props.setpartyAddress, "Địa điểm dự tiệc", "textarea", 1)}</div>
+              <div className="md:ps-3"> {renderInput(props.mapLink, props.setMapLink, "Link gg map", "textarea", 1,false)}</div>
             </div>
           </div>
         </form>

@@ -246,7 +246,7 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
     const [searchParams, setSearchParams] = useSearchParams();
     const resultPayment = searchParams.get("result");
     const [paymentSuccess, setPaymentSuccess] = useState(false);
-
+    const [mapLink, setMapLink] = useState('');
      useEffect(() => {
         if(!dataProject) return
         if(!resultPayment && !storedGuests){
@@ -472,6 +472,7 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
             setPartyRank(layoutData.partyRank || "");
             setpartyAddress(layoutData.partyAddress || "");
             setCheckNhaHang(layoutData.checkNhaHang ?? true);
+            setMapLink(layoutData.mapLink)
         }catch{
             resetForm()
         }
@@ -712,9 +713,10 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
                                                         partyRank?:string;
                                                         partyAddress?:string
                                                         checkNhaHang?:boolean;
+                                                        mapLink?:string
                                                     }>, {
                                                         partyDateTime,partyTime,partyDateTimeAm,
-                                                        partyVenue,partyRank,partyAddress,checkNhaHang
+                                                        partyVenue,partyRank,partyAddress,checkNhaHang,mapLink
                                                     });
                                                 }
                                                 return view;
@@ -814,16 +816,16 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Xác nhận tham dự *
                                         </label>
-                                        <div className="flex space-x-3 mt-2">
+                                        <div className="flex space-x-3 gap-3 px-4 py-1 border border-gray-300 rounded-lg">
                                             <label className="flex items-center">
                                                 <input
                                                     type="radio"
                                                     value="yes"
                                                     checked={rsvpAttending === "yes"}
                                                     onChange={(e) => setRsvpAttending(e.target.value)}
-                                                    className="w-4 h-4 text-pink-600 border-gray-300 focus:ring-pink-500"
+                                                    className="w-6 h-10 text-pink-600 border-gray-300 focus:ring-pink-500"
                                                 />
-                                                <span className="ml-1 text-sm text-gray-700">Có</span>
+                                                <span className="ml-1 text-lg text-gray-700">Có</span>
                                             </label>
                                             <label className="flex items-center">
                                                 <input
@@ -831,9 +833,9 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
                                                     value="no"
                                                     checked={rsvpAttending === "no"}
                                                     onChange={(e) => setRsvpAttending(e.target.value)}
-                                                    className="w-4 h-4 text-pink-600 border-gray-300 focus:ring-pink-500"
+                                                    className="w-6 h-10 text-pink-600 border-gray-300 focus:ring-pink-500"
                                                 />
-                                                <span className="ml-1 text-sm text-gray-700">Không</span>
+                                                <span className="ml-1 text-lg text-gray-700">Không</span>
                                             </label>
                                         </div>
                                     </div>

@@ -48,9 +48,8 @@ const WeddingCardCreate: React.FC<WeddingCardCreateProps> = ({
       const [checkNhaHang,setCheckNhaHang] = useState<boolean>(true)
       const[projectid,setProject] = useState<string>(""); 
       const [isOpen, setIsOpen] = useState(false);
-  
+    
   useEffect(() => {
-    console.log(layoutData)
     if(!layoutData) return
      setProject(layoutData.projectID)
             setGroomName(layoutData.groomName || "");
@@ -95,7 +94,6 @@ const WeddingCardCreate: React.FC<WeddingCardCreateProps> = ({
     document.removeEventListener('mousedown', handleClickOutside);
   };
 }, [isOpen]);
-console.log(images)
 return (
     <div className="w-full max-w-sm rounded-2xl shadow-lg bg-white p-4 relative">
       <div className="absolute right-2 top-1 text-red-500 ">

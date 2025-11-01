@@ -47,7 +47,7 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
   const [tuGia, setTuGia] = useState("TẠI TƯ GIA NHÀ ");
   const [weddingVenue, setWeddingVenue] = useState("");
   const [weddingRank, setWeddingRank] = useState("");
-
+  const [mapLink, setMapLink] = useState('');
   const [partyDateTime, setPartyDateTime] = useState<string>("");
   const [partyTime, setPartyTime] = useState<string>("");
   const [partyDateTimeAm, setPartyDateTimeAm] = useState<string>("");
@@ -98,6 +98,7 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
         // partyRank BỎ QUA
       };
    // Option 1: Nếu dataInvatitionEdit là single object
+  
   useEffect(() => {
     if (!dataInvatitionEdit) return;
     try {
@@ -128,6 +129,7 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
       setpartyAddress(layoutData.partyAddress || "");
       setCheckNhaHang(layoutData.checkNhaHang ?? true);
       setCheckUpdate(true)
+      setMapLink(layoutData.mapLink ?? "")
     }catch{
       resetForm()
     }
@@ -162,7 +164,8 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
           partyAddress,
           checkNhaHang,
           checkForm,
-          userID
+          userID,
+          mapLink
         };
 
         // check từng field theo fieldLabels
@@ -524,6 +527,8 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
             data={data}
             setProjectID={setProjectID}
             projectID={projectID}
+            mapLink={mapLink}
+            setMapLink={setMapLink}
             onSummit={handleSummit} // <-- chắc chắn đây là function
           />
         )}
