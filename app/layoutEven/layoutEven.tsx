@@ -447,8 +447,9 @@ useEffect(() => {
       const layoutRaw = (dataLayout as any).layout ?? (dataLayout as any).layoutData;
       if (layoutRaw) {
       const parsed = JSON.parse(layoutRaw);
+      console.log(parsed.Table)
       // ✅ Batch update tất cả state cùng lúc
-      const normalizedTables:UnifiedTableData[] = (parsed.Table || []).map((t: any) => ({
+      const normalizedTables:UnifiedTableData[] = (parsed.Table || []).map((t: any) => ({ 
         tableNumber: t.TableNumber,
         shape: t.Shape?.toLowerCase() ?? "",
         width: t.Width,
@@ -461,7 +462,10 @@ useEffect(() => {
         sourceType: t.SourceType,
         nameTable: t.NameTable,
         groupParentID:t.GroupParentID,
-        isComeback:0
+        isComeback:0,
+        groupParentName:t.GroupParentName,
+        nameNhom:t.NameNhom,
+
       }));
       const fontSizeData = parsed.FontSize
 
@@ -471,7 +475,6 @@ useEffect(() => {
           fontSizeSeat:fontSizeData ?   fontSizeData.FontSizeSeat : 12,
         }
      
-      console.log(normalizedFontSize)
      const maxTableNumber =
         normalizedTables.length > 0
           ? Math.max(...normalizedTables.map(t => t.tableNumber ?? 0)) + 1
@@ -731,7 +734,6 @@ function renumberTables(tablesToRenumber: UnifiedTableData[]) {
     .sort(sortByPosition)
     .map((table, index) => ({
       ...table,
-      tableNumber: index + 1,
       nameTable: `Bàn ${index + 1}`
     }));
 
@@ -1175,9 +1177,6 @@ const handleCtrlClickITem = (item: LayoutItem, event: React.MouseEvent,checkClic
     setMultiSelected([])
   }
 };
-useEffect(() => {
-  console.log(multiSelected)
-},[multiSelected])
  const toLocalX = (px: number) => (px - offsetRef.current.x) / zoomRef.current;
   const toLocalY = (px: number) => (px - offsetRef.current.y) / zoomRef.current;
 
@@ -1528,7 +1527,9 @@ const handleResetSeat = () => {
 
   setGuests(newGuests);
 };
-
+useEffect(() => {
+  tables && console.log(tables)
+},[tables])
 const handleAssignGuestsToSeats = () => {
   const newGuests = [...guests];
   const newGuestsFilter = newGuests.filter(x => x.groupInfo?.parentID === parseInt(isParentGroup));
@@ -1845,7 +1846,6 @@ const handleAddItem = async (
    const dataSanKhan = layoutItems.find((x: LayoutItem) => x.id === "item1");
     const centerX = x ?? toLocalX(window.innerWidth / 2);
     const centerY = y ?? toLocalY(window.innerHeight / 2);
-     console.log(type)
     const newItem: LayoutItem = {
       id: `item${id ?? nextTableNumberItem}`,
       type,

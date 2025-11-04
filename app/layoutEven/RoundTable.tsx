@@ -40,7 +40,6 @@ const RoundTable: React.FC<RoundTableProps> = ({
   fontSize,
   isViewBan
 }) => {
-  console.log(isViewBan)
   const wrapperRef = useRef<HTMLDivElement>(null);
   const startPos = useRef({ x: 0, y: 0, size: 0 });
   const centerRef = useRef({ x: 0, y: 0 });
