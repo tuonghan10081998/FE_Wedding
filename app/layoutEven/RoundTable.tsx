@@ -430,7 +430,8 @@ const RoundTable: React.FC<RoundTableProps> = ({
         className="resizer resizerbt hidden" 
         onMouseDown={handleResizeMouseDown}
       >
-        <i style={{ fontSize: "17px" }} className="fa-solid fa-circle-right"></i>
+        <span className='text-[23px] text-black border border-gray-300 rounded-lg bg-white px-[5px] py-0'>⤡</span>
+        {/* <i style={{ fontSize: "17px" }} className="fa-solid fa-circle-right"></i> */}
       </div>
 
       {renderSeats(table.tableNumber, localSeat ?? 0, localRotation)}

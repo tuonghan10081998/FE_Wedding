@@ -426,13 +426,16 @@ const SquareTableRender: React.FC<SquareTableRenderProps> = ({
       <div 
         className="rotate-handle rotate-banvuong hidden" 
         onMouseDown={handleRotateMouseDown}
-      ></div>
+      >
+       <span className='text-[23px] text-black border border-gray-300 bg-yellow-300 rounded-lg bg-white px-[5px] py-0'>↻</span>
+
+      </div>
       
       <div 
         className="resizer resize-icon" 
         onMouseDown={handleResizeMouseDown}
       >
-        <i style={{ fontSize: "17px" }} className="fa-solid fa-circle-right"></i>
+        <span className='text-[23px] text-black border border-gray-300 rounded-lg bg-white px-[5px] py-0'>⤡</span>
       </div>
     </div>
   );
