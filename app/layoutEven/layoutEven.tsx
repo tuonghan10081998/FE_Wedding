@@ -1031,26 +1031,43 @@ const handleDataImported = (result: ImportResult): void => {
       toast.error("Vui lòng chọn bên !");
        return
   }
+  
   let hasDuplicate = false;
+  let updatedCount = 0;
 
-  const processedGuests = processImportedData(result.data)
-    .filter((guest) => {
-      const isDuplicate = guests.some((g) => g.phone === guest.phone);
-      if (isDuplicate) {
-        hasDuplicate = true;
-        return false; // bỏ qua guest này
-      }
-      return true;
-    });
+  const processedGuests = processImportedData(result.data);
+  const guestsToAdd: Guest[] = [];
+  const updatedGuests = [...guests];
 
-  if (processedGuests.length > 0) {
-    const newTable = [...guests, ...processedGuests];
-    setGuests(newTable);
+  processedGuests.forEach((guest) => {
+    const duplicateIndex = updatedGuests.findIndex((g) => g.phone === guest.phone);
+    
+    if (duplicateIndex !== -1) {
+      // Nếu trùng số điện thoại, cập nhật groupName
+      hasDuplicate = true;
+      updatedGuests[duplicateIndex] = {
+        ...updatedGuests[duplicateIndex],
+        groupInfo: {
+          ...updatedGuests[duplicateIndex].groupInfo,
+          groupName: guest.groupInfo?.groupName, // Cập nhật groupName mới
+        }
+      };
+      updatedCount++;
+    } else {
+      // Nếu không trùng, thêm vào danh sách khách mới
+      guestsToAdd.push(guest);
+    }
+  });
+
+  if (guestsToAdd.length > 0 || updatedCount > 0) {
+    setGuests([...updatedGuests, ...guestsToAdd]);
   }
+  
   if (hasDuplicate) {
-    toast.warning("Có số điện thoại trùng, nên một số khách không được thêm vào danh sách!");
+    toast.warning(`Có ${updatedCount} số điện thoại trùng, đã cập nhật thông tin nhóm cho các khách này!`);
   }
 };
+
 const processImportedData = (importData: any[][]) => {
   const maxTableNumber = guests.length > 0
     ? Math.max(...guests.map(t => t.sort ?? 0)) + 1
@@ -1061,24 +1078,40 @@ const processImportedData = (importData: any[][]) => {
   
   // KIỂM TRA GIỚI HẠN KHÁCH MỜI
   const currentGuestCount = guests.length;
-  const maxGuestLimit = maxGuest; // Giới hạn của gói (bạn có thể thay đổi)
+  const maxGuestLimit = maxGuest;
   
-  // Tính số khách còn có thể thêm
+  // Tính số khách còn có thể thêm (không tính khách trùng vì sẽ update)
+  const newGuestsCount = validRows.filter(row => {
+    const phone = row[3]?.toString() || '';
+    return !guests.some(g => g.phone === phone);
+  }).length;
+  
   const availableSlots = maxGuestLimit - currentGuestCount;
   
-  // Nếu đã đầy hoàn toàn
-  if (availableSlots <= 0) {
+  // Nếu đã đầy hoàn toàn và không có khách trùng để update
+  if (availableSlots <= 0 && newGuestsCount > 0) {
     setIsGuestLimitModalOpen(true);
-    return []; // Không thêm khách nào
+    return [];
   }
   
-  // Nếu số khách muốn import vượt quá chỗ trống
+  // Nếu số khách MỚI muốn import vượt quá chỗ trống
   let rowsToProcess = validRows;
   let showWarning = false;
   
-  if (validRows.length > availableSlots) {
-    rowsToProcess = validRows.slice(0, availableSlots); // Chỉ lấy số khách còn lại
-    showWarning = true; // Đánh dấu để hiện thông báo sau
+  if (newGuestsCount > availableSlots) {
+    // Ưu tiên xử lý khách trùng (update), sau đó mới thêm khách mới
+    const duplicateRows = validRows.filter(row => {
+      const phone = row[3]?.toString() || '';
+      return guests.some(g => g.phone === phone);
+    });
+    
+    const newRows = validRows.filter(row => {
+      const phone = row[3]?.toString() || '';
+      return !guests.some(g => g.phone === phone);
+    });
+    
+    rowsToProcess = [...duplicateRows, ...newRows.slice(0, availableSlots)];
+    showWarning = true;
   }
   
   const guestsTable = rowsToProcess.map((row, index) => {
@@ -1100,7 +1133,6 @@ const processImportedData = (importData: any[][]) => {
     } as Guest;
   });
   
-  // Hiển thị modal cảnh báo SAU KHI đã import xong
   if (showWarning) {
     setTimeout(() => {
       setIsGuestLimitModalOpen(true);
@@ -1109,7 +1141,6 @@ const processImportedData = (importData: any[][]) => {
   
   return guestsTable;
 };
-
   
 const handleCtrlClick = (item: UnifiedTableData, event: React.MouseEvent,checkClick:boolean = false) => {
     setIsModalSelectOpen(false)
@@ -1527,9 +1558,7 @@ const handleResetSeat = () => {
 
   setGuests(newGuests);
 };
-useEffect(() => {
-  tables && console.log(tables)
-},[tables])
+
 const handleAssignGuestsToSeats = () => {
   const newGuests = [...guests];
   const newGuestsFilter = newGuests.filter(x => x.groupInfo?.parentID === parseInt(isParentGroup));
@@ -1597,8 +1626,6 @@ if (minTable.left < sanKhanX) {
   // Bàn nhỏ nhất nằm bên phải → phải trước
   finalSortedTables = [...sortedRight, ...sortedLeft];
 }
-
-console.log(finalSortedTables)
 
   // Theo dõi bàn nào đã được sử dụng bởi nhóm nào
   const tableUsedByGroup: Record<string, string[]> = {}; // groupName -> [maBan1, maBan2, ...]

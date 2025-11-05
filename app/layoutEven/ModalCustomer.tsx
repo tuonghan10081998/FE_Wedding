@@ -7,7 +7,7 @@ import type { SingleValue } from "react-select";
 import GuestModal from "./GuestModal";
 import ModalResetSeat from '~/layoutEven/ModalResetSeat';
 import { ToastContainer, toast } from "react-toastify";
-
+import * as XLSX from 'xlsx';
 interface ModalCustomerProps {
   onClose: () => void;
   table: Guest[];
@@ -143,7 +143,62 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
       return minSortA - minSortB;
     });
   };
+const exportToExcel = () => {
+    
 
+    // Tạo dữ liệu cho Excel
+    const excelData: any[] = [];
+    
+    // Header chính (row 1)
+    excelData.push(['Danh sách khách mời']);
+    
+    // Header cột (row 2)
+    excelData.push(['STT', 'Tên (BietDanh)', 'Giới tính', 'SĐT', 'Nhóm bàn', 'Email']);
+
+    let stt = 1;
+    
+      listData?.forEach((guest) => {
+        excelData.push([
+          stt,
+          guest.name,
+          guest.gender || '',
+          guest.phone || '',
+          guest.groupInfo?.groupName,
+          '' // Email column - empty as per your requirement
+        ]);
+        stt++;
+      });
+
+    // Tạo worksheet
+    const ws = XLSX.utils.aoa_to_sheet(excelData);
+
+    // Merge cells cho tiêu đề
+    ws['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } } // Merge A1:F1
+    ];
+
+    // Định dạng độ rộng cột
+    ws['!cols'] = [
+      { wch: 5 },   // STT
+      { wch: 20 },  // Tên
+      { wch: 10 },  // Giới tính
+      { wch: 15 },  // SĐT
+      { wch: 20 },  // Nhóm bàn
+      { wch: 25 }   // Email
+    ];
+
+    // Tạo workbook và thêm worksheet
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Danh sách khách mời');
+
+    // Lấy tên bên để đặt tên file
+    const selectedSide = filterOptions.find(opt => opt.value === selectedValue);
+    const sideName = selectedSide?.label || 'DanhSach';
+    const fileName = `DanhSachKhachMoi_${sideName}_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+    // Xuất file
+    XLSX.writeFile(wb, fileName);
+  };
   const renderTableRows = () => {
     const groupedData = groupedByGroupName();
     let globalIndex = 0;
@@ -247,15 +302,26 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
           </div>
         
            <div className='flex  gap-2 flex-wrap w-full justify-between items-center mt-2'>
-            <button 
+           <div className='flex  gap-4'>
+             <button 
                 className="w-[210px] cursor-pointer flex items-center px-4 py-3 border border-[#cccccc] rounded-[7px] text-gray-700 hover:bg-gray-50 focus:bg-gray-100 focus:outline-none transition-colors duration-200 text-left text-sm group"
                 onClick={() => {
                  onClickFile()
                 }}
               >
-                <i className="fa-solid fa-file-lines text-[16px] mr-3 text-blue-500 group-hover:text-blue-600"></i>
+                <i className="fa-solid fa-file-lines text-[16px] mr-1 text-blue-500 group-hover:text-blue-600"></i>
                 <span className="font-medium">File mẫu import khách</span>
             </button>
+            <button 
+                className="w-[180px] cursor-pointer flex items-center px-4 py-3 border border-[#cccccc] rounded-[7px] text-gray-700 hover:bg-gray-50 focus:bg-gray-100 focus:outline-none transition-colors duration-200 text-left text-sm group"
+                onClick={() => {
+                 exportToExcel()
+                }}
+              >
+                <i className="fa-solid fa-file-lines text-[16px] mr-1 text-blue-500 group-hover:text-blue-600"></i>
+                <span className="font-medium">Xuất file khách mời</span>
+            </button>
+           </div>
                   <div className="flex gap-4">
             <div className="flex gap-4 items-center">
               <div className="">Chọn bên <span className="text-red-500">(*)</span></div>
