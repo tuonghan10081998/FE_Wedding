@@ -1563,9 +1563,14 @@ const handleAssignGuestsToSeats = () => {
   const newGuests = [...guests];
   const newGuestsFilter = newGuests.filter(x => x.groupInfo?.parentID === parseInt(isParentGroup));
 
-  const unassignedGuests = newGuestsFilter.filter((g) => !g.seatID);
+  const sortedTable = newGuestsFilter.filter((g) => !g.seatID);
   var tableSetNameTable = tables
   
+ const unassignedGuests = [...sortedTable].sort((a, b) => {
+      const maNhomA = Number(a.sort) || 0;
+      const maNhomB = Number(b.sort) || 0;
+      return maNhomA - maNhomB;
+    });
   // Nhóm khách theo groupName
   const guestsByGroup = unassignedGuests.reduce((acc, guest) => {
     const groupName = guest.groupInfo?.groupName || 'default';
@@ -1619,6 +1624,7 @@ const minTable = filteredTables.reduce((prev, curr) => {
 
 // ✅ Quyết định thứ tự ghép
 let finalSortedTables = [];
+console.log(minTable.left < sanKhanX)
 if (minTable.left < sanKhanX) {
   // Bàn nhỏ nhất nằm bên trái → trái trước
   finalSortedTables = [...sortedLeft, ...sortedRight];
@@ -1626,7 +1632,7 @@ if (minTable.left < sanKhanX) {
   // Bàn nhỏ nhất nằm bên phải → phải trước
   finalSortedTables = [...sortedRight, ...sortedLeft];
 }
-
+console.log(finalSortedTables)
   // Theo dõi bàn nào đã được sử dụng bởi nhóm nào
   const tableUsedByGroup: Record<string, string[]> = {}; // groupName -> [maBan1, maBan2, ...]
   
