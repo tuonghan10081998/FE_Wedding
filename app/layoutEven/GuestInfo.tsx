@@ -77,7 +77,7 @@ const GuestInfoModal: React.FC<GuestInfoModalProps> = ({  table,onClickSeat ,onD
         </div>
 
         {/* Ghế */}
-        <div>
+        <div className='hidden'>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">QR cá nhân </label>
              <QRCodeCanvas value={`${table.guestID}-${table.name}`} size={80} />
@@ -95,7 +95,7 @@ const GuestInfoModal: React.FC<GuestInfoModalProps> = ({  table,onClickSeat ,onD
                 Hành động
               </label>
               <div className="flex space-x-6">
-              <button
+              <button title='Chuyển ghế khách mời'
               onClick={() => onClickSeat(table.guestID,true)}
                 type="button"
                 className="flex items-center justify-center w-14 h-[45px] rounded-lg bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-green-300 text-white shadow-md transition"
@@ -103,7 +103,7 @@ const GuestInfoModal: React.FC<GuestInfoModalProps> = ({  table,onClickSeat ,onD
               >
                 <i className="fas fa-plus text-2xl"></i>
               </button>
-            <button
+            <button title='Xóa khách mời ra khỏi bàn'
            onClick={() => onReset(table.guestID)}
             type="button"
             className="flex items-center justify-center w-14 h-[45px] rounded-lg bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-green-300 text-white shadow-md transition"
@@ -111,7 +111,7 @@ const GuestInfoModal: React.FC<GuestInfoModalProps> = ({  table,onClickSeat ,onD
           >
            <i className="fa-solid fa-rotate-right"></i>
           </button>
-              <button
+              <button title='Xóa khách mời'
               onClick={() => onDelete(table.guestID,table.name)}
                 type="button"
                 className="flex items-center justify-center w-14 h-[45px] rounded-lg bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-300 text-white shadow-md transition"

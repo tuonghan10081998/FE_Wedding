@@ -8,6 +8,7 @@ import GuestModal from "./GuestModal";
 import ModalResetSeat from '~/layoutEven/ModalResetSeat';
 import { ToastContainer, toast } from "react-toastify";
 import * as XLSX from 'xlsx';
+
 interface ModalCustomerProps {
   onClose: () => void;
   table: Guest[];
@@ -32,6 +33,8 @@ interface OptionType {
   label: string;
 }
 
+type SeatFilterType = 'all' | 'with-seat' | 'without-seat';
+
 const ModalCustomer: React.FC<ModalCustomerProps> = ({ 
   onResetGhe, onClose, table,
   onAddSeat, onClickSeat, onDelete, handleDataImported,
@@ -47,6 +50,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
 
   const [selectedOption, setSelectedOption] = useState<SingleValue<OptionType>>();
   const [filters, setFilters] = useState({ name: '', phone: '', gender: '', groupName: '', tableName: '' });
+  const [seatFilter, setSeatFilter] = useState<SeatFilterType>('all');
   const [isGuestModalOpen, setIsGuestModalOpen] = useState<boolean>(false);
   const [isResetModal, setResetModal] = useState<boolean>(false);
   const [editingGuest, setEditingGuest] = useState<Guest | undefined>(undefined);
@@ -71,15 +75,25 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
       const maNhomB = Number(b.sort) || 0;
       return maNhomA - maNhomB;
     });
+    
     const filteredTable = sortedTable.filter((guest) => {
       const matchName = guest.name.toLowerCase().includes(filters.name.toLowerCase());
       const matchPhone = guest.phone.includes(filters.phone);
       const matchGender = guest.gender?.toLowerCase().includes(filters.gender?.toLowerCase());
       const matchNhom = filters.groupName === '' || guest.groupInfo?.groupName?.toString().includes(filters.groupName);
       const matchBan = filters.tableName === '' || (guest.tableName ?? '').toLowerCase().includes(filters.tableName.toLowerCase());
+      
+      // Lọc theo trạng thái ghế
+      let matchSeat = true;
+      if (seatFilter === 'with-seat') {
+        matchSeat = guest.seatID !== null && guest.seatID !== undefined;
+      } else if (seatFilter === 'without-seat') {
+        matchSeat = guest.seatID === null || guest.seatID === undefined;
+      }
 
-      return matchName && matchPhone && matchGender && matchNhom && matchBan;
+      return matchName && matchPhone && matchGender && matchNhom && matchBan && matchSeat;
     });
+    
     setListData(filteredTable);
     
     // Mặc định expand tất cả các nhóm khi load dữ liệu
@@ -87,11 +101,11 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
     filteredTable.forEach((guest) => {
       const groupName = guest.groupInfo?.groupName || 'Chưa phân nhóm';
       if (!(groupName in groups)) {
-        groups[groupName] = true; // Mặc định mở tất cả
+        groups[groupName] = true;
       }
     });
     setExpandedGroups(groups);
-  }, [table, filters, selectedValue]);
+  }, [table, filters, selectedValue, seatFilter]);
 
   const handleSaveGuest = (guest: Guest) => {
     const maxTableNumber = table.length > 0
@@ -116,7 +130,6 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
     }
   };
 
-  // Toggle expand/collapse nhóm
   const toggleGroup = (groupName: string) => {
     setExpandedGroups(prev => ({
       ...prev,
@@ -124,7 +137,6 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
     }));
   };
 
-  // Nhóm dữ liệu theo mã nhóm và sắp xếp theo min sort
   const groupedByGroupName = () => {
     const grouped: { [key: string]: Guest[] } = {};
     
@@ -136,69 +148,54 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
       grouped[groupName].push(guest);
     });
     
-    // Sắp xếp các nhóm theo min sort của từng nhóm
     return Object.entries(grouped).sort(([aName, aGuests], [bName, bGuests]) => {
       const minSortA = Math.min(...aGuests.map(g => Number(g.sort) || 0));
       const minSortB = Math.min(...bGuests.map(g => Number(g.sort) || 0));
       return minSortA - minSortB;
     });
   };
-const exportToExcel = () => {
-    
 
-    // Tạo dữ liệu cho Excel
+  const exportToExcel = () => {
     const excelData: any[] = [];
-    
-    // Header chính (row 1)
     excelData.push(['Danh sách khách mời']);
-    
-    // Header cột (row 2)
     excelData.push(['STT', 'Tên (BietDanh)', 'Giới tính', 'SĐT', 'Nhóm bàn', 'Email']);
 
     let stt = 1;
-    
-      listData?.forEach((guest) => {
-        excelData.push([
-          stt,
-          guest.name,
-          guest.gender || '',
-          guest.phone || '',
-          guest.groupInfo?.groupName,
-          '' // Email column - empty as per your requirement
-        ]);
-        stt++;
-      });
+    listData?.forEach((guest) => {
+      excelData.push([
+        stt,
+        guest.name,
+        guest.gender || '',
+        guest.phone || '',
+        guest.groupInfo?.groupName,
+        ''
+      ]);
+      stt++;
+    });
 
-    // Tạo worksheet
     const ws = XLSX.utils.aoa_to_sheet(excelData);
-
-    // Merge cells cho tiêu đề
     ws['!merges'] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } } // Merge A1:F1
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }
     ];
-
-    // Định dạng độ rộng cột
     ws['!cols'] = [
-      { wch: 5 },   // STT
-      { wch: 20 },  // Tên
-      { wch: 10 },  // Giới tính
-      { wch: 15 },  // SĐT
-      { wch: 20 },  // Nhóm bàn
-      { wch: 25 }   // Email
+      { wch: 5 },
+      { wch: 20 },
+      { wch: 10 },
+      { wch: 15 },
+      { wch: 20 },
+      { wch: 25 }
     ];
 
-    // Tạo workbook và thêm worksheet
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Danh sách khách mời');
 
-    // Lấy tên bên để đặt tên file
     const selectedSide = filterOptions.find(opt => opt.value === selectedValue);
     const sideName = selectedSide?.label || 'DanhSach';
     const fileName = `DanhSachKhachMoi_${sideName}_${new Date().toISOString().split('T')[0]}.xlsx`;
 
-    // Xuất file
     XLSX.writeFile(wb, fileName);
   };
+
   const renderTableRows = () => {
     const groupedData = groupedByGroupName();
     let globalIndex = 0;
@@ -206,7 +203,6 @@ const exportToExcel = () => {
     return groupedData.map(([groupName, guests]) => {
       const isExpanded = expandedGroups[groupName] ?? true;
       
-      // Sắp xếp guests trong nhóm theo sort
       const sortedGuests = [...guests].sort((a, b) => {
         const sortA = Number(a.sort) || 0;
         const sortB = Number(b.sort) || 0;
@@ -215,7 +211,6 @@ const exportToExcel = () => {
       
       return (
         <React.Fragment key={groupName}>
-          {/* Header nhóm với icon expand/collapse */}
           <tr className="bg-indigo-200 cursor-pointer hover:bg-indigo-300" onClick={() => toggleGroup(groupName)}>
             <td colSpan={7} className="px-6 py-3 text-left font-bold text-indigo-900">
               <div className="flex items-center gap-2">
@@ -224,7 +219,6 @@ const exportToExcel = () => {
               </div>
             </td>
           </tr>
-          {/* Danh sách khách trong nhóm - chỉ hiện khi expanded */}
           {isExpanded && sortedGuests.map((guest) => {
             globalIndex++;
             return (
@@ -249,7 +243,7 @@ const exportToExcel = () => {
                 </td>
                 <td className="px-6 py-2 whitespace-nowrap text-center">
                   <div className='flex gap-2 justify-center items-center'>
-                    <button
+                    <button title='chuyển khách mời vào ghế'
                       className="cursor-pointer p-0 px-1 rounded-lg bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -258,7 +252,7 @@ const exportToExcel = () => {
                     >
                       <i className="fa-solid fa-plus"></i>
                     </button>
-                    <button
+                    <button title='xóa khách mời'
                       className="cursor-pointer p-0 px-1 rounded-lg bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -277,6 +271,16 @@ const exportToExcel = () => {
     });
   };
 
+  // Đếm số lượng khách theo trạng thái ghế
+  const getGuestCounts = () => {
+    const tableFilter = table.filter(x => x.groupInfo?.parentID === parseInt(selectedValue ?? "0"));
+    const withSeat = tableFilter.filter(g => g.seatID !== null && g.seatID !== undefined).length;
+    const withoutSeat = tableFilter.filter(g => g.seatID === null || g.seatID === undefined).length;
+    return { total: tableFilter.length, withSeat, withoutSeat };
+  };
+
+  const counts = getGuestCounts();
+
   return (
     <div
       className="fixed top-[103px] right-0 z-20 w-[750px] h-full flex justify-end"
@@ -291,7 +295,6 @@ const exportToExcel = () => {
           <div className='flex justify-between items-center w-full'>
            <div className='flex justify-between items-center'>
              <h3 className="text-xl font-bold">Danh sách khách mời</h3>
-
            </div>
             <button
               className="text-gray-500 hover:text-black text-2xl font-bold"
@@ -301,9 +304,46 @@ const exportToExcel = () => {
             </button>
           </div>
         
-           <div className='flex  gap-2 flex-wrap w-full justify-between items-center mt-2'>
-           <div className='flex  gap-4'>
-             <button 
+          {/* Bộ lọc trạng thái ghế */}
+          <div className='flex gap-2 w-full mt-3 mb-2'>
+            <button
+              onClick={() => setSeatFilter('all')}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                seatFilter === 'all'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <i className="fas fa-users mr-2"></i>
+              Tất cả ({counts.total})
+            </button>
+            <button
+              onClick={() => setSeatFilter('with-seat')}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                seatFilter === 'with-seat'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <i className="fas fa-chair mr-2"></i>
+              Đã có ghế ({counts.withSeat})
+            </button>
+            <button
+              onClick={() => setSeatFilter('without-seat')}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                seatFilter === 'without-seat'
+                  ? 'bg-orange-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <i className="fas fa-user-clock mr-2"></i>
+              Chưa có ghế ({counts.withoutSeat})
+            </button>
+          </div>
+
+          <div className='flex gap-2 flex-wrap w-full justify-between items-center mt-2'>
+            <div className='flex gap-4'>
+              <button 
                 className="w-[210px] cursor-pointer flex items-center px-4 py-3 border border-[#cccccc] rounded-[7px] text-gray-700 hover:bg-gray-50 focus:bg-gray-100 focus:outline-none transition-colors duration-200 text-left text-sm group"
                 onClick={() => {
                  onClickFile()
@@ -311,8 +351,8 @@ const exportToExcel = () => {
               >
                 <i className="fa-solid fa-file-lines text-[16px] mr-1 text-blue-500 group-hover:text-blue-600"></i>
                 <span className="font-medium">File mẫu import khách</span>
-            </button>
-            <button 
+              </button>
+              <button 
                 className="w-[180px] cursor-pointer flex items-center px-4 py-3 border border-[#cccccc] rounded-[7px] text-gray-700 hover:bg-gray-50 focus:bg-gray-100 focus:outline-none transition-colors duration-200 text-left text-sm group"
                 onClick={() => {
                  exportToExcel()
@@ -320,29 +360,26 @@ const exportToExcel = () => {
               >
                 <i className="fa-solid fa-file-lines text-[16px] mr-1 text-blue-500 group-hover:text-blue-600"></i>
                 <span className="font-medium">Xuất file khách mời</span>
-            </button>
-           </div>
-                  <div className="flex gap-4">
-            <div className="flex gap-4 items-center">
-              <div className="">Chọn bên <span className="text-red-500">(*)</span></div>
-              <Select
-                options={filterOptions}
-                value={filterOptions.find(opt => opt.value === selectedValue)}
-                onChange={(option: SingleValue<OptionType>) =>
-                  onSelectedChange(option?.value ?? "")
-                }
-                className="mb-0 w-[200px]"
-                classNamePrefix="react-select"
-                isSearchable={true}
-                placeholder=""
-              />
+              </button>
             </div>
-            
+            <div className="flex gap-4">
+              <div className="flex gap-4 items-center">
+                <div className="">Chọn bên <span className="text-red-500">(*)</span></div>
+                <Select
+                  options={filterOptions}
+                  value={filterOptions.find(opt => opt.value === selectedValue)}
+                  onChange={(option: SingleValue<OptionType>) =>
+                    onSelectedChange(option?.value ?? "")
+                  }
+                  className="mb-0 w-[200px]"
+                  classNamePrefix="react-select"
+                  isSearchable={true}
+                  placeholder=""
+                />
+              </div>
+            </div>
           </div>
-
-     
         </div>
-       </div>
 
         {/* Body có thể cuộn */}
         <div className="overflow-y-auto flex-1" onWheel={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
@@ -374,7 +411,6 @@ const exportToExcel = () => {
               {/* Filter row */}
               <tr className="bg-indigo-100">
                 <th className="px-6 py-1 border border-gray-300">
-                 
                 </th>
                 <th className="px-6 py-1 border border-gray-300">
                   <input

@@ -2395,6 +2395,7 @@ useEffect(() => {
                     return
                   }
                 setIsModalSaveOpen(true)
+                setIsOpen(false);
               }}
               className="absolute top-[3px] right-[573px] cursor-pointer p-1 px-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
@@ -2420,9 +2421,10 @@ useEffect(() => {
                   }
                   setIsModalSelectOpen(true)
                   setModalOpen(false)
-                 setModalOpenKH(false)
-                 handleZoneSelect(null)
-                 setModalSearchGuest(false)
+                  setModalOpenKH(false)
+                  handleZoneSelect(null)
+                  setModalSearchGuest(false)
+                  setIsOpen(false);
               }}
               className="absolute top-[3px] right-[180px] cursor-pointer p-1 px-3 rounded-lg bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
             >
@@ -2518,6 +2520,7 @@ useEffect(() => {
                setModalOpenKH(false)
                 handleZoneSelect(null)
                 setModalSearchGuest(false)
+                setIsOpen(false);
            }} className="absolute top-[3px] right-[5px]">
             {isModalOpen && (
                   <ModalElement
@@ -2628,6 +2631,7 @@ useEffect(() => {
                setModalOpenKH(true)
                handleZoneSelect(null)
                setModalSearchGuest(false)
+              setIsOpen(false);
           }} 
             className="absolute top-[3px] right-[315px]">
             {isModalOpenKH && (
