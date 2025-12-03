@@ -72,8 +72,8 @@ const Layout: React.FC = () => {
   }
   const handleGoAdmin =() =>{
       navigate("/layout/PlanEditor");
-      localStorage.setItem("role","Admin");
-      setview(false)
+      localStorage.setItem("role","Admin"); 
+      setview(false) 
   }
   useEffect(() => {
     // CHỈ preload các trang người dùng hay vào
