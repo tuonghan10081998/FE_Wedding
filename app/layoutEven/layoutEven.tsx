@@ -187,7 +187,7 @@ export default function TablePlanner() {
   const [isParentGroup,setParentGroup] = useState<string>("0")
   const [selectedParentGroup, setSelectedParentGroup] = useState<string>("0");
   const [isViewIconUser, setViewIconUser] = useState<boolean>(true);
-
+  const guestsRef = useRef(guests);
   const [zoneCollection, setZoneCollection] = useState<ZoneRegion[]>([]);
   const [activeZoneIdx, setActiveZoneIdx] = useState<number | null>(null);
   const [isZoneMode, setIsZoneMode] = useState<boolean>(true)
@@ -689,7 +689,7 @@ useEffect(() => {
  
   const ReFreshToken = async (value: number) => {
      const encodedRefreshToken = encodeURIComponent(refreshToken);
-    const request = new Request(
+      const request = new Request(
       `${import.meta.env.VITE_API_URL}/api/User/refresh-token/${isUserID}?refreshtoken=${encodedRefreshToken}`,
       {
         method: "POST",
@@ -697,7 +697,7 @@ useEffect(() => {
           "Content-Type": "application/json",
         },
       }
-  );
+    );
 
   let response = await fetch(request);
   const data = await response.json();
@@ -708,13 +708,19 @@ useEffect(() => {
       localStorage.setItem("refreshToken", data.refreshToken);
       if (value === 2) {
         hadleCheckExportPDF(data.accessToken);
-      }else{
+      }else if(value === 3){
+         isProjectID !== "0" &&  handleSaveGuest(isProjectID,data.accessToken,1)
+      }
+      else{
         handleSaveLayout(data.accessToken)
       }
     }else{
       navigate("/")
     }
   };
+ useEffect(() => {
+  guestsRef.current = guests;
+}, [guests]);
 function renumberTables(tablesToRenumber: UnifiedTableData[]) {
   const dataSanKhan = layoutItems.find((x: LayoutItem) => x.id === `item1`);
   const sanKhanX = dataSanKhan?.x ?? 0;
@@ -792,12 +798,12 @@ function renumberTables(tablesToRenumber: UnifiedTableData[]) {
        ReFreshToken(1)
     }
   };
-const handleSaveGuest = (projectid: string,access:string) => {
+const handleSaveGuest = (projectid: string,access:string,checkvalue = 2) => {
   // Lấy danh sách guestID trong subget
   const subGuestIds = new Set(subget.map(x => x.guestID));
 
   // Loại bỏ những guest nào có guestID nằm trong subget
-  const arrSaveGuest = guests
+  const arrSaveGuest = checkvalue === 1 ? guestsRef.current : guests
     .filter(x => !subGuestIds.has(x.guestID))
     .map(x => ({
       name: x.name,
@@ -1449,6 +1455,7 @@ const handleConfirmModal = (
 
     const updated = [...prev];
     updated[index] = { ...current, top, left };
+   
     return updated;
   });
 };
@@ -1494,7 +1501,7 @@ const handleZoom = (e: React.WheelEvent<HTMLDivElement>) => {
       ...prev,
       zoomLevel: zoomRef.current,
     }));
-  }, 1000);
+  }, 2000);
 };
 useEffect(() => {
   if (innerRef.current) {
@@ -1735,9 +1742,13 @@ console.log(finalSortedTables)
       }
     }
   });
-  
+ 
   setTables(tableSetNameTable);
   setGuests(newGuests);
+  setTimeout(() => {
+    ReFreshToken(3)
+  },500)
+  //  console.log("ghế đã được thay đổi")
 }
 useEffect(() => {
   // Kiểm tra xem có thay đổi thực sự không
@@ -1771,6 +1782,7 @@ useEffect(() => {
     prevTablesRef.current = tables;
   }
 }, [guests, tables]);
+
 const getSeatInfo = (seatID: string) => {
   const seatElement = document.getElementById(seatID);
   if (!seatElement) return null;
@@ -1809,6 +1821,10 @@ const getSeatText = (seatID: string): string | null => {
           return guest;
         })
       );
+      // console.log("ghế đã được thay đổi")
+  setTimeout(() => {
+    ReFreshToken(3)
+  },2000)
 };
 const hanldleRenderSeatInput = (seat:number ) => {
     setSeatInput(seat)
@@ -2214,6 +2230,7 @@ const handleAddSeatOnTable = (customerid:string,checkSeatID:boolean)=>{
      toast.error("Ghế này đã có người ngồi!");
      return
   }
+  
   setGuests((prev) =>
    prev.map((guest) => {
    
@@ -2237,6 +2254,10 @@ const handleAddSeatOnTable = (customerid:string,checkSeatID:boolean)=>{
   })
 
   );
+ setTimeout(() => {
+  ReFreshToken(3);
+}, 2000);
+// console.log("ghế đã được thay đổi")
  document.querySelectorAll('.seat.text_num').forEach(el => {
       el.classList.remove('text_num');
   });

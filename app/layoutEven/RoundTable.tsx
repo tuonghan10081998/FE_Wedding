@@ -409,7 +409,7 @@ const RoundTable: React.FC<RoundTableProps> = ({
         onMouseDown={handleDragMouseDown}
         className={`listBanTron list_save absolute bg-purple-200 ${
           isActive ? "activeSelect" : ""
-        } ${table.isSearch ? "activeSearch" : ""} border border-gray-400 rounded-full flex items-center justify-center text-lg text-gray-700`}
+        } ${table.isSearch ? "activeSearch" : ""} a_${table.groupParentID} border border-gray-400 rounded-full flex items-center justify-center text-lg text-gray-700`}
         style={{
           width: localSize,
           height: localSize,
@@ -420,7 +420,8 @@ const RoundTable: React.FC<RoundTableProps> = ({
           zIndex: 99999,
           textAlign:"center",
           padding:"0px 6px",
-          fontSize:fontSize.fontSizeTable
+          fontSize:fontSize.fontSizeTable,
+          background:table.groupParentID === 7 ? "#aedfae" : ""
         }}
       >
         {isViewBan ? table.nameTable : table.nameNhom}
