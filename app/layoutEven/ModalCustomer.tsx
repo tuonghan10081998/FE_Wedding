@@ -478,7 +478,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
                 className="hidden"
               />
               <i className="fas fa-file-excel fa-lg"></i>
-              <span>Import EX</span>
+              <span>Nhập khách mời</span>
             </label>
             {selectedValue && selectedValue !== "" && selectedValue !== "0" && (
               <button

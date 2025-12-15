@@ -5,6 +5,7 @@ interface SaveTheDateCard1Props {
   groomName?:string;
   brideName?:string;
   nameCutomer?:string;
+   type?:string
 }
 const withDefault = (value: string | undefined, fallback: string) =>
   value && value.trim() !== "" ? value : fallback;

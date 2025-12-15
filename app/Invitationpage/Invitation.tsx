@@ -246,7 +246,38 @@ const handleCreateCard = (checkForm: number,invatition:string) => {
     <div className="min-h-screen bg-gray-100 p-6 flex flex-col">
        <ToastContainer position="top-right" autoClose={2000} theme="colored" />
 
-    
+     {/* Progress Steps */}
+     <div className="flex items-center justify-center mb-7 mt-2">
+  {[
+    { num: 1, label: 'Nhấn tạo thiệp' },
+    { num: 2, label: 'Nhập đầy đủ thông tin 2 bên' },
+    { num: 3, label: 'Lưu thiệp' }
+  ].map((step, index) => (
+    <React.Fragment key={step.num}>
+      <div className="flex flex-col items-center">
+        <div className="w-16 h-16 rounded-full flex items-center justify-center font-bold text-xl bg-gradient-to-br from-purple-600 to-pink-600 text-white shadow-lg">
+          {step.num}
+        </div>
+        <span className="text-sm mt-3 text-purple-700 font-semibold max-w-[120px] text-center">
+          {step.label}
+        </span>
+      </div>
+      {index < 2 && (
+        <div className="flex items-center mx-4">
+          <svg width="80" height="24" viewBox="0 0 80 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 12H78M78 12L70 4M78 12L70 20" stroke="url(#gradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+            <defs>
+              <linearGradient id="gradient" x1="0" y1="12" x2="78" y2="12" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#9333EA"/>
+                <stop offset="1" stopColor="#DB2777"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+      )}
+    </React.Fragment>
+  ))}
+</div>
    <div className="text-center mb-8">
       <h1 className="text-4xl font-bold text-gray-800 mb-2">Thiệp đã tạo</h1>
       <p className="text-gray-600 text-lg">Danh sách các thiệp mà bạn đã tạo</p>

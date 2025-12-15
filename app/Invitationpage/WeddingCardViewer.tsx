@@ -294,7 +294,7 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
         </button>
 
         {/* Input Information Icon Only */}
-        <button
+        <button title="Nhập thông tin"
           type="button"
           aria-label="Nhập thông tin"
           className="text-green-600 hover:text-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 rounded p-2"
