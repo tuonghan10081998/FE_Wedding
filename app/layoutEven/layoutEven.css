@@ -350,3 +350,7 @@ button.close-btn:hover {
 .bling-dot {
   animation: bling 2s ease-in-out;
 }
+.my-element {
+  width: 35px !important;
+  height: 35px !important;
+}

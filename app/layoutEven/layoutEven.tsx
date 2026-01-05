@@ -31,6 +31,7 @@ import LimitNotificationModal from '~/layoutEven/LimitNotificationModalProps ';
 import ItemLayout from '~/layoutEven/ItemLayout';
 import ModalNotiGuest from '~/layoutEven/ModalNotiGuest';
 import DeleteItems from '~/layoutEven/DeleteListItems';
+import RoundChairRender from '~/layoutEven/RoundChair';
 export interface ZoneRegion {
   zoneId: string;
   zoneName: string;
@@ -55,7 +56,7 @@ export interface ImportResult {
 }
 export interface UnifiedTableData {
   tableNumber: number;
-  shape: 'bench' | 'round' | 'square';
+  shape: 'bench' | 'round' | 'square' | 'roundchair';
   width?: number;       // dùng cho bench hoặc square
   height?: number;      // dùng cho bench hoặc square
   size?: number;        // dùng cho round
@@ -1603,21 +1604,28 @@ const mergedTables = sortedTables.map(item => {
     ...item,
     top: Number(found?.top ?? 0),
     left: Number(found?.left ?? 0),
-    groupParentID: found?.groupParentID ?? null
+    groupParentID: found?.groupParentID ?? null,
+     shape: found?.shape ?? null
   };
 });
 
-const filteredTables = mergedTables.filter(item => {
-  if (isParentGroup && item.groupParentID != null) {
-    return String(item.groupParentID) === String(isParentGroup);
-  }
-  return true;
-});
+  // ✅ Lọc bỏ roundchair TRƯỚC KHI filter theo groupParentID
+  const filteredTables = mergedTables.filter(item => {
+    // Bỏ qua ghế tròn 1 người
+    if (item.shape === "roundchair") {
+      return false;
+    }
+    
+    if (isParentGroup && item.groupParentID != null) {
+      return String(item.groupParentID) === String(isParentGroup);
+    }
+    return true;
+  });
 
 const sanKhanX = Number(dataSanKhan?.x || 0);
 
 // Phân loại
-const leftTables = filteredTables.filter(t => t.left < sanKhanX);
+const leftTables = filteredTables.filter(t => t.left < sanKhanX );
 const rightTables = filteredTables.filter(t => t.left >= sanKhanX);
 
 // Sắp xếp từng nhóm theo top
@@ -1631,7 +1639,6 @@ const minTable = filteredTables.reduce((prev, curr) => {
 
 // ✅ Quyết định thứ tự ghép
 let finalSortedTables = [];
-console.log(minTable.left < sanKhanX)
 if (minTable.left < sanKhanX) {
   // Bàn nhỏ nhất nằm bên trái → trái trước
   finalSortedTables = [...sortedLeft, ...sortedRight];
@@ -1639,7 +1646,6 @@ if (minTable.left < sanKhanX) {
   // Bàn nhỏ nhất nằm bên phải → phải trước
   finalSortedTables = [...sortedRight, ...sortedLeft];
 }
-console.log(finalSortedTables)
   // Theo dõi bàn nào đã được sử dụng bởi nhóm nào
   const tableUsedByGroup: Record<string, string[]> = {}; // groupName -> [maBan1, maBan2, ...]
   
@@ -1711,7 +1717,7 @@ console.log(finalSortedTables)
             guest.tableID = maBan;
             guest.tableName = `${seatEl.textContent}`;
             guest.seatName = tenGhe;
-            
+
             tableSetNameTable = tableSetNameTable.map((t) => {
               if (t.tableNumber === parseInt(maBan)) {
                 return {
@@ -1917,7 +1923,7 @@ const handleAddItem = async (
   });
 };
 const handleAddBan = (index: number,groupParentID:number,type:string = "left") => {
-  if(groupParentID === 0){
+   if(groupParentID === 0){
     toast.error("Vui lòng chọn bên!");
     return
   }
@@ -1926,7 +1932,41 @@ const handleAddBan = (index: number,groupParentID:number,type:string = "left") =
    const matched = isDataParentGroup.find(
                 (g) => String(g.parentID) === String(groupParentID)
               );
+   let newTable: UnifiedTableData;
+   const maxTableNumber =
+        tables.length > 0
+          ? Math.max(...tables.map(t => t.tableNumber ?? 0)) + 1
+          : 1;
+   const dataSanKhanA = layoutItems.find((x: LayoutItem) => x.id === "item1");
+    const centerX =  toLocalX(window.innerWidth / 2);
+    const centerY = toLocalY(window.innerHeight / 2);
   const groupParentName = matched ? matched.parentName : "";
+  if(index == 4){
+     newTable = {
+      tableNumber: maxTableNumber,
+      shape: 'roundchair',
+      width: 77,
+      height: 46,
+      size: 0,
+       top: centerY,   // size/2
+      left: centerX,
+      rotation: 0,
+      currentSeatCount: 1,
+      sourceType: 4,
+      nameTable:`${maxTableNumber}`,
+      groupParentID:groupParentID,
+      isComeback:0,
+      groupParentName:groupParentName,
+       nameNhom:""
+    };
+    setTables((prev) => {
+    const newArray = [...prev, newTable];
+    return renumberTables(newArray);
+  });
+  setNextTableNumber((prev) => prev + 1);
+    return
+  }
+ 
 
 const currentTableCount = tables.length + 1;
 const maxTableLimit = maxTable; // Giới hạn tổng bàn
@@ -2004,13 +2044,7 @@ if (dataSanKhan) {
   }
 }
  
-  let newTable: UnifiedTableData;
-   const maxTableNumber =
-        tables.length > 0
-          ? Math.max(...tables.map(t => t.tableNumber ?? 0)) + 1
-          : 1;
-  const centerX = toLocalX(window.innerWidth / 2);
-  const centerY = toLocalY(window.innerHeight / 2);
+  
   if (index === 1) {
     // Round table
     newTable = {
@@ -2998,7 +3032,63 @@ useEffect(() => {
                        isActive={multiSelectedItems.some(x => x.tableNumber === table.tableNumber)} 
                     />
                   );
+          case 'roundchair':
+                  return (
+                    <RoundChairRender
+                      key={table.tableNumber}
+                      table={table}
+                      index={index}
+                      selected={selectedBenchIndex === index}
+                      guests={guests}
+                      fontSize={fontSize}
+                       isViewBan={!isViewBan}
+                      onClick={(i, event) => {
+                        const seatEl = (event.target as HTMLElement).closest('.seat');
+                       if (seatEl) {
+                          document.querySelectorAll('.seat.text_num').forEach(el => {
+                              el.classList.remove('text_num');
+                          });
+                          const seatId= seatEl.getAttribute("id")?.toString();
+                           const hasChildWithClass = seatEl.querySelector('.leading-tight') !== null;
 
+                          if (hasChildWithClass || multiSelectedSeat === seatId) {
+                              handleInfoCustomer(seatId ?? "")  
+                          } else {
+                               seatEl.classList.add('text_num');
+                               setMultiSelectedSeat(seatId ?? "")
+                              
+                          }
+                           return
+                        }
+                        if (event.ctrlKey) {
+                          handleCtrlClick(table, event,true);
+                          return; 
+                        }
+                        handleCtrlClick(table, event);
+                          setSeatInput(table.currentSeatCount ?? 0);
+                          setSeatInputMaxSize(table.width! / 30);
+                          setIdtable(table.tableNumber);
+                          setItemDelete(table);
+                          setItemDeleteID(1);
+                          setNameTable(`${table.nameTable}`);
+                          setGroup(`${table.groupParentName}`)
+                          setTenNhom(`${table.nameNhom}`)
+                          setCheckLoai(1);
+                          setTableShape("Ghế tròn");
+                          setSelectedBenchIndex(i);
+                          setSelectedLayoutIndex(null);
+                          setSelectedTableIndex(null);
+                          setSelectedSquareIndex(null);
+                     }}
+                       
+                      onResize={handleResize}
+                      zoomLevel={zoomLevel}
+                      onDrag={handleDrag}
+                      onRotate={handleRotate}
+                      onGuestSeatChange={handleGuestSeatChange}
+                       isActive={multiSelectedItems.some(x => x.tableNumber === table.tableNumber)} 
+                    />
+                  );
                 default:
                   return null;
               }
