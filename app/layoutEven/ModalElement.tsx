@@ -173,7 +173,7 @@ const ModalElement: React.FC<ModalEllement> = ({ onClose,
                   <span className="label-text">Dãy ghế</span>
                 </div>
               </div>
-            <div onClick={() => onAddTable(4,parseInt(selectedValue),side)} className="flex flex-col items-center">
+            <div onClick={() => onAddTable(4,parseInt(selectedValue),side)} className="flex flex-col items-center hidden">
               <div className="icon-item">
                 <svg className="icon-svg w-20 h-auto" viewBox="0 0 80 50" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#9B9B9B" strokeWidth="1.5">
                   <circle cx="40" cy="27" r="8" fill="none"></circle>

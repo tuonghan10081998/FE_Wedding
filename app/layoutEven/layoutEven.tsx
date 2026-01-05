@@ -32,6 +32,7 @@ import ItemLayout from '~/layoutEven/ItemLayout';
 import ModalNotiGuest from '~/layoutEven/ModalNotiGuest';
 import DeleteItems from '~/layoutEven/DeleteListItems';
 import RoundChairRender from '~/layoutEven/RoundChair';
+import TutorialGuide from '~/layoutEven/TutorialGuide';
 export interface ZoneRegion {
   zoneId: string;
   zoneName: string;
@@ -224,6 +225,10 @@ export default function TablePlanner() {
   const [isCheckDeleteSinger,setCheckDeleteSinger] = useState<boolean>(false)
   const [ismessNotiGuest,setmessNotiGuest] = useState<string>("")
   const [isNumberDay,setNumberDay] = useState<number>(3)
+  const [showTutorial, setShowTutorial] = useState(true);
+
+// Hiển thị tutorial khi user lần đầu vào
+
   const handleUpgrade = () => {
     navigate("/layout/Plan");
     setIsModalOpenUpgra(false);
@@ -2374,6 +2379,26 @@ useEffect(() => {
             </button>
            
           </>
+          <>
+    {/* Nút bật tutorial thủ công */}
+   <button 
+  onClick={() => setShowTutorial(true)}
+  className="fixed right-[320px] h-[40px] w-[40px] top-[calc(100vh-130px)] z-[9] cursor-pointer rounded-lg border border-gray-300 bg-white flex items-center justify-center shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+  title="Hướng dẫn sử dụng"
+>
+  <i className="fas fa-question-circle text-purple-600 text-xl"></i>
+</button>
+
+    {/* Tutorial overlay */}
+    <TutorialGuide
+      isOpen={showTutorial}
+      onClose={() => setShowTutorial(false)}
+    
+      
+    />
+
+    
+  </>
        <div className='relative'>
        <div className="absolute top-[3px] right-[452px] cursor-pointer p-1 px-3 rounded-lg  bg-pink-600 text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2">
           <button
@@ -2676,6 +2701,7 @@ useEffect(() => {
 
             )}
           </>
+         
           <div onClick={() => {
              if( isProjectID == "" ) {
               toast.error("Vui lòng tạo dự án mới !");
