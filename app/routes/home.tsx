@@ -22,10 +22,14 @@ const AuthPage: React.FC = () => {
   });
   const [rememberMe, setRememberMe] = useState(false);
   const [registerForm, setRegisterForm] = useState(initialRegisterForm);
- const [loginForm, setLoginForm] = useState({
+  const [loginForm, setLoginForm] = useState({
     user: "",
     password: "",
   });
+  // Thêm state loading cho từng form
+  const [isLoginLoading, setIsLoginLoading] = useState(false);
+  const [isRegisterLoading, setIsRegisterLoading] = useState(false);
+
   const handleTogglePassword = (field: keyof typeof showPassword) => {
     setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }));
   };
@@ -42,6 +46,8 @@ const AuthPage: React.FC = () => {
   }, []);
   const handleRegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isRegisterLoading) return; // Ngăn submit khi đang loading
+    
     if (registerForm.password !== registerForm.confirmPassword) {
       toast.error("Mật khẩu và xác nhận mật khẩu không khớp!");
       return;
@@ -56,6 +62,7 @@ const AuthPage: React.FC = () => {
     PostRegister(objectRegister)
   };
   const PostRegister = async (object: any) => {
+      setIsRegisterLoading(true); // Bắt đầu loading
       try {
         const request = new Request(`${import.meta.env.VITE_API_URL}/api/User`, {
           method: "POST",
@@ -82,11 +89,15 @@ const AuthPage: React.FC = () => {
       } catch (error) {
         console.error("Fetch error:", error);
         toast.error("Có lỗi kết nối server");
+      } finally {
+        setIsRegisterLoading(false); // Kết thúc loading
       }
     };
 
  const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoginLoading) return; // Ngăn submit khi đang loading
+    
     const objectLogin = {
       mail:loginForm.user,
       password:loginForm.password
@@ -94,6 +105,7 @@ const AuthPage: React.FC = () => {
     PostLogin(objectLogin)
   };
     const PostLogin = async (object: any) => {
+      setIsLoginLoading(true); // Bắt đầu loading
       try {
         const request = new Request(`${import.meta.env.VITE_API_URL}/api/User/login`, {
           method: "POST",
@@ -127,7 +139,7 @@ const AuthPage: React.FC = () => {
           localStorage.setItem("refreshToken", data.refreshToken);
           localStorage.setItem("senderInvatition", data.plan.isExport);
           if(data.role === "Admin"){
-            navigate("/layout/PlanEditor"); // chuyển <trang>  </trang>
+            navigate("/layout/PlanEditor"); // chuyển trang
           }else{
             navigate("/layout/LayoutLanding"); // chuyển trang
           }
@@ -145,6 +157,8 @@ const AuthPage: React.FC = () => {
       } catch (error) {
         console.error("Fetch error:", error);
         toast.error("Có lỗi kết nối server");
+      } finally {
+        setIsLoginLoading(false); // Kết thúc loading
       }
     };
   return (
@@ -326,6 +340,7 @@ const AuthPage: React.FC = () => {
                       required
                       placeholder=""
                       value={loginForm.user}
+                      disabled={isLoginLoading}
                       onInvalid={(e) => {
                         e.currentTarget.setCustomValidity("Vui lòng nhập email");
                       }}
@@ -335,7 +350,7 @@ const AuthPage: React.FC = () => {
                       onChange={(e) =>
                         setLoginForm({ ...loginForm, user: e.target.value })
                       }
-                      className="w-full border border-pink-300 rounded-md px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-600 bg-white/80 backdrop-blur-sm transition-all duration-300"
+                      className="w-full border border-pink-300 rounded-md px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-600 bg-white/80 backdrop-blur-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     <i className="fas fa-user absolute right-3 top-[9px] text-pink-400 pointer-events-none" />
                   </div>
@@ -351,6 +366,7 @@ const AuthPage: React.FC = () => {
                       required
                       placeholder=""
                       value={loginForm.password}
+                      disabled={isLoginLoading}
                       onInvalid={(e) => {
                         e.currentTarget.setCustomValidity("Vui lòng nhập mật khẩu");
                       }}
@@ -360,12 +376,13 @@ const AuthPage: React.FC = () => {
                       onChange={(e) =>
                         setLoginForm({ ...loginForm, password: e.target.value })
                       }
-                      className="w-full border border-pink-300 rounded-md px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-600 bg-white/80 backdrop-blur-sm transition-all duration-300"
+                      className="w-full border border-pink-300 rounded-md px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-600 bg-white/80 backdrop-blur-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     <button
                       type="button"
                       onClick={() => handleTogglePassword("login")}
-                      className="absolute right-3 top-[10px] text-pink-400 hover:text-pink-600 focus:outline-none transition-colors duration-300"
+                      disabled={isLoginLoading}
+                      className="absolute right-3 top-[10px] text-pink-400 hover:text-pink-600 focus:outline-none transition-colors duration-300 disabled:opacity-50"
                     >
                       <i className={`fas ${showPassword.login ? "fa-eye-slash" : "fa-eye"}`} />
                     </button>
@@ -377,8 +394,9 @@ const AuthPage: React.FC = () => {
                     id="rememberMe"
                     type="checkbox"
                     checked={rememberMe}
+                    disabled={isLoginLoading}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded disabled:opacity-50"
                   />
                   <label htmlFor="rememberMe" className="text-gray-700 select-none">
                     Ghi nhớ mật khẩu
@@ -387,9 +405,17 @@ const AuthPage: React.FC = () => {
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-semibold py-2 rounded-md transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                  disabled={isLoginLoading}
+                  className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-semibold py-2 rounded-md transition-all duration-300 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
                 >
-                  Đăng nhập
+                  {isLoginLoading ? (
+                    <>
+                      <i className="fas fa-spinner fa-spin mr-2"></i>
+                      Đang đăng nhập...
+                    </>
+                  ) : (
+                    "Đăng nhập"
+                  )}
                 </button>
               </form>
             )}
@@ -407,6 +433,7 @@ const AuthPage: React.FC = () => {
                     type="text"
                     required
                     placeholder=""
+                    disabled={isRegisterLoading}
                     onInvalid={(e) => {
                       e.currentTarget.setCustomValidity("Vui lòng nhập họ và tên");
                     }}
@@ -417,7 +444,7 @@ const AuthPage: React.FC = () => {
                     onChange={(e) =>
                       setRegisterForm({ ...registerForm, name: e.target.value })
                     }
-                    className="w-full border border-pink-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-600 bg-white/80 backdrop-blur-sm transition-all duration-300"
+                    className="w-full border border-pink-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-600 bg-white/80 backdrop-blur-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -430,6 +457,7 @@ const AuthPage: React.FC = () => {
                     required
                     placeholder=""
                     value={registerForm.email}
+                    disabled={isRegisterLoading}
                     onInvalid={(e) => {
                       e.currentTarget.setCustomValidity("Vui lòng nhập email");
                     }}
@@ -439,7 +467,7 @@ const AuthPage: React.FC = () => {
                     onChange={(e) =>
                       setRegisterForm({ ...registerForm, email: e.target.value })
                     }
-                    className="w-full border border-pink-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-600 bg-white/80 backdrop-blur-sm transition-all duration-300"
+                    className="w-full border border-pink-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-600 bg-white/80 backdrop-blur-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -453,6 +481,7 @@ const AuthPage: React.FC = () => {
                     pattern="[0-9\\s\\-+()]{9,15}"
                     placeholder=""
                     value={registerForm.phone}
+                    disabled={isRegisterLoading}
                     onInvalid={(e) => {
                       e.currentTarget.setCustomValidity("Vui lòng nhập số điện thoại");
                     }}
@@ -468,7 +497,7 @@ const AuthPage: React.FC = () => {
                     }
                      
                     }
-                    className="w-full border border-pink-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-600 bg-white/80 backdrop-blur-sm transition-all duration-300"
+                    className="w-full border border-pink-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-600 bg-white/80 backdrop-blur-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -482,6 +511,7 @@ const AuthPage: React.FC = () => {
                       required
                       placeholder=""
                       value={registerForm.password}
+                      disabled={isRegisterLoading}
                       onInvalid={(e) => {
                         e.currentTarget.setCustomValidity("Vui lòng nhập mật khẩu");
                       }}
@@ -491,12 +521,13 @@ const AuthPage: React.FC = () => {
                       onChange={(e) =>
                         setRegisterForm({ ...registerForm, password: e.target.value })
                       }
-                      className="w-full border border-pink-300 rounded-md px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-600 bg-white/80 backdrop-blur-sm transition-all duration-300"
+                      className="w-full border border-pink-300 rounded-md px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-600 bg-white/80 backdrop-blur-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     <button
                       type="button"
                       onClick={() => handleTogglePassword("register")}
-                      className="absolute right-3 top-[10px] text-pink-400 hover:text-pink-600 focus:outline-none transition-colors duration-300"
+                      disabled={isRegisterLoading}
+                      className="absolute right-3 top-[10px] text-pink-400 hover:text-pink-600 focus:outline-none transition-colors duration-300 disabled:opacity-50"
                     >
                       <i className={`fas ${showPassword.register ? "fa-eye-slash" : "fa-eye"}`} />
                     </button>
@@ -512,6 +543,7 @@ const AuthPage: React.FC = () => {
                       type={showPassword.confirm ? "text" : "password"}
                       required
                       placeholder=""
+                      disabled={isRegisterLoading}
                       onInvalid={(e) => {
                         e.currentTarget.setCustomValidity("Vui lòng nhập xác nhận mật khẩu");
                       }}
@@ -525,12 +557,13 @@ const AuthPage: React.FC = () => {
                           confirmPassword: e.target.value,
                         })
                       }
-                      className="w-full border border-pink-300 rounded-md px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-600 bg-white/80 backdrop-blur-sm transition-all duration-300"
+                      className="w-full border border-pink-300 rounded-md px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-600 bg-white/80 backdrop-blur-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     <button
                       type="button"
                       onClick={() => handleTogglePassword("confirm")}
-                      className="absolute right-3 top-[10px] text-pink-400 hover:text-pink-600 focus:outline-none transition-colors duration-300"
+                      disabled={isRegisterLoading}
+                      className="absolute right-3 top-[10px] text-pink-400 hover:text-pink-600 focus:outline-none transition-colors duration-300 disabled:opacity-50"
                     >
                       <i className={`fas ${showPassword.confirm ? "fa-eye-slash" : "fa-eye"}`} />
                     </button>
@@ -539,9 +572,17 @@ const AuthPage: React.FC = () => {
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-semibold py-3 mt-3 rounded-md transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                  disabled={isRegisterLoading}
+                  className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-semibold py-3 mt-3 rounded-md transition-all duration-300 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
                 >
-                  Đăng ký
+                  {isRegisterLoading ? (
+                    <>
+                      <i className="fas fa-spinner fa-spin mr-2"></i>
+                      Đang đăng ký...
+                    </>
+                  ) : (
+                    "Đăng ký"
+                  )}
                 </button>
               </form>
             )}
