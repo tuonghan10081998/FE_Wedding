@@ -55,6 +55,18 @@ export interface ImportResult {
     totalColumns: number;
   };
 }
+// Thêm vào đầu file component
+declare global {
+  interface Window {
+    storage: {
+      get: (key: string, shared?: boolean) => Promise<{key: string, value: string, shared: boolean} | null>;
+      set: (key: string, value: string, shared?: boolean) => Promise<{key: string, value: string, shared: boolean} | null>;
+      delete: (key: string, shared?: boolean) => Promise<{key: string, deleted: boolean, shared: boolean} | null>;
+      list: (prefix?: string, shared?: boolean) => Promise<{keys: string[], prefix?: string, shared: boolean} | null>;
+    };
+  }
+}
+
 export interface UnifiedTableData {
   tableNumber: number;
   shape: 'bench' | 'round' | 'square' | 'roundchair';
@@ -159,7 +171,7 @@ export default function TablePlanner() {
   const offsetRef = useRef({ x: 0, y: 0 });
   const [layoutBackZoom,setlayoutBackZoom] = useState< number>(0.7);
   const [idTable,setIdtable]= useState<number>(0)
-  const [isModalOpen, setModalOpen] = useState(false);
+  const [isModalOpen, setModalOpen] = useState(true);
   const [isModalOpenKH, setModalOpenKH] = useState(false);
   const [itemDelete,setItemDelete] = useState<any>([]);
   const [itemDeleteID,setItemDeleteID] = useState<number>(0);
@@ -225,9 +237,15 @@ export default function TablePlanner() {
   const [isCheckDeleteSinger,setCheckDeleteSinger] = useState<boolean>(false)
   const [ismessNotiGuest,setmessNotiGuest] = useState<string>("")
   const [isNumberDay,setNumberDay] = useState<number>(3)
-  const [showTutorial, setShowTutorial] = useState(true);
+const [showTutorial, setShowTutorial] = useState(false);
 
-// Hiển thị tutorial khi user lần đầu vào
+useEffect(() => {
+  const hasSeenTutorial = localStorage.getItem('tutorial_completed');
+  
+  if (!hasSeenTutorial) {
+    setShowTutorial(true);
+  }
+}, []);
 
   const handleUpgrade = () => {
     navigate("/layout/Plan");
@@ -407,7 +425,7 @@ const getDataProject = async () => {
       setGuests([])
       setZoneCollection([])
       setIsModalSelectOpen(false)
-      setModalOpen(false)
+      // setModalOpen(false)
       setModalOpenKH(false)
       handleZoneSelect(null)
       setModalSearchGuest(false)
@@ -628,7 +646,7 @@ useEffect(() => {
       setLayoutContainer({ x: 0, y: 0, zoomLevel: 0.7 });
       setZoneCollection([])
       setIsModalSelectOpen(false)
-      setModalOpen(false)
+      // setModalOpen(false)
       setModalOpenKH(false)
       handleZoneSelect(null)
       setModalSearchGuest(false)
@@ -2257,6 +2275,10 @@ const handleResetZoom =() => {
 const handleClickSeat = (e: React.MouseEvent,seatid:string) => {
 
 }
+const handleCloseTutorial = () => {
+  setShowTutorial(false);
+  localStorage.setItem('tutorial_completed', 'true');
+};
 
 const handleAddSeatOnTable = (customerid:string,checkSeatID:boolean)=>{
   if(!multiSelectedSeat){
@@ -2392,8 +2414,11 @@ useEffect(() => {
     {/* Tutorial overlay */}
     <TutorialGuide
       isOpen={showTutorial}
-      onClose={() => setShowTutorial(false)}
-    
+      onClose={() => {
+       handleCloseTutorial()
+
+      }}
+        
       
     />
 
