@@ -2258,20 +2258,61 @@ const handleDeleteTable =(checkGuest:boolean = true) => {
 }
   
 useClickOutsideItemSave();
-const handleResetZoom =() => {
-    zoomRef.current = 0.7;
-    offsetRef.current.x = 0
-    offsetRef.current.y = 0
-      setlayoutBackZoom(zoomRef.current)
-      if (innerRef.current) {
-        innerRef.current.style.transform = `scale(${zoomRef.current}) translate(${offsetRef.current.x}px, ${offsetRef.current.y}px)`;
-      }
-       setZoomLevel(zoomRef.current);
-             setLayoutContainer((prev) => ({
-              ...prev,
-              zoomLevel: zoomRef.current,
-            }));
-}
+// const handleResetZoom =() => {
+//     zoomRef.current = 0.7;
+//      const dataSanKhan = layoutItems.find((x: LayoutItem) => x.id === `item1`);
+//     offsetRef.current.x = dataSanKhan?.y ?? 0
+//     offsetRef.current.y = 0
+//       setlayoutBackZoom(zoomRef.current)
+//       if (innerRef.current) {
+//         innerRef.current.style.transform = `scale(${zoomRef.current}) translate(${offsetRef.current.x}px, ${offsetRef.current.y}px)`;
+//       }
+//        setZoomLevel(zoomRef.current);
+//              setLayoutContainer((prev) => ({
+//               ...prev,
+//               zoomLevel: zoomRef.current,
+//             }));
+// }
+const handleResetZoom = () => {
+  const targetZoom = 0.7;
+  zoomRef.current = targetZoom;
+  
+  // Tìm item cần focus
+  const dataSanKhan = layoutItems.find((x: LayoutItem) => x.id === `item1`);
+  
+  if (dataSanKhan && innerRef.current) {
+    // Lấy kích thước container (viewport) - thử lấy từ window hoặc parent element
+    const container = innerRef.current.parentElement;
+    if (!container) return;
+    
+    const containerRect = container.getBoundingClientRect();
+    
+    // Trừ 300px cho sidebar bên phải
+    const viewportWidth = containerRect.width ;
+    const viewportHeight = containerRect.height;
+    
+    // Tính toán vị trí item
+    const itemCenterX = dataSanKhan.x + (dataSanKhan.width || 0) / 2;
+    const itemTopY = dataSanKhan.y;
+    
+    // Tính offset để:
+    // - Ngang: center vào giữa viewport (trừ sidebar)
+    // - Dọc: cách đầu màn hình 50px
+    offsetRef.current.x = (viewportWidth / 2) / targetZoom - itemCenterX;
+    offsetRef.current.y = 40 / targetZoom - itemTopY;
+    
+    // Apply transform - translate TRƯỚC rồi mới scale
+    innerRef.current.style.transform = `translate(${offsetRef.current.x}px, ${offsetRef.current.y}px) scale(${targetZoom})`;
+    
+    // Update state
+    setlayoutBackZoom(targetZoom);
+    setZoomLevel(targetZoom);
+    setLayoutContainer((prev) => ({
+      ...prev,
+      zoomLevel: targetZoom,
+    }));
+  }
+};
 const handleClickSeat = (e: React.MouseEvent,seatid:string) => {
 
 }
