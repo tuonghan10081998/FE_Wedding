@@ -339,10 +339,11 @@ const BenchTableRender: React.FC<BenchTableRenderProps> = ({
           height: 12,
           fontWeight: '600',
           zIndex: 100,
-          fontSize:fontSize.fontSizeTable
+          fontSize:fontSize.fontSizeTable,
+          background:table.groupParentID === 7 ? "#aedfae" : ""
         }}
       >
-       {isViewBan ? table.nameTable : table.nameNhom}
+      {isViewBan ? table.nameTable.replace("Bàn", "G:").trim() : table.nameNhom}
       </div>
 
       {seatElements}

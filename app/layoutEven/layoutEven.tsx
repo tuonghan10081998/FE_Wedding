@@ -149,7 +149,7 @@ export default function TablePlanner() {
   const [isUserID, setUserID] = useState<string | null>("");
   const [tables, setTables] = useState<UnifiedTableData[]>([]);
   const [layoutItems, setLayoutItems] = useState<LayoutItem[]>([]);
-  const [layoutContainer, setLayoutContainer] = useState<layOutContainer>({ zoomLevel: 0.7, x: 0, y: 0});
+  const [layoutContainer, setLayoutContainer] = useState<layOutContainer>({ zoomLevel: 0.6, x: 0, y: 0});
   const [nextTableNumber, setNextTableNumber] = useState(1);
   const [nextTableNumberItem, setNextTableNumberItem] = useState(1);
   const [nextTableNumberGuest, setNextTableNumberGuest] = useState(1);
@@ -159,7 +159,7 @@ export default function TablePlanner() {
   const [selectedSquareIndex, setSelectedSquareIndex] = useState<number | null>(null);
   const [seatInput, setSeatInput] = useState<string | number>('');
   const [seatInputMaxSize, setSeatInputMaxSize] = useState(0);
-  const [zoomLevel, setZoomLevel] = useState(0.7);
+  const [zoomLevel, setZoomLevel] = useState(0.6);
 
   const [fontSize, setFontSize] = useState<FontSize>({
     fontSizeTable: 14,
@@ -167,9 +167,9 @@ export default function TablePlanner() {
   });
   const containerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
-  const zoomRef = useRef(0.7);
+  const zoomRef = useRef(0.6);
   const offsetRef = useRef({ x: 0, y: 0 });
-  const [layoutBackZoom,setlayoutBackZoom] = useState< number>(0.7);
+  const [layoutBackZoom,setlayoutBackZoom] = useState< number>(0.6);
   const [idTable,setIdtable]= useState<number>(0)
   const [isModalOpen, setModalOpen] = useState(true);
   const [isModalOpenKH, setModalOpenKH] = useState(false);
@@ -386,7 +386,7 @@ const getDataProject = async () => {
         setProjectNameLocal("0")
         setTables([]);
         setLayoutItems([]);
-        setLayoutContainer({ x: 0, y: 0, zoomLevel: 0.7 });
+        setLayoutContainer({ x: 0, y: 0, zoomLevel: 0.6 });
         setGuests([])
         setZoneCollection([])
       }
@@ -421,7 +421,7 @@ const getDataProject = async () => {
   const handleConfirm =async (projectid:string) => {
       setTables([]);
       setLayoutItems([]);
-      setLayoutContainer({ x: 0, y: 0, zoomLevel: 0.7 });
+      setLayoutContainer({ x: 0, y: 0, zoomLevel: 0.6 });
       setGuests([])
       setZoneCollection([])
       setIsModalSelectOpen(false)
@@ -431,7 +431,7 @@ const getDataProject = async () => {
       setModalSearchGuest(false)
       setSelectedParentGroup("0")
       setParentGroup("0")
-      zoomRef.current = 0.7;
+      zoomRef.current = 0.6;
       offsetRef.current = { x: 0, y: 0 };
       setNextTableNumber(1)
       setNextTableNumberItem(1)
@@ -449,8 +449,8 @@ const getDataProject = async () => {
           }else{
             toast.success(`Tạo dự án thành công`);
             setTimeout( async ()  => {
-               await handleAddItem("sankhau",200,200,"#155DFC","Sân khấu",(window.innerWidth / 2) + 182,150,1);
-              await handleAddItem("cong",150,200,"transparent","Cổng",(window.innerWidth / 2) + 182,window.innerHeight + 200,2);
+              await handleAddItem("sankhau",200,200,"#155DFC","Sân khấu",(window.innerWidth / 2) + 382,150,1);
+              await handleAddItem("cong",150,200,"transparent","Cổng",(window.innerWidth / 2) + 382,window.innerHeight + 400,2);
            }, 400);
           }
       }
@@ -533,7 +533,7 @@ useEffect(() => {
       const normalizedLayoutContainer = {
         x: parsed.LayoutContainer?.X ?? 0,
         y: parsed.LayoutContainer?.Y ?? 0,
-        zoomLevel: parsed.LayoutContainer?.ZoomLevel ?? 0.7,
+        zoomLevel: parsed.LayoutContainer?.ZoomLevel ?? 0.6,
       };
      const normalizedZone:ZoneRegion[] = (parsed.ZoneRegion || []).map((item: any) => ({
         zoneId: item.ZoneId,
@@ -643,7 +643,7 @@ useEffect(() => {
       setTables([]);
       setLayoutItems([]);
       setZoneCollection([])
-      setLayoutContainer({ x: 0, y: 0, zoomLevel: 0.7 });
+      setLayoutContainer({ x: 0, y: 0, zoomLevel: 0.6 });
       setZoneCollection([])
       setIsModalSelectOpen(false)
       // setModalOpen(false)
@@ -652,7 +652,7 @@ useEffect(() => {
       setModalSearchGuest(false)
       setSelectedParentGroup("0")
       setParentGroup("0")
-      zoomRef.current = 0.7;
+      zoomRef.current = 0.6;
       offsetRef.current = { x: 0, y: 0 };
       setViewIconUser(true)
       if (isProjectID !== "0") {
@@ -2259,7 +2259,7 @@ const handleDeleteTable =(checkGuest:boolean = true) => {
   
 useClickOutsideItemSave();
 // const handleResetZoom =() => {
-//     zoomRef.current = 0.7;
+//     zoomRef.current = 0.6;
 //      const dataSanKhan = layoutItems.find((x: LayoutItem) => x.id === `item1`);
 //     offsetRef.current.x = dataSanKhan?.y ?? 0
 //     offsetRef.current.y = 0
@@ -2274,32 +2274,31 @@ useClickOutsideItemSave();
 //             }));
 // }
 const handleResetZoom = () => {
-  const targetZoom = 0.7;
+  const targetZoom = 0.6;
   zoomRef.current = targetZoom;
   
   // Tìm item cần focus
   const dataSanKhan = layoutItems.find((x: LayoutItem) => x.id === `item1`);
   
   if (dataSanKhan && innerRef.current) {
-    // Lấy kích thước container (viewport) - thử lấy từ window hoặc parent element
     const container = innerRef.current.parentElement;
     if (!container) return;
     
     const containerRect = container.getBoundingClientRect();
     
-    // Trừ 300px cho sidebar bên phải
-    const viewportWidth = containerRect.width ;
+    // Kích thước viewport (trừ sidebar 300px bên phải)
+    const viewportWidth = containerRect.width - 300;
     const viewportHeight = containerRect.height;
     
-    // Tính toán vị trí item
+    // Tính vị trí CENTER của item (ngang) và TOP (dọc)
     const itemCenterX = dataSanKhan.x + (dataSanKhan.width || 0) / 2;
     const itemTopY = dataSanKhan.y;
     
-    // Tính offset để:
-    // - Ngang: center vào giữa viewport (trừ sidebar)
-    // - Dọc: cách đầu màn hình 50px
-    offsetRef.current.x = (viewportWidth / 2) / targetZoom - itemCenterX;
-    offsetRef.current.y = 40 / targetZoom - itemTopY;
+    // ✅ Ngang: căn giữa viewport
+    offsetRef.current.x = (viewportWidth / 2) - (itemCenterX * targetZoom) + 160;
+    
+    // ✅ Dọc: cách top 50px
+    offsetRef.current.y = 50 - (itemTopY * targetZoom);
     
     // Apply transform - translate TRƯỚC rồi mới scale
     innerRef.current.style.transform = `translate(${offsetRef.current.x}px, ${offsetRef.current.y}px) scale(${targetZoom})`;
@@ -2310,6 +2309,8 @@ const handleResetZoom = () => {
     setLayoutContainer((prev) => ({
       ...prev,
       zoomLevel: targetZoom,
+      x: offsetRef.current.x,
+      y: offsetRef.current.y,
     }));
   }
 };

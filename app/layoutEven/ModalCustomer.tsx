@@ -434,7 +434,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
                   <input
                     type="text"
                     name="gender"
-                    value={filters.gender}
+                   value={filters.gender === "" ? "" : filters.gender}
                     onChange={handleFilterChange}
                     className="w-full px-2 py-1 text-sm border-none focus:outline-none font-normal"
                   />

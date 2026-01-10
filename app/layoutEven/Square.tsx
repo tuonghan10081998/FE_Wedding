@@ -415,7 +415,8 @@ const SquareTableRender: React.FC<SquareTableRenderProps> = ({
           width: '100%',
           height: '100%',
           fontWeight: '600',
-          fontSize:fontSize.fontSizeTable
+          fontSize:fontSize.fontSizeTable,
+           background:table.groupParentID === 7 ? "#aedfae" : ""
         }}
       >
         {isViewBan ? table.nameTable : table.nameNhom}
