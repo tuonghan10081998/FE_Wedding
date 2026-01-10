@@ -14,11 +14,13 @@ const AuthPage: React.FC = () => {
   confirmPassword: "",
 };
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"login" | "register">("login");
+  const [activeTab, setActiveTab] = useState<"login" | "register" | "forgot">("login");
   const [showPassword, setShowPassword] = useState({
     login: false,
     register: false,
     confirm: false,
+    newPassword: false,
+    confirmNewPassword: false,
   });
   const [rememberMe, setRememberMe] = useState(false);
   const [registerForm, setRegisterForm] = useState(initialRegisterForm);
@@ -26,14 +28,26 @@ const AuthPage: React.FC = () => {
     user: "",
     password: "",
   });
+  
+  // State cho forgot password
+  const [forgotPasswordStep, setForgotPasswordStep] = useState(1);
+  const [forgotPasswordForm, setForgotPasswordForm] = useState({
+    email: "",
+    code: "",
+    newPassword: "",
+    confirmNewPassword: "",
+  });
+  
   // Thêm state loading cho từng form
   const [isLoginLoading, setIsLoginLoading] = useState(false);
   const [isRegisterLoading, setIsRegisterLoading] = useState(false);
+  const [isForgotPasswordLoading, setIsForgotPasswordLoading] = useState(false);
 
   const handleTogglePassword = (field: keyof typeof showPassword) => {
     setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }));
   };
-    useEffect(() => {
+  
+  useEffect(() => {
     const cachedUser = localStorage.getItem("userInvitationR");
     const cachedPass = localStorage.getItem("passwordInvitationR");
     if (cachedUser && cachedPass) {
@@ -44,6 +58,7 @@ const AuthPage: React.FC = () => {
       setRememberMe(true); // set lại trạng thái checkbox
     }
   }, []);
+  
   const handleRegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isRegisterLoading) return; // Ngăn submit khi đang loading
@@ -61,6 +76,7 @@ const AuthPage: React.FC = () => {
     }
     PostRegister(objectRegister)
   };
+  
   const PostRegister = async (object: any) => {
       setIsRegisterLoading(true); // Bắt đầu loading
       try {
@@ -104,7 +120,8 @@ const AuthPage: React.FC = () => {
     }
     PostLogin(objectLogin)
   };
-    const PostLogin = async (object: any) => {
+  
+  const PostLogin = async (object: any) => {
       setIsLoginLoading(true); // Bắt đầu loading
       try {
         const request = new Request(`${import.meta.env.VITE_API_URL}/api/User/login`, {
@@ -161,6 +178,83 @@ const AuthPage: React.FC = () => {
         setIsLoginLoading(false); // Kết thúc loading
       }
     };
+
+  // Xử lý gửi email để lấy mã code
+  const handleSendResetCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isForgotPasswordLoading) return;
+
+    setIsForgotPasswordLoading(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/User/forget-password?email=${forgotPasswordForm.email}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        toast.success("Mã xác thực đã được gửi đến email của bạn!");
+        setForgotPasswordStep(2);
+      } else {
+        const errorText = await response.text();
+        toast.error(errorText || "Gửi mã thất bại");
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+      toast.error("Có lỗi kết nối server");
+    } finally {
+      setIsForgotPasswordLoading(false);
+    }
+  };
+
+  // Xử lý reset password
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isForgotPasswordLoading) return;
+
+    if (forgotPasswordForm.newPassword !== forgotPasswordForm.confirmNewPassword) {
+      toast.error("Mật khẩu mới và xác nhận mật khẩu không khớp!");
+      return;
+    }
+
+    setIsForgotPasswordLoading(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/User/reset-password?email=${forgotPasswordForm.email}&newPassword=${forgotPasswordForm.newPassword}&CodeReset=${forgotPasswordForm.code}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        toast.success("Đặt lại mật khẩu thành công!");
+        setActiveTab("login");
+        setForgotPasswordStep(1);
+        setForgotPasswordForm({
+          email: "",
+          code: "",
+          newPassword: "",
+          confirmNewPassword: "",
+        });
+      } else {
+        const errorText = await response.text();
+        toast.error(errorText || "Đặt lại mật khẩu thất bại");
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+      toast.error("Có lỗi kết nối server");
+    } finally {
+      setIsForgotPasswordLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10 relative overflow-hidden">
       {/* Background với gradient và pattern */}
@@ -320,6 +414,19 @@ const AuthPage: React.FC = () => {
               onClick={() => setActiveTab("register")}
             >
               Đăng ký
+            </button>
+            <button
+              className={`pb-2 font-semibold focus:outline-none transition-all duration-300 ${
+                activeTab === "forgot"
+                  ? "text-pink-600 border-b-4 border-pink-600"
+                  : "text-gray-400 hover:text-pink-600"
+              }`}
+              onClick={() => {
+                setActiveTab("forgot");
+                setForgotPasswordStep(1);
+              }}
+            >
+              Quên MK
             </button>
           </div>
 
@@ -585,6 +692,193 @@ const AuthPage: React.FC = () => {
                   )}
                 </button>
               </form>
+            )}
+
+            {/* Forgot Password Form */}
+            {activeTab === "forgot" && (
+              <div className="space-y-4">
+                {/* Step 1: Nhập email */}
+                {forgotPasswordStep === 1 && (
+                  <form onSubmit={handleSendResetCode} className="space-y-3">
+                    <div className="text-center mb-4">
+                      <i className="fas fa-key text-4xl text-pink-500 mb-2"></i>
+                      <p className="text-gray-600 text-sm">
+                        Nhập email để nhận mã xác thực
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-1">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        placeholder=""
+                        value={forgotPasswordForm.email}
+                        disabled={isForgotPasswordLoading}
+                        onInvalid={(e) => {
+                          e.currentTarget.setCustomValidity("Vui lòng nhập email");
+                        }}
+                        onInput={(e) => {
+                          e.currentTarget.setCustomValidity('');
+                        }}
+                        onChange={(e) =>
+                          setForgotPasswordForm({
+                            ...forgotPasswordForm,
+                            email: e.target.value,
+                          })
+                        }
+                        className="w-full border border-pink-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-600 bg-white/80 backdrop-blur-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={isForgotPasswordLoading}
+                      className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-semibold py-2 rounded-md transition-all duration-300 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
+                    >
+                      {isForgotPasswordLoading ? (
+                        <>
+                          <i className="fas fa-spinner fa-spin mr-2"></i>
+                          Đang gửi...
+                        </>
+                      ) : (
+                        "Gửi mã xác thực"
+                      )}
+                    </button>
+                  </form>
+                )}
+
+                {/* Step 2: Nhập mã code và mật khẩu mới */}
+                {forgotPasswordStep === 2 && (
+                  <form onSubmit={handleResetPassword} className="space-y-3">
+                    <div className="text-center mb-4">
+                      <i className="fas fa-envelope-open-text text-4xl text-pink-500 mb-2"></i>
+                      <p className="text-gray-600 text-sm">
+                        Kiểm tra email để lấy mã xác thực
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-1">
+                        Mã xác thực
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder=""
+                        value={forgotPasswordForm.code}
+                        disabled={isForgotPasswordLoading}
+                        onInvalid={(e) => {
+                          e.currentTarget.setCustomValidity("Vui lòng nhập mã xác thực");
+                        }}
+                        onInput={(e) => {
+                          e.currentTarget.setCustomValidity('');
+                        }}
+                        onChange={(e) =>
+                          setForgotPasswordForm({
+                            ...forgotPasswordForm,
+                            code: e.target.value,
+                          })
+                        }
+                        className="w-full border border-pink-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-600 bg-white/80 backdrop-blur-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-1">
+                        Mật khẩu mới
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showPassword.newPassword ? "text" : "password"}
+                          required
+                          placeholder=""
+                          value={forgotPasswordForm.newPassword}
+                          disabled={isForgotPasswordLoading}
+                          onInvalid={(e) => {
+                            e.currentTarget.setCustomValidity("Vui lòng nhập mật khẩu mới");
+                          }}
+                          onInput={(e) => {
+                            e.currentTarget.setCustomValidity('');
+                          }}
+                          onChange={(e) =>
+                            setForgotPasswordForm({
+                              ...forgotPasswordForm,
+                              newPassword: e.target.value,
+                            })
+                          }
+                          className="w-full border border-pink-300 rounded-md px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-600 bg-white/80 backdrop-blur-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleTogglePassword("newPassword")}
+                          disabled={isForgotPasswordLoading}
+                          className="absolute right-3 top-[10px] text-pink-400 hover:text-pink-600 focus:outline-none transition-colors duration-300 disabled:opacity-50"
+                        >
+                          <i className={`fas ${showPassword.newPassword ? "fa-eye-slash" : "fa-eye"}`} />
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-1">
+                        Xác nhận mật khẩu mới
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showPassword.confirmNewPassword ? "text" : "password"}
+                          required
+                          placeholder=""
+                          value={forgotPasswordForm.confirmNewPassword}
+                          disabled={isForgotPasswordLoading}
+                          onInvalid={(e) => {
+                            e.currentTarget.setCustomValidity("Vui lòng xác nhận mật khẩu mới");
+                          }}
+                          onInput={(e) => {
+                            e.currentTarget.setCustomValidity('');
+                          }}
+                          onChange={(e) =>
+                            setForgotPasswordForm({
+                              ...forgotPasswordForm,
+                              confirmNewPassword: e.target.value,
+                            })
+                          }
+                          className="w-full border border-pink-300 rounded-md px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-600 bg-white/80 backdrop-blur-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleTogglePassword("confirmNewPassword")}
+                          disabled={isForgotPasswordLoading}
+                          className="absolute right-3 top-[10px] text-pink-400 hover:text-pink-600 focus:outline-none transition-colors duration-300 disabled:opacity-50"
+                        >
+                          <i className={`fas ${showPassword.confirmNewPassword ? "fa-eye-slash" : "fa-eye"}`} />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => setForgotPasswordStep(1)}
+                        disabled={isForgotPasswordLoading}
+                        className="w-1/3 bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold py-2 rounded-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Quay lại
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isForgotPasswordLoading}
+                        className="w-2/3 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-semibold py-2 rounded-md transition-all duration-300 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
+                      >
+                        {isForgotPasswordLoading ? (
+                          <>
+                            <i className="fas fa-spinner fa-spin mr-2"></i>
+                            Đang xử lý...
+                          </>
+                        ) : (
+                          "Đặt lại mật khẩu"
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
             )}
           </div>
         </div>
