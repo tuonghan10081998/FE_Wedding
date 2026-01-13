@@ -2519,7 +2519,7 @@ useEffect(() => {
               
               {/* Xuất file Hướng dẫn */}
               <button 
-                className="w-full cursor-pointer flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 focus:bg-gray-100 focus:outline-none transition-colors duration-200 text-left text-sm group"
+                className="hidden w-full cursor-pointer flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 focus:bg-gray-100 focus:outline-none transition-colors duration-200 text-left text-sm group"
                 onClick={() => {
                   // Logic xuất file hướng dẫn
                   console.log("Xuất file Hướng dẫn");
