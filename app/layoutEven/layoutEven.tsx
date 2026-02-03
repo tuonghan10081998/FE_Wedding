@@ -1503,7 +1503,38 @@ const handleDragItem = (index: number, top: number, left: number) => {
   });
 };
 
-
+const handleZoomPlus = () => {
+  // Tăng zoom thêm 0.2, giới hạn tối đa là 2
+  zoomRef.current = Math.min(zoomRef.current + 0.04, 2);
+  setlayoutBackZoom(zoomRef.current);
+  
+  if (innerRef.current) {
+    innerRef.current.style.transform = `scale(${zoomRef.current}) translate(${offsetRef.current.x}px, ${offsetRef.current.y}px)`;
+  }
+  
+  // Cập nhật state sau khi zoom
+  setZoomLevel(zoomRef.current);
+  setLayoutContainer((prev) => ({
+    ...prev,
+    zoomLevel: zoomRef.current,
+  }));
+};
+const handleZoomMinus = () => {
+  // Tăng zoom thêm 0.2, giới hạn tối đa là 2
+  zoomRef.current = Math.min(zoomRef.current - 0.04, 2);
+  setlayoutBackZoom(zoomRef.current);
+  
+  if (innerRef.current) {
+    innerRef.current.style.transform = `scale(${zoomRef.current}) translate(${offsetRef.current.x}px, ${offsetRef.current.y}px)`;
+  }
+  
+  // Cập nhật state sau khi zoom
+  setZoomLevel(zoomRef.current);
+  setLayoutContainer((prev) => ({
+    ...prev,
+    zoomLevel: zoomRef.current,
+  }));
+};
 const handleZoom = (e: React.WheelEvent<HTMLDivElement>) => {
   // Giảm delta từ 0.05 xuống 0.02 hoặc 0.01 để zoom chậm hơn
   const delta = e.deltaY < 0 ? 0.05 : -0.05; // Thay đổi từ 0.05 -> 0.02
@@ -2436,6 +2467,30 @@ useEffect(() => {
        <>
           <button
               type="button"
+                onClick={() => handleZoomPlus()}
+              className="fixed right-[375px] h-[40px] w-[40px] top-[calc(100vh-80px)] z-[9] cursor-pointer rounded-lg border border-gray-300 bg-white flex items-center justify-center shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <i className="fas fa-plus  text-purple-600 text-lg"></i>
+            </button>
+           
+          </>
+       <>
+    </>
+    <>
+          <button
+              type="button"
+                onClick={() => handleZoomMinus()}
+              className="fixed right-[375px] h-[40px] w-[40px] top-[calc(100vh-130px)] z-[9] cursor-pointer rounded-lg border border-gray-300 bg-white flex items-center justify-center shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <i className="fas fa-minus text-purple-600 text-lg"></i>
+            </button>
+           
+          </>
+       <>
+    </>
+       <>
+          <button
+              type="button"
                 onClick={() => handleResetZoom()}
               className="fixed right-[320px] h-[40px] w-[40px] top-[calc(100vh-80px)] z-[9] cursor-pointer rounded-lg border border-gray-300 bg-white flex items-center justify-center shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
@@ -2443,15 +2498,15 @@ useEffect(() => {
             </button>
            
           </>
-          <>
+    <>
     {/* Nút bật tutorial thủ công */}
-   <button 
-  onClick={() => setShowTutorial(true)}
-  className="fixed right-[320px] h-[40px] w-[40px] top-[calc(100vh-130px)] z-[9] cursor-pointer rounded-lg border border-gray-300 bg-white flex items-center justify-center shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-  title="Hướng dẫn sử dụng"
->
-  <i className="fas fa-question-circle text-purple-600 text-xl"></i>
-</button>
+      <button 
+      onClick={() => setShowTutorial(true)}
+      className="fixed right-[320px] h-[40px] w-[40px] top-[calc(100vh-130px)] z-[9] cursor-pointer rounded-lg border border-gray-300 bg-white flex items-center justify-center shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+      title="Hướng dẫn sử dụng"
+    >
+      <i className="fas fa-question-circle text-purple-600 text-xl"></i>
+    </button>
 
     {/* Tutorial overlay */}
     <TutorialGuide

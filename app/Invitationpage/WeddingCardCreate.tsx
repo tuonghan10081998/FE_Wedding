@@ -11,7 +11,8 @@ interface WeddingCardCreateProps {
   onDelete:() => void;
   onSent:() => void
   layoutData:any
-  userID:string
+  userID:string;
+  checkThiep?:number
 }
 
 const WeddingCardCreate: React.FC<WeddingCardCreateProps> = ({ 
@@ -22,7 +23,8 @@ const WeddingCardCreate: React.FC<WeddingCardCreateProps> = ({
     onDelete,
     onSent,
     layoutData,
-    userID
+    userID,
+    checkThiep
 }) => {
       const [isOpenDelete,setOpenDelete] = useState<boolean>(false)
       const [groomName, setGroomName] = useState(""); 
@@ -129,7 +131,9 @@ return (
       </div>
       
       <div className="h-[190px]">
-        <div className="grid grid-cols-3 gap-4 absolute top-[-200px] right-[15px] left-[15px]  items-center justify-items-center "
+        <div  className={`grid ${
+        checkThiep === 1 ? "grid-cols-1" : "grid-cols-3 gap-4"
+             } absolute top-[-200px] right-[15px] left-[15px] items-center justify-items-center`}
           style={{
             transform: "scale(0.9)"
           }}>

@@ -23,6 +23,7 @@ import WeddingCardCreate from "~/Invitationpage/WeddingCardCreate";
 import type { Project } from "~/layoutEven/layoutEven";
 import InvitationSender from "~/Invitationpage/InvitationSender";
 import type { Guest } from '~/layoutEven/layoutEven';
+import EventInvitationCard from "~/Invitationpage/EventInvitationCard ";
 export interface InvitationProps {
   name: string;
   layout:Project;
@@ -143,7 +144,7 @@ const Invitation = () => {
         { src: "/image/image1_6.png", alt: "Thiệp 1" },
       ],
       views: [
-        <SaveTheDateCard4 width={600} height={650} type={"SaveTheDateCard4"} />,
+        <SaveTheDateCard1  width={600} height={650} type={"SaveTheDateCard1 "} />,
         <WeddingInvitationCard4 width={600} height={650} type={"WeddingInvitationCard4"} />,
         <WeddingInvitation4 width={600} height={650}  type={"WeddingInvitation4"} />,
       
@@ -192,10 +193,43 @@ const Invitation = () => {
     },
     
   ];
-  
+    const cardsEvent = [
+     {
+      title: "Mẫu Event 1",
+      subtitle: "Thiệp mời sự kiện",
+      checkForm: 5,
+      images: [
+        { src: "/image/bg_event1.jpg", alt: "Thiệp Event 1" },
+      ],
+      views: [
+        <EventInvitationCard  width={600} height={650} type={"EventInvitationCard"} />,
+      ],
+    },
+  ];
+
+  // Lọc thiệp cưới và thiệp event
+  const weddingInvitations = dataInvatition.filter((inva) => {
+    try {
+      const layoutData = typeof inva.layout === 'string' ? JSON.parse(inva.layout) : inva.layout;
+      return layoutData?.checkForm >= 1 && layoutData?.checkForm <= 4;
+    } catch {
+      return false;
+    }
+  });
+
+  const eventInvitations = dataInvatition.filter((inva) => {
+    try {
+      const layoutData = typeof inva.layout === 'string' ? JSON.parse(inva.layout) : inva.layout;
+      return layoutData?.checkForm === 5;
+    } catch {
+      return false;
+    }
+  });
+
   // Khi nhấn Tạo thiệp ở card nào
  const handleCreateCardView = (checkForm: number) => {
-  const card = cards.find(c => c.checkForm === checkForm);
+  const allCards = [...cards, ...cardsEvent];
+  const card = allCards.find(c => c.checkForm === checkForm);
   if (card) {
     setSelectedViews(card.views ?? []);
     setSelectedCheckForm(card.checkForm);
@@ -230,7 +264,8 @@ const Delete = async (projectId: string) => {
   }
 };
 const handleCreateCard = (checkForm: number,invatition:string) => {
-  const card = cards.find(c => c.checkForm === checkForm);
+  const allCards = [...cards, ...cardsEvent];
+  const card = allCards.find(c => c.checkForm === checkForm);
   if (card) {
     setSelectedViews(card.views ?? []);
     setSelectedCheckForm(card.checkForm);
@@ -278,20 +313,22 @@ const handleCreateCard = (checkForm: number,invatition:string) => {
     </React.Fragment>
   ))}
 </div>
+
+   {/* Thiệp Cưới Đã Tạo */}
    <div className="text-center mb-8">
-      <h1 className="text-4xl font-bold text-gray-800 mb-2">Thiệp đã tạo</h1>
-      <p className="text-gray-600 text-lg">Danh sách các thiệp mà bạn đã tạo</p>
+      <h1 className="text-4xl font-bold text-gray-800 mb-2">Thiệp Cưới Đã Tạo</h1>
+      <p className="text-gray-600 text-lg">Danh sách các thiệp cưới mà bạn đã tạo</p>
     </div>
    
-    {dataInvatition.length === 0 ? (
-      <div className="text-center  mb-18">
+    {weddingInvitations.length === 0 ? (
+      <div className="text-center mb-18">
         <p className="text-2xl font-[roboto] text-pink-600 ">
-          Bạn chưa có thiệp nào cả. Hãy bắt đầu tạo một tấm thiệp thật đẹp nhé! 💌
+          Bạn chưa có thiệp cưới nào cả. Hãy bắt đầu tạo một tấm thiệp thật đẹp nhé! 💌
         </p>
       </div>
-       ) : (
+    ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center mb-8">
-        {dataInvatition.map((inva, index) => {
+        {weddingInvitations.map((inva, index) => {
           let layoutData: any = null;
           try {
             if (typeof inva.layout === 'string') {
@@ -309,7 +346,7 @@ const handleCreateCard = (checkForm: number,invatition:string) => {
           return (
             <WeddingCardCreate
               key={inva.invitationID}
-              title={inva.name || `Thiệp đã tạo ${index + 1}`}
+              title={inva.name || `Thiệp cưới ${index + 1}`}
               images={card?.views ?? []}
               layoutData={layoutData}
               userID={isUserID ??""}
@@ -333,14 +370,93 @@ const handleCreateCard = (checkForm: number,invatition:string) => {
         })}
       </div>
     )}
-      {/* Title Section */}
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">Thiệp Mẫu</h1>
+
+    {/* Thiệp Event Đã Tạo */}
+    <div className="text-center mb-8 mt-12">
+      <h1 className="text-4xl font-bold text-gray-800 mb-2">Thiệp Event Đã Tạo</h1>
+      <p className="text-gray-600 text-lg">Danh sách các thiệp sự kiện mà bạn đã tạo</p>
+    </div>
+   
+    {eventInvitations.length === 0 ? (
+      <div className="text-center mb-18">
+        <p className="text-2xl font-[roboto] text-blue-600 ">
+          Bạn chưa có thiệp event nào cả. Hãy bắt đầu tạo thiệp mời sự kiện nhé! 🎉
+        </p>
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center mb-8">
+        {eventInvitations.map((inva, index) => {
+          let layoutData: any = null;
+          try {
+            if (typeof inva.layout === 'string') {
+              layoutData = JSON.parse(inva.layout);
+            } else {
+              layoutData = inva.layout;
+            }
+          } catch (error) {
+            console.error("Parse layout error:", error);
+            return null;
+          }
+
+          const card = cardsEvent.find(c => c.checkForm === layoutData?.checkForm);
+
+          return (
+            <WeddingCardCreate
+              key={inva.invitationID}
+              title={inva.name || `Thiệp event ${index + 1}`}
+              images={card?.views ?? []}
+              layoutData={layoutData}
+              userID={isUserID ??""}
+              checkThiep={1}
+              onPreview={() => {
+                navigate(
+                  `/layout/InvitationCard?thiep=${layoutData?.checkForm}&xt=0&id=${inva.invitationID}`
+                );
+              }}
+              onDelete={() => {
+                handleDeleteInvitation(inva.invitationID);
+              }}
+              onCreateCard={() =>
+                handleCreateCard(layoutData?.checkForm, inva.invitationID)
+              }
+              onSent={() => {
+                GetGuest(layoutData?.projectID)
+                setModalOpenSent(true)
+              }}
+            />
+          );
+        })}
+      </div>
+    )}
+
+      {/* Thiệp Mẫu Cưới */}
+      <div className="text-center mb-8 mt-12">
+        <h1 className="text-4xl font-bold text-gray-800 mb-2">Thiệp Mẫu Cưới</h1>
         <p className="text-gray-600 text-lg">Chọn mẫu thiệp cưới yêu thích của bạn</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center mb-8">
         {cards.map((card, index) => (
+          <WeddingCard
+            key={index}
+            title={card.title}
+            subtitle={card.subtitle}
+            images={card.images}
+            views={card.views}
+            checkForm={card.checkForm}
+            onCreateCard={() => handleCreateCardView(card.checkForm)}
+          />
+        ))}
+      </div>
+
+      {/* Thiệp Mẫu Event */}
+      <div className="text-center mb-8 mt-12">
+        <h1 className="text-4xl font-bold text-gray-800 mb-2">Thiệp Mẫu Event</h1>
+        <p className="text-gray-600 text-lg">Chọn mẫu thiệp sự kiện phù hợp</p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center mb-8">
+        {cardsEvent.map((card, index) => (
           <WeddingCard
             key={index}
             title={card.title}

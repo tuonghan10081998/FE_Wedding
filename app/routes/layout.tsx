@@ -32,13 +32,20 @@ const Layout: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
    useEffect(() => {
-      const storedUser = localStorage.getItem("userInvitation");
-       const storeRole = localStorage.getItem("role");
-       if(storeRole === "Admin"){
-          setview(false)
-       }
-       
-       !storedUser && navigate("/");
+       const storedUser = localStorage.getItem("userInvitation");
+      const storeRole = localStorage.getItem("role");
+
+      if (storeRole === "Admin") {
+        setview(false);
+      }
+
+     const isInvitationCardPage =
+        location.pathname.startsWith("/layout/InvitationCard");
+
+      if (!storedUser && !isInvitationCardPage) {
+        navigate("/");
+      }
+
       setUser(storedUser);
   }, []);
 

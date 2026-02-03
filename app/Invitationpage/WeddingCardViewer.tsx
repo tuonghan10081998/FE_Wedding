@@ -9,6 +9,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import type { InvitationProps } from "~/Invitationpage/Invitation";
 import { useNavigate } from "react-router-dom"; 
+import WeddingFormModalEvent from "~/Invitationpage/WeddingFormModalEvent";
 interface WeddingCardViewerProps {
   views: React.ReactNode[];
   checkForm?:number
@@ -59,6 +60,23 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
   // token
   const [accessToken,setAccessToken] = useState<string>("")
   const [refreshToken,setRefreshToken] = useState<string>("") 
+
+  const [eventName, setEventName] = useState("");
+const [eventDate, setEventDate] = useState("");
+const [eventTime, setEventTime] = useState("");
+const [eventLocation, setEventLocation] = useState("");
+const [guestName, setGuestName] = useState("");
+const [organizerName, setOrganizerName] = useState("");
+
+// Thêm fieldLabels cho Event
+const fieldLabelsEvent: Record<string, string> = {
+  projectID: "dự án",
+  eventName: "Tên sự kiện",
+  eventDate: "Ngày tổ chức",
+  eventTime: "Giờ tổ chức",
+  eventLocation: "Địa điểm tổ chức",
+};
+
    useEffect(() => {
      
       const storedAccessToken = localStorage.getItem("accessToken");
@@ -134,12 +152,69 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
       resetForm()
     }
   }, [dataInvatitionEdit]);
+useEffect(() => {
+  if (!dataInvatitionEdit || dataInvatitionEdit.length === 0) return;
+  try {
+    const layoutData = JSON.parse(dataInvatitionEdit[0].layout.toString());
+    
+    // Check xem có phải Event không (checkForm === 5)
+    if (layoutData.checkForm === 5) {
+      setInvitation(dataInvatitionEdit[0].invitationID);
+      setNewInvitation(dataInvatitionEdit[0].name);
+      setProjectID(layoutData.projectID || "");
+      setEventName(layoutData.eventName || "");
+      setEventDate(layoutData.eventDate || "");
+      setEventTime(layoutData.eventTime || "");
+      setEventLocation(layoutData.eventLocation || "");
+      setGuestName(layoutData.guestName || "");
+      setOrganizerName(layoutData.organizerName || "");
+      setMapLink(layoutData.mapLink || "");
+      setCheckUpdate(true);
+    } else {
+      // Logic cũ cho thiệp cưới
+      setInvitation(dataInvatitionEdit[0].invitationID);
+      setNewInvitation(dataInvatitionEdit[0].name);
+      setProjectID(layoutData.projectID || "");
+      setGroomName(layoutData.groomName || "");
+      // ... các field khác
+      setCheckUpdate(true);
+    }
+  } catch {
+    resetForm();
+  }
+}, [dataInvatitionEdit]);
 
   const handleSummit = (e: React.FormEvent) => {
     e.preventDefault();
   }
     const handleSave = (e: React.FormEvent) => {
       e.preventDefault();
+       if (checkForm === 5) {
+    const formData: Record<string, any> = {
+      projectID,
+      eventName,
+      eventDate,
+      eventTime,
+      eventLocation,
+      guestName,
+      organizerName,
+      mapLink,
+      checkForm,
+      userID,
+    };
+
+    // Validate Event fields
+    for (const key of Object.keys(fieldLabelsEvent)) {
+      if (formData[key] === "") {
+        toast.warning(`Vui lòng ${key === "projectID" ? "chọn" : "nhập"} ${fieldLabelsEvent[key]}`);
+        return;
+      }
+    }
+
+    setShowModalName(true);
+    const jsonString = JSON.stringify(formData);
+    setFormData(jsonString);
+  } else {
       const formData: Record<string, any> = {
           projectID,
           groomName,
@@ -178,6 +253,7 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
       setShowModalName(true)
        const jsonString = JSON.stringify(formData);
        setFormData(jsonString)
+      }
   }
   const handleSaveInvitation = (access:string) => {
     const object = {
@@ -273,6 +349,15 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
             setPartyVenue("");
             setPartyRank("");
             setpartyAddress("");
+
+          setEventName("");
+            setEventDate("");
+            setEventTime("");
+            setEventLocation("");
+            setGuestName("");
+            setOrganizerName("");
+            setMapLink("");
+
             setCheckNhaHang(true); // 👈 giữ nguyên mặc định
             setCheckUpdate(false)
           };
@@ -290,18 +375,19 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
           onClick={handleSave}
         >
           <i className="fas fa-save text-lg"></i>
-          <span>{isCheckUpdate ? "Cập nhật" : "Lưu"} thiệp</span>
+          <span>{isCheckUpdate ? "Cập nhật" : "Lưu"}</span>
         </button>
 
         {/* Input Information Icon Only */}
-        <button title="Nhập thông tin"
-          type="button"
-          aria-label="Nhập thông tin"
-          className="text-green-600 hover:text-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 rounded p-2"
-       
-        onClick={() => setShowModal(true)}>
-          <i className="fas fa-edit text-2xl"></i>
-        </button>
+       <button 
+        title="Nhập thông tin"
+        type="button"
+        aria-label="Nhập thông tin"
+        className="text-[#2b2121] bg-[#9bdaff] hover:bg-[#7ac9f5] focus:outline-none focus:ring-2 focus:ring-green-500 rounded p-2"
+        onClick={() => setShowModal(true)}
+      >
+        <i className="fas fa-edit text-lg"></i> Nhập thông tin
+      </button>
       
       </div>
       <div className="flex-1 flex items-center justify-center p-4">
@@ -364,6 +450,27 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
                       partyVenue,partyRank,partyAddress,checkNhaHang
                     });
                    }
+                 else  if (typeName === "EventInvitationCard") {
+                    return React.cloneElement(view as React.ReactElement<{
+                      eventName?: string;
+                      eventDate?: string;
+                      eventTime?: string;
+                      eventLocation?: string;
+                      guestName?: string;
+                      organizerName?: string;
+                      width?: number;
+                      height?: number;
+                    }>, { 
+                      eventName, 
+                      eventDate, 
+                      eventTime, 
+                      eventLocation, 
+                      guestName, 
+                      organizerName,
+                      width: 600, 
+                      height: 650 
+                    });
+                  }
                   return view;
                  
                 }
@@ -461,7 +568,29 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
                       partyVenue,partyRank,partyAddress,checkNhaHang
                 });
               }
+               else  if (typeName === "EventInvitationCard") {
+                    element = React.cloneElement(view as React.ReactElement<{
+                      eventName?: string;
+                      eventDate?: string;
+                      eventTime?: string;
+                      eventLocation?: string;
+                      guestName?: string;
+                      organizerName?: string;
+                      width?: number;
+                      height?: number;
+                    }>, { 
+                      eventName, 
+                      eventDate, 
+                      eventTime, 
+                      eventLocation, 
+                      guestName, 
+                      organizerName,
+                      width: 600, 
+                      height: 650 
+                    });
+                  }
             }
+
 
             return (
               <div
@@ -479,7 +608,30 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
           })}
        </div>
       </div>
-     {showModal && (
+      {showModal && checkForm === 5 && (
+      <WeddingFormModalEvent
+        onClose={() => setShowModal(false)}
+        eventName={eventName}
+        setEventName={setEventName}
+        eventDate={eventDate}
+        setEventDate={setEventDate}
+        eventTime={eventTime}
+        setEventTime={setEventTime}
+        eventLocation={eventLocation}
+        setEventLocation={setEventLocation}
+        guestName={guestName}
+        setGuestName={setGuestName}
+        organizerName={organizerName}
+        setOrganizerName={setOrganizerName}
+        data={data}
+        setProjectID={setProjectID}
+        projectID={projectID}
+        mapLink={mapLink}
+        setMapLink={setMapLink}
+        onSummit={handleSummit}
+      />
+    )}
+    {showModal && checkForm !== 5 && (
           <WeddingFormModal
             onClose={() => setShowModal(false)}
             groomName={groomName}

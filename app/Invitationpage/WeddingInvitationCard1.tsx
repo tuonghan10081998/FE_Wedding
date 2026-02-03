@@ -16,7 +16,8 @@ interface WeddingInvitationCard1Props {
   weddingDateTimeAm?: string;
   tuGia?: string;
   weddingVenue?: string;
-  weddingRank?:string
+  weddingRank?:string;
+   type?:string
 }
 
 // helper để gán default khi chuỗi rỗng
