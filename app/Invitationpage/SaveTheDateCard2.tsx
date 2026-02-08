@@ -5,17 +5,20 @@ interface SaveTheDateCard1Props {
   groomName?:string;
   brideName?:string;
   nameCutomer?:string;
+  type?:string,
+  backgroundImage?: string;
 }
 const withDefault = (value: string | undefined, fallback: string) =>
   value && value.trim() !== "" ? value : fallback;
 
-const SaveTheDateCard2: React.FC<SaveTheDateCard1Props> = ({width = 550,height = 650,groomName,brideName,nameCutomer}) => {
+const SaveTheDateCard2: React.FC<SaveTheDateCard1Props> = ({width = 550,height = 650,groomName,brideName,nameCutomer,backgroundImage}) => {
   return (
     <div
       className="rounded-lg shadow-lg  flex justify-center items-center  text-[#b38b2b]"
       style={{
-        backgroundImage:
-          "url('/image/imageBG5.jpg')",
+          backgroundImage: backgroundImage 
+          ? `url('${backgroundImage}')` 
+          : "url('/image/imageBG5.jpg')", 
         backgroundSize: "cover",
         backgroundPosition: "center",
         width:`${width}px`,

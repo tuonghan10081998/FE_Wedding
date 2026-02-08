@@ -175,7 +175,7 @@ const InvitionCardEvent: React.FC<InvitionCardEventProps> = ({
   const resultPayment = searchParams.get("result");
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [showModal, setShowModal] = useState(false);
-
+  const [saveTheDateBG, setSaveTheDateBG] = useState("");
   useEffect(() => {
     if (!dataProject) return;
     if (!resultPayment && !storedGuests) {
@@ -342,6 +342,7 @@ const InvitionCardEvent: React.FC<InvitionCardEventProps> = ({
       setGuestName(layoutData.guestName || "");
       setOrganizerName(layoutData.organizerName || "");
       setMapLink(layoutData.mapLink || "");
+      setSaveTheDateBG(data[0].saveTheDateBG.toString() || "")
     } catch (error) {
       console.error("Parse error:", error);
     }
@@ -467,6 +468,7 @@ const InvitionCardEvent: React.FC<InvitionCardEventProps> = ({
                             organizerName?: string;
                             width?: number;
                             height?: number;
+                            backgroundImage?: string;
                           }>, {
                             eventName,
                             eventDate,
@@ -474,6 +476,7 @@ const InvitionCardEvent: React.FC<InvitionCardEventProps> = ({
                             eventLocation,
                             guestName: guest,
                             organizerName,
+                            ...(saveTheDateBG && { backgroundImage: saveTheDateBG })
                           });
                         }
                       }

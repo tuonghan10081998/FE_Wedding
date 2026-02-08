@@ -18,6 +18,7 @@ interface WeddingInvitationCard1Props {
   weddingVenue?: string;
   weddingRank?:string
   type?:string
+  backgroundImage?: string;
 }
 
 // helper để gán default khi chuỗi rỗng
@@ -40,13 +41,17 @@ const WeddingInvitationCard4: React.FC<WeddingInvitationCard1Props> = ({
   weddingDateTimeAm,
   tuGia,
   weddingVenue,
-  weddingRank
+  weddingRank,
+  backgroundImage
 }) => {
+  
   return (
     <div
       className="rounded-lg shadow-lg flex justify-center items-center text-[#b38b2b]"
       style={{
-        backgroundImage: "url('/image/imageBG6.jpg')",
+         backgroundImage: backgroundImage 
+          ? `url('${backgroundImage}')` 
+          : "url('/image/imageBG6.jpg')", 
         backgroundSize: "cover",
         backgroundPosition: "center",
         width: `${width}px`,

@@ -67,7 +67,8 @@ const [eventTime, setEventTime] = useState("");
 const [eventLocation, setEventLocation] = useState("");
 const [guestName, setGuestName] = useState("");
 const [organizerName, setOrganizerName] = useState("");
-
+const [saveTheDateBG, setSaveTheDateBG] = useState("");
+const [saveTheDateBGFile, setSaveTheDateBGFile] = useState<File | null>(null);
 // Thêm fieldLabels cho Event
 const fieldLabelsEvent: Record<string, string> = {
   projectID: "dự án",
@@ -117,12 +118,28 @@ const fieldLabelsEvent: Record<string, string> = {
       };
    // Option 1: Nếu dataInvatitionEdit là single object
   
-  useEffect(() => {
-    if (!dataInvatitionEdit) return;
-    try {
 
-      const  layoutData = JSON.parse(dataInvatitionEdit[0].layout.toString());
-      setInvitation(dataInvatitionEdit[0].invitationID)
+  useEffect(() => {
+  if (!dataInvatitionEdit || dataInvatitionEdit.length === 0) return;
+  try {
+    const layoutData = JSON.parse(dataInvatitionEdit[0].layout.toString());
+    console.log(dataInvatitionEdit[0].saveTheDateBG)
+    // Check xem có phải Event không (checkForm === 5)
+    if (layoutData.checkForm === 5) {
+      setInvitation(dataInvatitionEdit[0].invitationID);
+      setNewInvitation(dataInvatitionEdit[0].name);
+      setProjectID(layoutData.projectID || "");
+      setEventName(layoutData.eventName || "");
+      setEventDate(layoutData.eventDate || "");
+      setEventTime(layoutData.eventTime || "");
+      setEventLocation(layoutData.eventLocation || "");
+      setGuestName(layoutData.guestName || "");
+      setOrganizerName(layoutData.organizerName || "");
+      setMapLink(layoutData.mapLink || "");
+      setCheckUpdate(true);
+      setSaveTheDateBG(dataInvatitionEdit[0].saveTheDateBG || "")
+    } else {
+     setInvitation(dataInvatitionEdit[0].invitationID)
       setNewInvitation(dataInvatitionEdit[0].name)
       setProjectID(layoutData.projectID || "");
       setGroomName(layoutData.groomName || "");
@@ -147,43 +164,43 @@ const fieldLabelsEvent: Record<string, string> = {
       setpartyAddress(layoutData.partyAddress || "");
       setCheckNhaHang(layoutData.checkNhaHang ?? true);
       setCheckUpdate(true)
+
       setMapLink(layoutData.mapLink ?? "")
-    }catch{
-      resetForm()
-    }
-  }, [dataInvatitionEdit]);
-useEffect(() => {
-  if (!dataInvatitionEdit || dataInvatitionEdit.length === 0) return;
-  try {
-    const layoutData = JSON.parse(dataInvatitionEdit[0].layout.toString());
-    
-    // Check xem có phải Event không (checkForm === 5)
-    if (layoutData.checkForm === 5) {
-      setInvitation(dataInvatitionEdit[0].invitationID);
-      setNewInvitation(dataInvatitionEdit[0].name);
-      setProjectID(layoutData.projectID || "");
-      setEventName(layoutData.eventName || "");
-      setEventDate(layoutData.eventDate || "");
-      setEventTime(layoutData.eventTime || "");
-      setEventLocation(layoutData.eventLocation || "");
-      setGuestName(layoutData.guestName || "");
-      setOrganizerName(layoutData.organizerName || "");
-      setMapLink(layoutData.mapLink || "");
-      setCheckUpdate(true);
-    } else {
-      // Logic cũ cho thiệp cưới
-      setInvitation(dataInvatitionEdit[0].invitationID);
-      setNewInvitation(dataInvatitionEdit[0].name);
-      setProjectID(layoutData.projectID || "");
-      setGroomName(layoutData.groomName || "");
-      // ... các field khác
-      setCheckUpdate(true);
+      setSaveTheDateBG(dataInvatitionEdit[0].saveTheDateBG || "")
     }
   } catch {
     resetForm();
   }
 }, [dataInvatitionEdit]);
-
+const handleUploadBackground = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (file) {
+    if (!file.type.startsWith('image/')) {
+      toast.warning('Vui lòng chọn file ảnh!');
+      return;
+    }
+    
+    const imageUrl = URL.createObjectURL(file);
+    console.log(imageUrl)
+    setSaveTheDateBG(imageUrl);
+    setSaveTheDateBGFile(file);
+    toast.success('Đã chọn ảnh nền!');
+  }
+};
+useEffect(() => {
+  return () => {
+    if (saveTheDateBG && saveTheDateBG.startsWith('blob:')) {
+      URL.revokeObjectURL(saveTheDateBG);
+    }
+  };
+}, [saveTheDateBG]);
+useEffect(() => {
+  return () => {
+    if (saveTheDateBG && saveTheDateBG.startsWith('blob:')) {
+      URL.revokeObjectURL(saveTheDateBG);
+    }
+  };
+}, [saveTheDateBG]);
   const handleSummit = (e: React.FormEvent) => {
     e.preventDefault();
   }
@@ -255,12 +272,38 @@ useEffect(() => {
        setFormData(jsonString)
       }
   }
-  const handleSaveInvitation = (access:string) => {
+ const blobUrlToBase64 = async (blobUrl: string): Promise<string> => {
+  const response: Response = await fetch(blobUrl);
+  const blob: Blob = await response.blob();
+
+  return new Promise<string>((resolve, reject) => {
+    const reader: FileReader = new FileReader();
+
+    reader.onloadend = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result); // data:image/png;base64,...
+      } else {
+        reject("Convert base64 failed");
+      }
+    };
+
+    reader.onerror = () => reject("FileReader error");
+    reader.readAsDataURL(blob);
+  });
+};
+  const handleSaveInvitation  = async (access:string) => {
+      let base64BG: string | null = null;
+
+      if (saveTheDateBG) {
+        base64BG = await blobUrlToBase64(saveTheDateBG);
+      }
     const object = {
             name: isNewInvitation,
             layout: isFormData,
             projectID: projectID,
-            invitationID:isInvitation
+            invitationID:isInvitation,
+            saveTheDateBG:base64BG,
+            statusInvi:checkForm === 5 ? 2 : 1
         }
         PostInvitation(object,access)
   }
@@ -360,14 +403,15 @@ useEffect(() => {
 
             setCheckNhaHang(true); // 👈 giữ nguyên mặc định
             setCheckUpdate(false)
+            setSaveTheDateBG("");
           };
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Main Display */}
          <ToastContainer position="top-right" autoClose={1500} theme="colored" />
        <div className="flex gap-3 justify-center mt-4" style={{position: "absolute",
-    top: "0",
-    right: "156px",}}>
+          top: "0",
+          right: "156px",}}>
         <button
           type="button"
           aria-label="Lưu thiệp"
@@ -388,7 +432,25 @@ useEffect(() => {
       >
         <i className="fas fa-edit text-lg"></i> Nhập thông tin
       </button>
-      
+     
+      </div>
+       <div className="flex gap-3 justify-center mt-4" style={{position: "absolute",
+          top: "50px",
+          right: "156px",}}>
+        <label 
+        title="Tải ảnh nền"
+        className="flex items-center space-x-2 text-white bg-purple-600 hover:bg-purple-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500 rounded p-2"
+      >
+        <i className="fas fa-upload text-lg"></i>
+        <span>Tải ảnh nền</span>
+        <input 
+          type="file" 
+          accept="image/*"
+          onChange={handleUploadBackground}
+          className="hidden"
+        />
+      </label>
+     
       </div>
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-2xl p-4 max-w-4xl max-h-full relative w-full h-full">
@@ -406,7 +468,11 @@ useEffect(() => {
                       brideName?: string;
                       width?: number;
                       height?: number;
-                    }>, { groomName, brideName, width: 600, height: 650 });
+                       backgroundImage?: string;
+                    }>, {
+                      
+                      groomName, brideName, width: 600, height: 650,
+                      ...(saveTheDateBG && { backgroundImage: saveTheDateBG }) });
                   }
                  else if (typeName === "WeddingInvitationCard1" || typeName === "WeddingInvitationCard2" || typeName === "WeddingInvitationCard3" || typeName === "WeddingInvitationCard4") {
                     return React.cloneElement(view as React.ReactElement<{
@@ -425,16 +491,18 @@ useEffect(() => {
                       weddingDateTimeAm?: string;
                       tuGia?: string;
                       weddingVenue?: string;
-                      weddingRank?:string
+                      weddingRank?:string,
+                       backgroundImage?: string;
                     }>, {
                       groomName, groomParents, groomMother, groomAddress, brideName,
                       brideParents, brideMother,
                       brideAddress,
                       weddingTime, weddingDateTime,weddingDateTimeAm, tuGia,
                       weddingVenue,weddingRank, width: 600, height: 650,
+                      ...(saveTheDateBG && { backgroundImage: saveTheDateBG }) 
                     });
                   }
-                   else if (typeName === "WeddingInvitation1" || typeName === "WeddingInvitation2"|| typeName === "WeddingInvitation3"|| typeName === "WeddingInvitation4") {
+                   else if (typeName === "WeddingInvitation1" || typeName === "WeddingInvitation2" || typeName === "WeddingInvitation3" || typeName === "WeddingInvitation4" ) {
                     return React.cloneElement(view as React.ReactElement<{
                       width?: number;
                       height?: number;
@@ -445,9 +513,10 @@ useEffect(() => {
                       partyRank?:string;
                       partyAddress?:string
                       checkNhaHang?:boolean;
+                      backgroundImage?: string;
                     }>, {
                       partyDateTime,partyTime,width: 600, height: 650,partyDateTimeAm,
-                      partyVenue,partyRank,partyAddress,checkNhaHang
+                      partyVenue,partyRank,partyAddress,checkNhaHang,...(saveTheDateBG && { backgroundImage: saveTheDateBG })
                     });
                    }
                  else  if (typeName === "EventInvitationCard") {
@@ -460,6 +529,7 @@ useEffect(() => {
                       organizerName?: string;
                       width?: number;
                       height?: number;
+                      backgroundImage?: string;
                     }>, { 
                       eventName, 
                       eventDate, 
@@ -468,7 +538,8 @@ useEffect(() => {
                       guestName, 
                       organizerName,
                       width: 600, 
-                      height: 650 
+                      height: 650 ,
+                      ...(saveTheDateBG && { backgroundImage: saveTheDateBG })
                     });
                   }
                   return view;
@@ -521,11 +592,13 @@ useEffect(() => {
                   brideName?: string;
                   width?: number;
                   height?: number;
+                  backgroundImage?: string;
                 }>, {
                   groomName,
                   brideName,
                   width: 600,
                   height: 650,
+                   ...(saveTheDateBG && { backgroundImage: saveTheDateBG }) 
                 });
               }
               else if (typeName === "WeddingInvitationCard1" || typeName === "WeddingInvitationCard2" || typeName === "WeddingInvitationCard3" || typeName === "WeddingInvitationCard4") {
@@ -545,11 +618,13 @@ useEffect(() => {
                   weddingDateTimeAm?: string;
                   tuGia?: string;
                   weddingVenue?: string;
+                  backgroundImage?: string;
                 }>, {
                   groomName,groomParents, groomMother,groomAddress,
                   brideName, brideParents, brideMother,
                   brideAddress, weddingTime, weddingDateTime, weddingDateTimeAm,
                   tuGia, weddingVenue, width: 600, height: 650,
+                   ...(saveTheDateBG && { backgroundImage: saveTheDateBG }) 
                 });
               }
                else if (typeName === "WeddingInvitation1" || typeName === "WeddingInvitation2"|| typeName === "WeddingInvitation3"|| typeName === "WeddingInvitation4") {
@@ -563,9 +638,11 @@ useEffect(() => {
                       partyRank?:string;
                       partyAddress?:string
                       checkNhaHang?:boolean;
+                      backgroundImage?: string;
                 }>, {
                       partyDateTime,partyTime,width: 600, height: 650,partyDateTimeAm,
-                      partyVenue,partyRank,partyAddress,checkNhaHang
+                      partyVenue,partyRank,partyAddress,checkNhaHang,
+                       ...(saveTheDateBG && { backgroundImage: saveTheDateBG }) 
                 });
               }
                else  if (typeName === "EventInvitationCard") {
@@ -578,6 +655,7 @@ useEffect(() => {
                       organizerName?: string;
                       width?: number;
                       height?: number;
+                       backgroundImage?: string;
                     }>, { 
                       eventName, 
                       eventDate, 
@@ -586,7 +664,8 @@ useEffect(() => {
                       guestName, 
                       organizerName,
                       width: 600, 
-                      height: 650 
+                      height: 650 ,
+                      ...(saveTheDateBG && { backgroundImage: saveTheDateBG }) 
                     });
                   }
             }

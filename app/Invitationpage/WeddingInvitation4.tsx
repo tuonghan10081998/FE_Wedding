@@ -13,6 +13,7 @@ interface WeddingInvitation1Props {
   checkNhaHang?: boolean;
   type?: string;
   mapLink?: string;
+  backgroundImage?: string;
 }
 
 const withDefault = (value: string | undefined, fallback: string) =>
@@ -28,19 +29,24 @@ const WeddingInvitation4: React.FC<WeddingInvitation1Props> = ({
   partyRank,
   partyAddress,
   checkNhaHang,
-  mapLink
+  mapLink,
+  backgroundImage
 }) => {
   const handleMapClick = () => {
     if (mapLink) {
       window.open(mapLink, '_blank', 'noopener,noreferrer');
     }
   };
+   console.log(backgroundImage)
   return (
+   
     <div className="flex items-center justify-center font-[Montserrat]">
       <div
         className="rounded-lg shadow-lg flex justify-center items-center text-[#b38b2b]"
         style={{
-          backgroundImage: "url('/image/imageBG6.jpg')",
+          backgroundImage: backgroundImage 
+          ? `url('${backgroundImage}')` 
+          : "url('/image/imageBG6.jpg')", 
           backgroundSize: "cover",
           backgroundPosition: "center",
           width: `${width}px`,
