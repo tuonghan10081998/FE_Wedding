@@ -342,7 +342,12 @@ const InvitionCardEvent: React.FC<InvitionCardEventProps> = ({
       setGuestName(layoutData.guestName || "");
       setOrganizerName(layoutData.organizerName || "");
       setMapLink(layoutData.mapLink || "");
-      setSaveTheDateBG(data[0].saveTheDateBG.toString() || "")
+      const bg = data?.[0]?.saveTheDateBG;
+
+      setSaveTheDateBG(
+        bg ? `${import.meta.env.VITE_API_URL}/${bg}` : ""
+      );
+      
     } catch (error) {
       console.error("Parse error:", error);
     }

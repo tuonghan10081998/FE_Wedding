@@ -123,7 +123,11 @@ const fieldLabelsEvent: Record<string, string> = {
   if (!dataInvatitionEdit || dataInvatitionEdit.length === 0) return;
   try {
     const layoutData = JSON.parse(dataInvatitionEdit[0].layout.toString());
-    console.log(dataInvatitionEdit[0].saveTheDateBG)
+    const bg = dataInvatitionEdit?.[0]?.saveTheDateBG;
+
+    setSaveTheDateBG(
+      bg ? `${import.meta.env.VITE_API_URL}/${bg}` : ""
+    );
     // Check xem có phải Event không (checkForm === 5)
     if (layoutData.checkForm === 5) {
       setInvitation(dataInvatitionEdit[0].invitationID);
@@ -137,7 +141,6 @@ const fieldLabelsEvent: Record<string, string> = {
       setOrganizerName(layoutData.organizerName || "");
       setMapLink(layoutData.mapLink || "");
       setCheckUpdate(true);
-      setSaveTheDateBG(dataInvatitionEdit[0].saveTheDateBG || "")
     } else {
      setInvitation(dataInvatitionEdit[0].invitationID)
       setNewInvitation(dataInvatitionEdit[0].name)
@@ -166,7 +169,6 @@ const fieldLabelsEvent: Record<string, string> = {
       setCheckUpdate(true)
 
       setMapLink(layoutData.mapLink ?? "")
-      setSaveTheDateBG(dataInvatitionEdit[0].saveTheDateBG || "")
     }
   } catch {
     resetForm();
