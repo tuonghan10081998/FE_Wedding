@@ -13,6 +13,7 @@ interface WeddingCardCreateProps {
   layoutData:any
   userID:string;
   checkThiep?:number
+  bg?:string
 }
 
 const WeddingCardCreate: React.FC<WeddingCardCreateProps> = ({ 
@@ -24,7 +25,8 @@ const WeddingCardCreate: React.FC<WeddingCardCreateProps> = ({
     onSent,
     layoutData,
     userID,
-    checkThiep
+    checkThiep,
+    bg
 }) => {
       const [isOpenDelete,setOpenDelete] = useState<boolean>(false)
       const [groomName, setGroomName] = useState(""); 
@@ -50,10 +52,27 @@ const WeddingCardCreate: React.FC<WeddingCardCreateProps> = ({
       const [checkNhaHang,setCheckNhaHang] = useState<boolean>(true)
       const[projectid,setProject] = useState<string>(""); 
       const [isOpen, setIsOpen] = useState(false);
-    
+      const [eventName, setEventName] = useState("");
+      const [eventDate, setEventDate] = useState("");
+      const [eventTime, setEventTime] = useState("");
+      const [eventLocation, setEventLocation] = useState("");
+      const [guestName, setGuestName] = useState("");
+      const [organizerName, setOrganizerName] = useState("");
+      const [saveTheDateBG, setSaveTheDateBG] = useState("");
   useEffect(() => {
     if(!layoutData) return
-     setProject(layoutData.projectID)
+          setSaveTheDateBG(bg ?? "")
+          if(layoutData.checkForm === 5){
+            setProject(layoutData.projectID || "");
+            setEventName(layoutData.eventName || "");
+            setEventDate(layoutData.eventDate || "");
+            setEventTime(layoutData.eventTime || "");
+            setEventLocation(layoutData.eventLocation || "");
+            setGuestName(layoutData.guestName || "");
+            setOrganizerName(layoutData.organizerName || "");
+           
+          } else{
+            setProject(layoutData.projectID)
             setGroomName(layoutData.groomName || "");
             setGroomParents(layoutData.groomParents || "");
             setGroomMother(layoutData.groomMother || "");
@@ -75,6 +94,8 @@ const WeddingCardCreate: React.FC<WeddingCardCreateProps> = ({
             setPartyRank(layoutData.partyRank || "");
             setpartyAddress(layoutData.partyAddress || "");
             setCheckNhaHang(layoutData.checkNhaHang ?? true);
+          } 
+       
   },[layoutData])
  useEffect(() => {
   const handleClickOutside = (event: MouseEvent) => {
@@ -158,8 +179,9 @@ return (
                                           width?: number;
                                           height?: number;
                                           nameCutomer?:string
+                                           backgroundImage?: string;
                                       }>,
-                                      { groomName, brideName});
+                                      { groomName, brideName, ...(saveTheDateBG && { backgroundImage: saveTheDateBG })});
                                   }
                                   else if (typeName === "WeddingInvitationCard1" || typeName === "WeddingInvitationCard2" || typeName === "WeddingInvitationCard3" || typeName === "WeddingInvitationCard4") {
                                       return React.cloneElement(view as React.ReactElement<{
@@ -179,12 +201,14 @@ return (
                                     tuGia?: string;
                                     weddingVenue?: string;
                                     weddingRank?:string
+                                    backgroundImage?: string;
                                 }>, {
                                     groomName, groomParents, groomMother, groomAddress, brideName,
                                     brideParents, brideMother,
                                     brideAddress,
                                     weddingTime, weddingDateTime,weddingDateTimeAm, tuGia,
                                     weddingVenue,weddingRank,
+                                    ...(saveTheDateBG && { backgroundImage: saveTheDateBG }) 
                                 });
                             }
                             else if (typeName === "WeddingInvitation1" || typeName === "WeddingInvitation2"|| typeName === "WeddingInvitation3"|| typeName === "WeddingInvitation4") {
@@ -198,11 +222,36 @@ return (
                                     partyRank?:string;
                                     partyAddress?:string
                                     checkNhaHang?:boolean;
+                                    backgroundImage?: string;
                                 }>, {
                                     partyDateTime,partyTime,partyDateTimeAm,
-                                    partyVenue,partyRank,partyAddress,checkNhaHang
+                                    partyVenue,partyRank,partyAddress,checkNhaHang,
+                                    ...(saveTheDateBG && { backgroundImage: saveTheDateBG }) 
                                 });
                             }
+                            else  if (typeName === "EventInvitationCard") {
+                                return React.cloneElement(view as React.ReactElement<{
+                                  eventName?: string;
+                                  eventDate?: string;
+                                  eventTime?: string;
+                                  eventLocation?: string;
+                                  guestName?: string;
+                                  organizerName?: string;
+                                  width?: number;
+                                  height?: number;
+                                  backgroundImage?: string;
+                                }>, { 
+                                  eventName, 
+                                  eventDate, 
+                                  eventTime, 
+                                  eventLocation, 
+                                  guestName, 
+                                  organizerName,
+                                  width: 600, 
+                                  height: 650 ,
+                                  ...(saveTheDateBG && { backgroundImage: saveTheDateBG })
+                                });
+                              }
                             return view;
                         }
                         return null;

@@ -247,6 +247,9 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
     const resultPayment = searchParams.get("result");
     const [paymentSuccess, setPaymentSuccess] = useState(false);
     const [mapLink, setMapLink] = useState('');
+
+    
+    const [saveTheDateBG, setSaveTheDateBG] = useState("");
      useEffect(() => {
         if(!dataProject) return
         if(!resultPayment && !storedGuests){
@@ -309,6 +312,7 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
         setPartyRank("");
         setpartyAddress("");
         setCheckNhaHang(true); 
+        setSaveTheDateBG("");
     };
 
     const resetRSVPForm = () => {
@@ -473,6 +477,11 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
             setpartyAddress(layoutData.partyAddress || "");
             setCheckNhaHang(layoutData.checkNhaHang ?? true);
             setMapLink(layoutData.mapLink)
+             const bg = data?.[0]?.saveTheDateBG;
+
+            setSaveTheDateBG(
+                bg ? `${import.meta.env.VITE_API_URL}/${bg}` : ""
+            );
         }catch{
             resetForm()
         }
@@ -672,8 +681,9 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
                                                         width?: number;
                                                         height?: number;
                                                         nameCutomer?:string
+                                                        backgroundImage?: string;
                                                     }>,
-                                                    { groomName, brideName, nameCutomer: guest });
+                                                    { groomName, brideName, nameCutomer: guest, ...(saveTheDateBG && { backgroundImage: saveTheDateBG }) });
                                                 }
                                                
                                                 else if (typeName === "WeddingInvitationCard1" || typeName === "WeddingInvitationCard2" || typeName === "WeddingInvitationCard3" || typeName === "WeddingInvitationCard4") {
@@ -693,13 +703,15 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
                                                         weddingDateTimeAm?: string;
                                                         tuGia?: string;
                                                         weddingVenue?: string;
-                                                        weddingRank?:string
+                                                        weddingRank?:string,
+                                                        backgroundImage?: string;
                                                     }>, {
                                                         groomName, groomParents, groomMother, groomAddress, brideName,
                                                         brideParents, brideMother,
                                                         brideAddress,
                                                         weddingTime, weddingDateTime,weddingDateTimeAm, tuGia,
                                                         weddingVenue,weddingRank,
+                                                        ...(saveTheDateBG && { backgroundImage: saveTheDateBG }) 
                                                     });
                                                 }
                                                 else if (typeName === "WeddingInvitation1" || typeName === "WeddingInvitation2"|| typeName === "WeddingInvitation3"|| typeName === "WeddingInvitation4") {
@@ -713,10 +725,12 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
                                                         partyRank?:string;
                                                         partyAddress?:string
                                                         checkNhaHang?:boolean;
-                                                        mapLink?:string
+                                                        mapLink?:string,
+                                                        backgroundImage?: string;
                                                     }>, {
                                                         partyDateTime,partyTime,partyDateTimeAm,
-                                                        partyVenue,partyRank,partyAddress,checkNhaHang,mapLink
+                                                        partyVenue,partyRank,partyAddress,checkNhaHang,mapLink,
+                                                        ...(saveTheDateBG && { backgroundImage: saveTheDateBG }) 
                                                     });
                                                 }
                                                 return view;

@@ -344,13 +344,15 @@ const handleCreateCard = (checkForm: number,invatition:string) => {
           }
 
           const card = cards.find(c => c.checkForm === layoutData?.checkForm);
-
+          var bg = inva?.saveTheDateBG;
+          bg =  bg ? `${import.meta.env.VITE_API_URL}/${bg}` : "" 
           return (
             <WeddingCardCreate
               key={inva.invitationID}
               title={inva.name || `Thiệp cưới ${index + 1}`}
               images={card?.views ?? []}
               layoutData={layoutData}
+                bg={bg ?? ""}
               userID={isUserID ??""}
               onPreview={() => {
                 navigate(
@@ -399,9 +401,9 @@ const handleCreateCard = (checkForm: number,invatition:string) => {
             console.error("Parse layout error:", error);
             return null;
           }
-
           const card = cardsEvent.find(c => c.checkForm === layoutData?.checkForm);
-
+          var bg = inva?.saveTheDateBG;
+          bg =  bg ? `${import.meta.env.VITE_API_URL}/${bg}` : "" 
           return (
             <WeddingCardCreate
               key={inva.invitationID}
@@ -410,6 +412,7 @@ const handleCreateCard = (checkForm: number,invatition:string) => {
               layoutData={layoutData}
               userID={isUserID ??""}
               checkThiep={1}
+              bg={bg ?? ""}
               onPreview={() => {
                 navigate(
                   `/layout/InvitationCard?thiep=${layoutData?.checkForm}&xt=0&id=${inva.invitationID}`
