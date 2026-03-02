@@ -13,7 +13,7 @@ const ModalSaveNameInvitation: React.FC<ModalSaveNameInvitationProps> = ({ isOpe
   onClose,setInvitaion,onSaveInvatitaion,isNewInvitation,checkUpdate }) => {
   const handleConfirm = () => {
       if(isNewInvitation == ""){
-          toast.warning("Vui lòng nhập tên thiệp cưới!")
+          toast.warning("Vui lòng nhập tên thiệp!")
           return
       }
       onClose();
@@ -26,7 +26,7 @@ const ModalSaveNameInvitation: React.FC<ModalSaveNameInvitationProps> = ({ isOpe
         <div className="bg-white rounded-lg shadow-lg w-96 p-6">
          
          <div className="mb-5">
-              <div className="mb-2">Tên thiệp cưới </div>
+              <div className="mb-2">Tên thiệp </div>
               <input
                 type="text"
                 value={isNewInvitation}
