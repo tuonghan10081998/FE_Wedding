@@ -49,24 +49,23 @@ const Layout: React.FC = () => {
       setUser(storedUser);
   }, []);
 
-   const getDataUser = async () => {
-    if (isUser == "") return;
+useEffect(() => {
+  if (!isUser) return;
+  const fetchUser = async () => {
     const url = `${import.meta.env.VITE_API_URL}/api/User`;
     try {
       const response = await fetch(url);
       if (!response.ok) throw new Error(`Response status: ${response.status}`);
-
       const data = await response.json();
-      var dataUser = data.find((x:any) => x.mail === isUser)
-      setUserName(dataUser.userName)
-      setRole(dataUser.role)
+      const dataUser = data.find((x: any) => x.mail === isUser);
+      setUserName(dataUser?.userName ?? "");
+      setRole(dataUser?.role ?? "");
     } catch (error) {
-        console.error(error);
+      console.error(error);
     }
   };
-    useEffect(() => {
-      isUser && getDataUser()
-    },[isUser])
+  fetchUser();
+}, [isUser]); 
   const handleLogOut= () => {
       localStorage.removeItem("userInvitation");
       localStorage.removeItem("passwordInvitation");
@@ -82,15 +81,21 @@ const Layout: React.FC = () => {
       localStorage.setItem("role","Admin"); 
       setview(false) 
   }
-  useEffect(() => {
-    // CHỈ preload các trang người dùng hay vào
-    requestIdleCallback(() => {
-      import('../InvitationCard/InvitationThiep');
-      import('../layoutEven/layoutEven');
-      import('../Invitationpage/Invitation')
-       import('../LayoutLanding/WeddingLayoutLanding')
-    });
-  }, []);
+ useEffect(() => {
+  const load = () => {
+    import('../InvitationCard/InvitationThiep');
+    import('../layoutEven/layoutEven');
+    import('../Invitationpage/Invitation');
+    import('../LayoutLanding/WeddingLayoutLanding');
+  };
+
+  // Dùng setTimeout thay thế, hoạt động trên mọi browser
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(load);
+  } else {
+    setTimeout(load, 1000);
+  }
+}, []);
   return (
     <>
       {/* ----------- NAVBAR (khi isviews = true) ----------- */}
