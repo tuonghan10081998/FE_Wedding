@@ -190,13 +190,9 @@ const QRScannerModal: React.FC<{
               <h3 className="text-xl font-bold text-green-600 mb-2">Check-in thành công!</h3>
               <p className="text-gray-500 text-sm mb-6 break-all">{result}</p>
               <div className="flex gap-3">
-                <button onClick={handleScanAgain}
-                  className="flex-1 py-2.5 border border-violet-400 text-violet-600 rounded-lg hover:bg-violet-50 transition-colors font-medium">
-                  Quét tiếp
-                </button>
                 <button onClick={handleClose}
                   className="flex-1 py-2.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-lg hover:opacity-90 transition-opacity font-medium">
-                  Đóng
+                  Xác nhận
                 </button>
               </div>
             </div>
@@ -517,35 +513,35 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
     };
  const PostCheckin = async (guestIDFromQR: string) => {
     setIsCheckinLoading(true);
-    alert(guestIDFromQR)
-    // try {
-    //   const request = new Request(`${import.meta.env.VITE_API_URL}/api/Guest/checkin`, {
-    //     method: "PUT",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify({
-    //       guestID: guestIDFromQR,
-    //       projectID: projectid,
-    //     }),
-    //   });
+    // alert(guestIDFromQR)
+    try {
+      const request = new Request(`${import.meta.env.VITE_API_URL}/api/Guest/checkin`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          guestID: guestIDFromQR,
+          projectID: projectid,
+        }),
+      });
 
-    //   const response = await fetch(request);
-    //   const data = await response.json();
+      const response = await fetch(request);
+      const data = await response.json();
 
-    //   if (response.status === 200 || response.status === 201) {
-    //     setCheckinSuccess(true);
-    //     setCheckinMessage(`✅ Check-in thành công!\nKhách: ${data.name ?? guestIDFromQR}`);
-    //   } else {
-    //     setCheckinSuccess(false);
-    //     setCheckinMessage("❌ Check-in thất bại. Vui lòng thử lại!");
-    //   }
-    // } catch {
-    //   setCheckinSuccess(false);
-    //   setCheckinMessage("❌ Lỗi kết nối. Vui lòng thử lại!");
-    // } finally {
-    //   setIsCheckinLoading(false);
-    // }
+      if (response.status === 200 || response.status === 201) {
+        setCheckinSuccess(true);
+        setCheckinMessage(`✅ Check-in thành công!\nKhách: ${data.name ?? guestIDFromQR}`);
+      } else {
+        setCheckinSuccess(false);
+        setCheckinMessage("❌ Check-in thất bại. Vui lòng thử lại!");
+      }
+    } catch {
+      setCheckinSuccess(false);
+      setCheckinMessage("❌ Lỗi kết nối. Vui lòng thử lại!");
+    } finally {
+      setIsCheckinLoading(false);
+    }
   };
     // Hàm chuyển số thành chữ tiếng Việt
     const numberToVietnameseWords = (num: number): string => {
