@@ -168,7 +168,8 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
         guest.gender || '',
         guest.phone || '',
         guest.groupInfo?.groupName,
-        `https://wedding-beta-ruddy.vercel.app/layout/InvitationCard?guestid=0d9fb466-ae7d-4c0d-93d2-4ddedb03452a`
+        '',
+        `https://wedding-beta-ruddy.vercel.app/layout/InvitationCard?guestid=${guest.guestID}`
       ]);
       stt++;
     });
@@ -183,6 +184,7 @@ const ModalCustomer: React.FC<ModalCustomerProps> = ({
       { wch: 10 },
       { wch: 15 },
       { wch: 20 },
+      { wch: 30 },
       { wch: 25 }
     ];
 

@@ -118,6 +118,7 @@ const InvitationCard: React.FC = () => {
       if (!response.ok) throw new Error(`Response status: ${response.status}`);
 
       const data = await response.json();
+      console.log(data)
       setDataProject(data);
       setGuest(data.name);
       setPhone(data.phone);

@@ -62,21 +62,22 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
   const [refreshToken,setRefreshToken] = useState<string>("") 
 
   const [eventName, setEventName] = useState("");
-const [eventDate, setEventDate] = useState("");
-const [eventTime, setEventTime] = useState("");
-const [eventLocation, setEventLocation] = useState("");
-const [guestName, setGuestName] = useState("");
-const [organizerName, setOrganizerName] = useState("");
-const [saveTheDateBG, setSaveTheDateBG] = useState("");
-const [saveTheDateBGFile, setSaveTheDateBGFile] = useState<File | null>(null);
-// Thêm fieldLabels cho Event
-const fieldLabelsEvent: Record<string, string> = {
-  projectID: "dự án",
-  eventName: "Tên sự kiện",
-  eventDate: "Ngày tổ chức",
-  eventTime: "Giờ tổ chức",
-  eventLocation: "Địa điểm tổ chức",
-};
+  const [eventDate, setEventDate] = useState("");
+  const [eventTime, setEventTime] = useState("");
+  const [eventLocation, setEventLocation] = useState("");
+  const [guestName, setGuestName] = useState("");
+  const [organizerName, setOrganizerName] = useState("");
+  const [saveTheDateBG, setSaveTheDateBG] = useState("");
+  const [saveTheDateBGFile, setSaveTheDateBGFile] = useState<File | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  // Thêm fieldLabels cho Event
+  const fieldLabelsEvent: Record<string, string> = {
+    projectID: "dự án",
+    eventName: "Tên sự kiện",
+    eventDate: "Ngày tổ chức",
+    eventTime: "Giờ tổ chức",
+    eventLocation: "Địa điểm tổ chức",
+  };
 
    useEffect(() => {
      
@@ -304,43 +305,83 @@ useEffect(() => {
             layout: isFormData,
             projectID: projectID,
             invitationID:isInvitation,
-            saveTheDateBG:base64BG,
+            saveTheDateBG:base64BG ?? "",
             statusInvi:checkForm === 5 ? 2 : 1
         }
         PostInvitation(object,access)
   }
-   const PostInvitation = async (save: any,access:string) => {
+  const PostInvitation = async (save: any, access: string) => {
+  setIsLoading(true); // 👈 bật loading
+  try {
     const request = new Request(`${import.meta.env.VITE_API_URL}/api/Invitation`, {
-      method:  isCheckUpdate ? "PUT" : "POST",
+      method: isCheckUpdate ? "PUT" : "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${access}`
       },
-      body: JSON.stringify(save), // 👈 stringify object Save
+      body: JSON.stringify(save),
     });
 
     let response = await fetch(request);
-     let data: any = null;
+    let data: any = null;
     const text = await response.text();
     if (text) {
-        try {
-          data = JSON.parse(text);
-        } catch {
-          data = text;
-        }
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = text;
+      }
     }
-     if (response.status === 201 || response.status === 200) {
-        //  !isCheckUpdate &&  resetForm()
-         toast.success(` ${isCheckUpdate ? "Cập nhật" : "Lưu"} thiệp thành công`)
-         setCheckSave(!isCheckSave)
-         console.log(data.invitationID)
-       isCheckUpdate &&  navigate(`/layout/InvitationCard?thiep=${checkForm}&xt=0&id=${isInvitation}&customer=&selectxt=true`);
-        !isCheckUpdate && navigate(`/layout/InvitationCard?thiep=${checkForm}&xt=0&id=${data.invitationID}&customer=&selectxt=true`);
-     }
-      else if(response.status === 401){
-      ReFreshToken()
+
+    if (response.status === 201 || response.status === 200) {
+      toast.success(`${isCheckUpdate ? "Cập nhật" : "Lưu"} thiệp thành công`);
+      setCheckSave(!isCheckSave);
+      if (isCheckUpdate) {
+        navigate(`/layout/InvitationCard?thiep=${checkForm}&xt=0&id=${isInvitation}&customer=&selectxt=true`);
+      } else {
+        navigate(`/layout/InvitationCard?thiep=${checkForm}&xt=0&id=${data.invitationID}&customer=&selectxt=true`);
+      }
+    } else if (response.status === 401) {
+      ReFreshToken(); // loading sẽ tắt trong ReFreshToken hoặc sau khi navigate
+    } else {
+      setIsLoading(false); // 👈 tắt nếu lỗi khác
     }
-  };
+  } catch {
+    toast.error("Có lỗi xảy ra, vui lòng thử lại!");
+    setIsLoading(false); // 👈 tắt nếu exception
+  }
+};
+  //  const PostInvitation = async (save: any,access:string) => {
+  //   const request = new Request(`${import.meta.env.VITE_API_URL}/api/Invitation`, {
+  //     method:  isCheckUpdate ? "PUT" : "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       "Authorization": `Bearer ${access}`
+  //     },
+  //     body: JSON.stringify(save), // 👈 stringify object Save
+  //   });
+
+  //   let response = await fetch(request);
+  //    let data: any = null;
+  //   const text = await response.text();
+  //   if (text) {
+  //       try {
+  //         data = JSON.parse(text);
+  //       } catch {
+  //         data = text;
+  //       }
+  //   }
+  //    if (response.status === 201 || response.status === 200) {
+  //       //  !isCheckUpdate &&  resetForm()
+  //        toast.success(` ${isCheckUpdate ? "Cập nhật" : "Lưu"} thiệp thành công`)
+  //        setCheckSave(!isCheckSave)
+  //      isCheckUpdate &&  navigate(`/layout/InvitationCard?thiep=${checkForm}&xt=0&id=${isInvitation}&customer=&selectxt=true`);
+  //       !isCheckUpdate && navigate(`/layout/InvitationCard?thiep=${checkForm}&xt=0&id=${data.invitationID}&customer=&selectxt=true`);
+  //    }
+  //     else if(response.status === 401){
+  //     ReFreshToken()
+  //   }
+  // };
   const ReFreshToken = async () => {
      const encodedRefreshToken = encodeURIComponent(refreshToken);
     const request = new Request(
@@ -414,14 +455,32 @@ useEffect(() => {
        <div className="flex gap-3 justify-center mt-4" style={{position: "absolute",
           top: "0",
           right: "156px",}}>
-        <button
+       <button
           type="button"
           aria-label="Lưu thiệp"
-          className="flex items-center space-x-2 bg-pink-600 hover:bg-pink-700 text-white font-semibold py-1 px-4 rounded shadow focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={isLoading}
+          className="flex items-center space-x-2 bg-pink-600 hover:bg-pink-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-1 px-4 rounded shadow focus:outline-none focus:ring-2 focus:ring-blue-500"
           onClick={handleSave}
         >
-          <i className="fas fa-save text-lg"></i>
-          <span>{isCheckUpdate ? "Cập nhật" : "Lưu"}</span>
+          {isLoading ? (
+            <>
+              <svg
+                className="animate-spin h-4 w-4 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              </svg>
+              <span>Đang lưu...</span>
+            </>
+          ) : (
+            <>
+              <i className="fas fa-save text-lg"></i>
+              <span>{isCheckUpdate ? "Cập nhật" : "Lưu"}</span>
+            </>
+          )}
         </button>
 
         {/* Input Information Icon Only */}
@@ -474,7 +533,7 @@ useEffect(() => {
                     }>, {
                       
                       groomName, brideName, width: 600, height: 650,
-                      ...(saveTheDateBG && { backgroundImage: saveTheDateBG }) });
+                      ...(saveTheDateBG && { backgroundImage: saveTheDateBG ?? "" }) });
                   }
                  else if (typeName === "WeddingInvitationCard1" || typeName === "WeddingInvitationCard2" || typeName === "WeddingInvitationCard3" || typeName === "WeddingInvitationCard4") {
                     return React.cloneElement(view as React.ReactElement<{

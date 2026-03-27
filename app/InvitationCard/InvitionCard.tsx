@@ -1,4 +1,5 @@
-import React, { useState ,useEffect} from "react";
+import React, { useState, useEffect,useRef } from "react";
+import { Html5Qrcode } from "html5-qrcode";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle,Heart, XCircle, Sparkles, Users, Layout, Download, ArrowRight, BarChart3, UserPlus, Utensils, FileDown, X } from 'lucide-react';
@@ -17,6 +18,195 @@ interface InvitionCardProps {
   message?:string
   dataProject?:any
 }
+const QRScannerModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  onScanSuccess: (guestID: string) => void;
+}> = ({ isOpen, onClose, onScanSuccess }) => {
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const [scanning, setScanning] = useState(false);
+  const [result, setResult] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Delay nhỏ để DOM render xong
+    const timer = setTimeout(() => {
+      startScanner();
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+      stopScanner();
+    };
+  }, [isOpen]);
+
+  const startScanner = async () => {
+    try {
+      const html5QrCode = new Html5Qrcode("qr-reader");
+      scannerRef.current = html5QrCode;
+      setScanning(true);
+      setError("");
+
+      await html5QrCode.start(
+        { facingMode: "environment" }, // dùng camera sau
+        {
+          fps: 15,       // quét 15 frame/giây
+          qrbox: { width: 250, height: 250 }, // vùng quét
+          aspectRatio: 1.0,
+        },
+        async (decodedText) => {
+          // Quét thành công
+          await stopScanner();
+          setResult(decodedText);
+          setSuccess(true);
+          setLoading(true);
+          onScanSuccess(decodedText); // gọi lên parent xử lý POST
+          setLoading(false);
+        },
+        () => {
+          // Đang quét, chưa có QR - bỏ qua lỗi này
+        }
+      );
+    } catch (err: any) {
+      setError("Không thể mở camera. Vui lòng cấp quyền camera!");
+      setScanning(false);
+    }
+  };
+
+  const stopScanner = async () => {
+    if (scannerRef.current) {
+      try {
+        await scannerRef.current.stop();
+        scannerRef.current.clear();
+      } catch {}
+      scannerRef.current = null;
+    }
+    setScanning(false);
+  };
+
+  const handleClose = () => {
+    stopScanner();
+    setResult("");
+    setError("");
+    setSuccess(false);
+    onClose();
+  };
+
+  const handleScanAgain = () => {
+    setResult("");
+    setError("");
+    setSuccess(false);
+    startScanner();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-[80] p-4">
+      <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-violet-500 to-purple-600 p-5 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 3.5V16M4.5 4.5h3v3h-3v-3zM4.5 16.5h3v3h-3v-3zM16.5 4.5h3v3h-3v-3z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-white">Check-in tiệc cưới</h2>
+          </div>
+          <button onClick={handleClose} className="text-white/80 hover:text-white transition-colors">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="p-6">
+          {/* Trạng thái: đang quét */}
+          {!success && !error && (
+            <>
+              <p className="text-center text-gray-500 text-sm mb-4">
+                Đưa mã QR của khách vào khung để quét
+              </p>
+
+              {/* Vùng camera */}
+              <div className="relative rounded-xl overflow-hidden border-2 border-violet-300">
+                <div id="qr-reader" className="w-full" />
+                {/* Góc trang trí */}
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="absolute top-3 left-3 w-8 h-8 border-t-4 border-l-4 border-violet-500 rounded-tl-lg" />
+                  <div className="absolute top-3 right-3 w-8 h-8 border-t-4 border-r-4 border-violet-500 rounded-tr-lg" />
+                  <div className="absolute bottom-3 left-3 w-8 h-8 border-b-4 border-l-4 border-violet-500 rounded-bl-lg" />
+                  <div className="absolute bottom-3 right-3 w-8 h-8 border-b-4 border-r-4 border-violet-500 rounded-br-lg" />
+                </div>
+              </div>
+
+              <p className="text-center text-xs text-gray-400 mt-3 animate-pulse">
+                🔍 Đang quét...
+              </p>
+            </>
+          )}
+
+          {/* Trạng thái: lỗi camera */}
+          {error && (
+            <div className="text-center py-8">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p className="text-red-600 font-semibold mb-2">Lỗi Camera</p>
+              <p className="text-gray-500 text-sm mb-5">{error}</p>
+              <button onClick={handleScanAgain}
+                className="px-6 py-2 bg-violet-500 text-white rounded-lg hover:bg-violet-600 transition-colors">
+                Thử lại
+              </button>
+            </div>
+          )}
+
+          {/* Trạng thái: quét thành công → đang POST */}
+          {success && loading && (
+            <div className="text-center py-10">
+              <div className="w-14 h-14 border-4 border-violet-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-gray-600 font-medium">Đang xử lý check-in...</p>
+            </div>
+          )}
+
+          {/* Trạng thái: có kết quả từ server */}
+          {success && !loading && (
+            <div className="text-center py-6">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-9 h-9 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3}
+                    d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-green-600 mb-2">Check-in thành công!</h3>
+              <p className="text-gray-500 text-sm mb-6 break-all">{result}</p>
+              <div className="flex gap-3">
+                <button onClick={handleScanAgain}
+                  className="flex-1 py-2.5 border border-violet-400 text-violet-600 rounded-lg hover:bg-violet-50 transition-colors font-medium">
+                  Quét tiếp
+                </button>
+                <button onClick={handleClose}
+                  className="flex-1 py-2.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-lg hover:opacity-90 transition-opacity font-medium">
+                  Đóng
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const PaymentResultModal = ({ isOpen, onClose, isSuccess }: { isOpen: boolean; onClose: () => void; isSuccess: boolean }) => {
   if (!isOpen) return null;
 
@@ -248,7 +438,11 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
     const [paymentSuccess, setPaymentSuccess] = useState(false);
     const [mapLink, setMapLink] = useState('');
 
-    
+    const [isCheckinOpen, setIsCheckinOpen] = useState(false);
+      const [checkinSuccess, setCheckinSuccess] = useState(false);
+      const [checkinMessage, setCheckinMessage] = useState("");
+      const [isScanning, setIsScanning] = useState(false);
+      const [isCheckinLoading, setIsCheckinLoading] = useState(false);
     const [saveTheDateBG, setSaveTheDateBG] = useState("");
      useEffect(() => {
         if(!dataProject) return
@@ -321,7 +515,38 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
         setRsvpMessage("");
         setGiftAmount("");
     };
+ const PostCheckin = async (guestIDFromQR: string) => {
+    setIsCheckinLoading(true);
+    alert(guestIDFromQR)
+    // try {
+    //   const request = new Request(`${import.meta.env.VITE_API_URL}/api/Guest/checkin`, {
+    //     method: "PUT",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify({
+    //       guestID: guestIDFromQR,
+    //       projectID: projectid,
+    //     }),
+    //   });
 
+    //   const response = await fetch(request);
+    //   const data = await response.json();
+
+    //   if (response.status === 200 || response.status === 201) {
+    //     setCheckinSuccess(true);
+    //     setCheckinMessage(`✅ Check-in thành công!\nKhách: ${data.name ?? guestIDFromQR}`);
+    //   } else {
+    //     setCheckinSuccess(false);
+    //     setCheckinMessage("❌ Check-in thất bại. Vui lòng thử lại!");
+    //   }
+    // } catch {
+    //   setCheckinSuccess(false);
+    //   setCheckinMessage("❌ Lỗi kết nối. Vui lòng thử lại!");
+    // } finally {
+    //   setIsCheckinLoading(false);
+    // }
+  };
     // Hàm chuyển số thành chữ tiếng Việt
     const numberToVietnameseWords = (num: number): string => {
         if (num === 0) return "không đồng";
@@ -652,16 +877,46 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
                         </button>
 
                         {/* Nút xác nhận tham dự */}
-                       {guestid && (<button
+                      {guestid && (
+                        <>
+                            {/* RSVP Button */}
+                            <button
                             onClick={handleRSVPOpen}
                             className="fixed bottom-8 right-8 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center space-x-2 z-10"
-                        >
+                            >
                             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                                <path
+                                fillRule="evenodd"
+                                d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                                clipRule="evenodd"
+                                />
                             </svg>
-                            <span className="font-semibold">Xác nhận tham dự</span>
-                        </button>)} 
+                            <span className="font-semibold">Xác nhận</span>
+                            </button>
+
+                            {/* Check-in Button */}
+                            <button
+                            onClick={() => setIsCheckinOpen(true)}
+                            className="fixed bottom-8 left-8 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center space-x-2 z-10"
+                            >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 3.5V16M4.5 4.5h3v3h-3v-3zM4.5 16.5h3v3h-3v-3zM16.5 4.5h3v3h-3v-3z"
+                                />
+                            </svg>
+                            <span className="font-semibold">Check-in</span>
+                            </button>
+                        </>
+                        )}
                         
+                         <QRScannerModal
+                                isOpen={isCheckinOpen}
+                                onClose={() => setIsCheckinOpen(false)}
+                                onScanSuccess={(guestIDFromQR) => PostCheckin(guestIDFromQR)}
+                            />
                         {/* Grid 3 form */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 h-[88vh] items-center justify-items-center ">
                             {views.map((View, idx) => (
