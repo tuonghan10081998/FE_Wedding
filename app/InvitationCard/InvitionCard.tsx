@@ -512,37 +512,35 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
         setGiftAmount("");
     };
  const PostCheckin = async (guestIDFromQR: string) => {
-    setIsCheckinLoading(true);
-    // alert(guestIDFromQR)
-    try {
-      const request = new Request(`${import.meta.env.VITE_API_URL}/api/Guest/checkin`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          guestID: guestIDFromQR,
-          projectID: projectid,
-        }),
-      });
+  setIsCheckinLoading(true);
+  try {
+    const url = new URL(`${import.meta.env.VITE_API_URL}/api/Guest/CheckIn`);
+    url.searchParams.append("guestID", guestIDFromQR);
 
-      const response = await fetch(request);
-      const data = await response.json();
+    const request = new Request(url.toString(), {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-      if (response.status === 200 || response.status === 201) {
-        setCheckinSuccess(true);
-        setCheckinMessage(`✅ Check-in thành công!\nKhách: ${data.name ?? guestIDFromQR}`);
-      } else {
-        setCheckinSuccess(false);
-        setCheckinMessage("❌ Check-in thất bại. Vui lòng thử lại!");
-      }
-    } catch {
+    const response = await fetch(request);
+    const data = await response.json();
+
+    if (response.status === 200 || response.status === 201) {
+      setCheckinSuccess(true);
+      setCheckinMessage(`✅ Check-in thành công!\nKhách: ${data.name ?? guestIDFromQR}`);
+    } else {
       setCheckinSuccess(false);
-      setCheckinMessage("❌ Lỗi kết nối. Vui lòng thử lại!");
-    } finally {
-      setIsCheckinLoading(false);
+      setCheckinMessage("❌ Check-in thất bại. Vui lòng thử lại!");
     }
-  };
+  } catch {
+    setCheckinSuccess(false);
+    setCheckinMessage("❌ Lỗi kết nối. Vui lòng thử lại!");
+  } finally {
+    setIsCheckinLoading(false);
+  }
+};
     // Hàm chuyển số thành chữ tiếng Việt
     const numberToVietnameseWords = (num: number): string => {
         if (num === 0) return "không đồng";

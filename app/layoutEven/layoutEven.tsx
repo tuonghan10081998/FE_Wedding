@@ -33,6 +33,7 @@ import ModalNotiGuest from '~/layoutEven/ModalNotiGuest';
 import DeleteItems from '~/layoutEven/DeleteListItems';
 import RoundChairRender from '~/layoutEven/RoundChair';
 import TutorialGuide from '~/layoutEven/TutorialGuide';
+import QRCodeModal from '~/layoutEven/QRCodeModal';
 export interface ZoneRegion {
   zoneId: string;
   zoneName: string;
@@ -237,15 +238,16 @@ export default function TablePlanner() {
   const [isCheckDeleteSinger,setCheckDeleteSinger] = useState<boolean>(false)
   const [ismessNotiGuest,setmessNotiGuest] = useState<string>("")
   const [isNumberDay,setNumberDay] = useState<number>(3)
-const [showTutorial, setShowTutorial] = useState(false);
-
-useEffect(() => {
-  const hasSeenTutorial = localStorage.getItem('tutorial_completed');
-  
-  if (!hasSeenTutorial) {
-    setShowTutorial(true);
-  }
-}, []);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [QRCode , setQRCode ] = useState<string>("")
+  const [isModalSaveOpenProjectQR, setIsModalSaveOpenProjectQR] = useState(false);
+  useEffect(() => {
+    const hasSeenTutorial = localStorage.getItem('tutorial_completed');
+    
+    if (!hasSeenTutorial) {
+      setShowTutorial(true);
+    }
+  }, []);
 
   const handleUpgrade = () => {
     navigate("/layout/Plan");
@@ -285,7 +287,7 @@ useEffect(() => {
     setUser(storedUser);
     setProjectLocal(storedProject || "0")
     setProjectNameLocal(storedProjectName || "")
-    
+    setQRCode(storedProject || "")
     setAccessToken(storedAccessToken ?? "")
     setRefreshToken(storedRefreshToken ?? "")
   }, []);
@@ -779,7 +781,9 @@ function renumberTables(tablesToRenumber: UnifiedTableData[]) {
   // ← QUAN TRỌNG: Phải có return ở đây!
   return [...sortedLeft, ...sortedRight];
 }
-
+useEffect(() => {
+      setQRCode(isProjectID || "")
+},[isProjectID])
   const PostProject = async (save: Project,checkSave :boolean,access:string) => {
     const request = new Request(`${import.meta.env.VITE_API_URL}/api/Project`, {
       method: checkSave ? "POST" : "PUT",
@@ -2772,6 +2776,27 @@ useEffect(() => {
               } 
              
             />
+           
+                </div>
+         </>
+           <>
+            <div className='flex items-center absolute top-[2px] left-[150px] gap-2'>
+                 <button
+                type="button"
+                onClick={() => setIsModalSaveOpenProjectQR(true)}
+                className="flex items-center gap-2 cursor-pointer p-1 px-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition font-semibold"
+              >
+                <i className="fas fa-qrcode fa-lg"></i>
+                <span className="whitespace-nowrap font-roboto font-normal">QRCode</span>
+              </button>
+
+              <QRCodeModal
+                isOpen={isModalSaveOpenProjectQR}
+                onClose={() => setIsModalSaveOpenProjectQR(false)}
+                qrValue={QRCode}
+                title="QR Code CheckIn"
+              />
+             
             <label 
                 htmlFor="totalTables" 
                     className="text-lg  text-black bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 whitespace-nowrap flex items-center gap-1"
@@ -2785,7 +2810,6 @@ useEffect(() => {
               </label>
                 </div>
          </>
-         
           <>
           {isModalSearchGuest && (
               <ModalSearchGuest
