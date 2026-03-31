@@ -55,6 +55,7 @@ const StatisticalGuest:React.FC<StatisticalGuestProps> = ({data,guestLength}) =>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Bàn</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Đi cùng</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Trạng thái</th>
+                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">CheckIn</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -86,6 +87,17 @@ const StatisticalGuest:React.FC<StatisticalGuestProps> = ({data,guestLength}) =>
                           ) : (
                             <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">
                               ⏳ Chờ xác nhận
+                            </span>
+                          )}
+                        </td>
+                         <td className="px-4 py-3 text-sm">
+                          {guest.isCheckin === 1 ? (
+                            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+                              ✅ Đã check in
+                            </span>
+                          ) :(
+                            <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">
+                              ⏳ Chờ check in
                             </span>
                           )}
                         </td>

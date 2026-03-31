@@ -18,13 +18,15 @@ interface InvitionCardEventProps {
   isSave?: boolean | null;
   message?: string;
   dataProject?: any;
+     setConfirm?:number
 }
 // Component quét QR - dùng html5-qrcode
 const QRScannerModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
   onScanSuccess: (guestID: string) => void;
-}> = ({ isOpen, onClose, onScanSuccess }) => {
+  checkinResult?: { success: boolean; message: string } | null; // ← thêm prop này
+}> = ({ isOpen, onClose, onScanSuccess, checkinResult }) => {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<string>("");
@@ -60,14 +62,11 @@ const QRScannerModal: React.FC<{
           qrbox: { width: 250, height: 250 }, // vùng quét
           aspectRatio: 1.0,
         },
-        async (decodedText) => {
-          // Quét thành công
-          await stopScanner();
-          setResult(decodedText);
-          setSuccess(true);
-          setLoading(true);
-          onScanSuccess(decodedText); // gọi lên parent xử lý POST
-          setLoading(false);
+       async (decodedText) => {
+        await stopScanner();
+        setResult(decodedText);
+        setLoading(true);       // chờ parent xử lý
+        onScanSuccess(decodedText);
         },
         () => {
           // Đang quét, chưa có QR - bỏ qua lỗi này
@@ -104,7 +103,12 @@ const QRScannerModal: React.FC<{
     setSuccess(false);
     startScanner();
   };
-
+    useEffect(() => {
+    if (checkinResult !== null && checkinResult !== undefined) {
+        setSuccess(checkinResult.success);
+        setLoading(false);
+    }
+    }, [checkinResult]);
   if (!isOpen) return null;
 
   return (
@@ -183,22 +187,34 @@ const QRScannerModal: React.FC<{
           {/* Trạng thái: có kết quả từ server */}
           {success && !loading && (
             <div className="text-center py-6">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            {checkinResult?.success === true &&  checkinResult?.message.includes("thành công") && 
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-9 h-9 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3}
-                    d="M5 13l4 4L19 7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </svg>
-              </div>
-              <h3 className="text-xl font-bold text-green-600 mb-2">Check-in thành công!</h3>
+                </div>
+             }
+            {checkinResult?.success === true && checkinResult?.message.includes("thất bại") && 
+            
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-9 h-9 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                </div>
+            }
+                {checkinResult?.success === true && checkinResult?.message.includes("cưới") && 
+                        <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg className="w-9 h-9 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                        </svg>
+                        </div>
+                }
+              <h3 className="text-xl font-bold text-green-600 mb-2"> {checkinResult?.message}</h3>
               <p className="text-gray-500 text-sm mb-6 break-all">{result}</p>
               <div className="flex gap-3">
-                <button onClick={handleScanAgain}
-                  className="flex-1 py-2.5 border border-violet-400 text-violet-600 rounded-lg hover:bg-violet-50 transition-colors font-medium">
-                  Quét tiếp
-                </button>
                 <button onClick={handleClose}
                   className="flex-1 py-2.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-lg hover:opacity-90 transition-opacity font-medium">
-                  Đóng
+                  Xác nhận
                 </button>
               </div>
             </div>
@@ -323,7 +339,8 @@ const InvitionCardEvent: React.FC<InvitionCardEventProps> = ({
   setSave, 
   isSave, 
   message,
-  dataProject 
+  dataProject ,
+  setConfirm
 }) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(checkxttruoc);
@@ -371,6 +388,8 @@ const InvitionCardEvent: React.FC<InvitionCardEventProps> = ({
   const [checkinMessage, setCheckinMessage] = useState("");
   const [isScanning, setIsScanning] = useState(false);
   const [isCheckinLoading, setIsCheckinLoading] = useState(false);
+  const [confirmT, setconfirmT] = useState<number>(setConfirm ?? 0);
+  
   useEffect(() => {
     if (!dataProject) return;
     if (!resultPayment && !storedGuests) {
@@ -408,37 +427,49 @@ const InvitionCardEvent: React.FC<InvitionCardEventProps> = ({
     setRsvpMessage("");
     setGiftAmount("");
   };
-  const PostCheckin = async (guestIDFromQR: string) => {
-    setIsCheckinLoading(true);
-    try {
-      const request = new Request(`${import.meta.env.VITE_API_URL}/api/Guest/checkin`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          guestID: guestIDFromQR,
-          projectID: projectid,
-        }),
-      });
-
-      const response = await fetch(request);
-      const data = await response.json();
-
-      if (response.status === 200 || response.status === 201) {
-        setCheckinSuccess(true);
-        setCheckinMessage(`✅ Check-in thành công!\nKhách: ${data.name ?? guestIDFromQR}`);
-      } else {
-        setCheckinSuccess(false);
-        setCheckinMessage("❌ Check-in thất bại. Vui lòng thử lại!");
-      }
-    } catch {
-      setCheckinSuccess(false);
-      setCheckinMessage("❌ Lỗi kết nối. Vui lòng thử lại!");
-    } finally {
-      setIsCheckinLoading(false);
+     const handleQRScanned = (qrValue: string) => {
+        if (qrValue !== projectid) {
+             setCheckinSuccess(true);
+            setCheckinMessage("⚠️ QR Code này không phải của tiệc cưới!");
+           
+        } else if(confirmT === 1 || setConfirm === 1) {
+            setCheckinSuccess(true);
+            setCheckinMessage("⚠️ Bạn đã  check-in rồi! Vui lòng kh checkin tiếp");
+        }else{
+                PostCheckin(guestid ?? "");
+        }
     }
-  };
+        const PostCheckin = async (guestid: string) => {
+        setIsCheckinLoading(true);
+        try {
+            const url = new URL(`${import.meta.env.VITE_API_URL}/api/Guest/CheckIn`);
+            url.searchParams.append("guestID", guestid);
+
+            const request = new Request(url.toString(), {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            });
+
+            const response = await fetch(request);
+            const data = await response.json();
+
+            if (response.status === 200 || response.status === 201) {
+            setCheckinSuccess(true);
+            setconfirmT(1)
+            setCheckinMessage(`✅ Check-in thành công!\nKhách: ${guest}`);
+            } else {
+            setCheckinSuccess(false);
+            setCheckinMessage("❌ Check-in thất bại. Vui lòng thử lại!");
+            }
+        } catch {
+            setCheckinSuccess(false);
+            setCheckinMessage("❌ Lỗi kết nối. Vui lòng thử lại!");
+        } finally {
+            setIsCheckinLoading(false);
+        }
+        };
   const numberToVietnameseWords = (num: number): string => {
     if (num === 0) return "không đồng";
     
@@ -678,11 +709,16 @@ const InvitionCardEvent: React.FC<InvitionCardEventProps> = ({
                 <span className="font-semibold">Xác nhận</span>
               </button>
             )}
-          <QRScannerModal
-            isOpen={isCheckinOpen}
-            onClose={() => setIsCheckinOpen(false)}
-            onScanSuccess={(guestIDFromQR) => PostCheckin(guestIDFromQR)}
-          />
+        
+              <QRScannerModal
+                            isOpen={isCheckinOpen}
+                            onClose={() => {
+                                setIsCheckinOpen(false);
+                                setCheckinMessage(""); // reset khi đóng
+                            }}
+                            onScanSuccess={(guestIDFromQR) => handleQRScanned(guestIDFromQR)}
+                            checkinResult={checkinMessage ? { success: checkinSuccess, message: checkinMessage } : null}
+                            />
             {/* Grid hiển thị thiệp */}
             <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-4 h-[88vh] items-center justify-items-center">
               {views.map((View, idx) => (

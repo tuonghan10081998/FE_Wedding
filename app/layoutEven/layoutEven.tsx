@@ -114,6 +114,7 @@ export interface Guest {
   projectID?:string
   subGuests?:any[]
   isConfirm?:number
+  isCheckin?:number
 }
 
 interface layOutContainer {

@@ -44,7 +44,7 @@ const InvitationCard: React.FC = () => {
   const [views, setViews] = useState<React.ReactNode[]>([]);
   const [isSave, setSave] = useState<boolean>(false);
   const [dataProject, setDataProject] = useState<any>([]);
-
+   const [confirm, setconfirm] = useState<number>(0);
   useEffect(() => {
     switch (isThiep) {
       case "1":
@@ -118,7 +118,6 @@ const InvitationCard: React.FC = () => {
       if (!response.ok) throw new Error(`Response status: ${response.status}`);
 
       const data = await response.json();
-      console.log(data)
       setDataProject(data);
       setGuest(data.name);
       setPhone(data.phone);
@@ -130,6 +129,8 @@ const InvitationCard: React.FC = () => {
       var dataInvatition = [];
       dataInvatition.push(data.project.invitation);
       setData(dataInvatition);
+      setconfirm(data.isCheckin)
+      
     } catch (error) {
       console.error(error);
     }
@@ -171,6 +172,7 @@ const InvitationCard: React.FC = () => {
           isSave={isSave}
           message={isMess}
           dataProject={dataProject}
+          setConfirm={confirm}
         />
       ) : (
         <InvitionCard
@@ -186,6 +188,7 @@ const InvitationCard: React.FC = () => {
           isSave={isSave}
           message={isMess}
           dataProject={dataProject}
+          setConfirm={confirm}
         />
       )}
     </div>
