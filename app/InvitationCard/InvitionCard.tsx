@@ -511,11 +511,19 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
         setRsvpMessage("");
         setGiftAmount("");
     };
- const PostCheckin = async (guestIDFromQR: string) => {
+    const handleQRScanned = (qrValue: string) => {
+  if (qrValue === projectid) {
+    PostCheckin(userID);
+  } else {
+    setCheckinSuccess(false);
+    setCheckinMessage("❌ QR Code này không phải của tiệc cưới!");
+  }
+};
+const PostCheckin = async (userID: string) => {
   setIsCheckinLoading(true);
   try {
     const url = new URL(`${import.meta.env.VITE_API_URL}/api/Guest/CheckIn`);
-    url.searchParams.append("guestID", guestIDFromQR);
+    url.searchParams.append("guestID", userID);
 
     const request = new Request(url.toString(), {
       method: "PUT",
@@ -529,7 +537,7 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
 
     if (response.status === 200 || response.status === 201) {
       setCheckinSuccess(true);
-      setCheckinMessage(`✅ Check-in thành công!\nKhách: ${data.name ?? guestIDFromQR}`);
+      setCheckinMessage(`✅ Check-in thành công!\nKhách: ${data.name ?? userID}`);
     } else {
       setCheckinSuccess(false);
       setCheckinMessage("❌ Check-in thất bại. Vui lòng thử lại!");
@@ -541,6 +549,7 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
     setIsCheckinLoading(false);
   }
 };
+
     // Hàm chuyển số thành chữ tiếng Việt
     const numberToVietnameseWords = (num: number): string => {
         if (num === 0) return "không đồng";
@@ -909,7 +918,7 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
                          <QRScannerModal
                                 isOpen={isCheckinOpen}
                                 onClose={() => setIsCheckinOpen(false)}
-                                onScanSuccess={(guestIDFromQR) => PostCheckin(guestIDFromQR)}
+                                onScanSuccess={(guestIDFromQR) => handleQRScanned(guestIDFromQR)}
                             />
                         {/* Grid 3 form */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 h-[88vh] items-center justify-items-center ">
