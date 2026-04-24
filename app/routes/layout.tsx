@@ -42,9 +42,9 @@ const Layout: React.FC = () => {
      const isInvitationCardPage =
         location.pathname.startsWith("/layout/InvitationCard");
 
-      if (!storedUser && !isInvitationCardPage) {
+       if (!storedUser && !isInvitationCardPage) {
         navigate("/");
-      }
+       }
 
       setUser(storedUser);
   }, []);

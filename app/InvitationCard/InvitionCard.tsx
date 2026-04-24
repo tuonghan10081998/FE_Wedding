@@ -543,37 +543,37 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
                 PostCheckin(guestid ?? "");
         }
     }
-const PostCheckin = async (guestid: string) => {
-  setIsCheckinLoading(true);
-  try {
-    const url = new URL(`${import.meta.env.VITE_API_URL}/api/Guest/CheckIn`);
-    url.searchParams.append("guestID", guestid);
+        const PostCheckin = async (guestid: string) => {
+        setIsCheckinLoading(true);
+        try {
+            const url = new URL(`${import.meta.env.VITE_API_URL}/api/Guest/CheckIn`);
+            url.searchParams.append("guestID", guestid);
 
-    const request = new Request(url.toString(), {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+            const request = new Request(url.toString(), {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            });
 
-    const response = await fetch(request);
-    const data = await response.json();
+            const response = await fetch(request);
+            const data = await response.json();
 
-    if (response.status === 200 || response.status === 201) {
-      setCheckinSuccess(true);
-      setconfirmT(1)
-      setCheckinMessage(`✅ Check-in thành công!\nKhách: ${guest}`);
-    } else {
-      setCheckinSuccess(false);
-      setCheckinMessage("❌ Check-in thất bại. Vui lòng thử lại!");
-    }
-  } catch {
-    setCheckinSuccess(false);
-    setCheckinMessage("❌ Lỗi kết nối. Vui lòng thử lại!");
-  } finally {
-    setIsCheckinLoading(false);
-  }
-};
+            if (response.status === 200 || response.status === 201) {
+            setCheckinSuccess(true);
+            setconfirmT(1)
+            setCheckinMessage(`✅ Check-in thành công!\nKhách: ${guest}`);
+            } else {
+            setCheckinSuccess(false);
+            setCheckinMessage("❌ Check-in thất bại. Vui lòng thử lại!");
+            }
+        } catch {
+            setCheckinSuccess(false);
+            setCheckinMessage("❌ Lỗi kết nối. Vui lòng thử lại!");
+        } finally {
+            setIsCheckinLoading(false);
+        }
+        };
 
     // Hàm chuyển số thành chữ tiếng Việt
     const numberToVietnameseWords = (num: number): string => {
