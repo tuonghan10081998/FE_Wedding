@@ -15,9 +15,9 @@ interface WeddingCardViewerProps {
   checkForm?:number
   data:Project[]
   isUserID:string
-   dataInvatitionEdit: InvitationProps[];
-   setCheckSave:(v:boolean) => void
-   isCheckSave:boolean
+  dataInvatitionEdit: InvitationProps[];
+  setCheckSave:(v:boolean) => void
+  isCheckSave:boolean
 }
 
 const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,data,isUserID,dataInvatitionEdit,setCheckSave,isCheckSave }) => {
@@ -70,6 +70,7 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
   const [saveTheDateBG, setSaveTheDateBG] = useState("");
   const [saveTheDateBGFile, setSaveTheDateBGFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+   const [paymentQrImage, setPaymentQrImage] = useState("");
   // Thêm fieldLabels cho Event
   const fieldLabelsEvent: Record<string, string> = {
     projectID: "dự án",
@@ -125,9 +126,13 @@ const WeddingCardViewer: React.FC<WeddingCardViewerProps> = ({ views,checkForm,d
   try {
     const layoutData = JSON.parse(dataInvatitionEdit[0].layout.toString());
     const bg = dataInvatitionEdit?.[0]?.saveTheDateBG;
-
+    const qr = dataInvatitionEdit?.[0]?.qrCode;
+    console.log(qr)
     setSaveTheDateBG(
       bg ? `${import.meta.env.VITE_API_URL}/${bg}` : ""
+    );
+     setPaymentQrImage(
+      qr ? `${import.meta.env.VITE_API_URL}/${qr}` : ""
     );
     // Check xem có phải Event không (checkForm === 5)
     if (layoutData.checkForm === 5) {
@@ -294,24 +299,42 @@ useEffect(() => {
     reader.readAsDataURL(blob);
   });
 };
-  const handleSaveInvitation  = async (access:string) => {
-      let base64BG: string | null = null;
+const handleSaveInvitation = async (access: string) => {
+  let base64BG: string | null = null;
+  let base64QR: string | null = null;
 
-      if (saveTheDateBG) {
-        base64BG = await blobUrlToBase64(saveTheDateBG);
-      }
-    const object = {
-            name: isNewInvitation,
-            layout: isFormData,
-            projectID: projectID,
-            invitationID:isInvitation,
-            saveTheDateBG:base64BG ?? "",
-            statusInvi:checkForm === 5 ? 2 : 1
-        }
-        PostInvitation(object,access)
+  if (saveTheDateBG) {
+    if (saveTheDateBG.startsWith("data:")) {
+      base64BG = saveTheDateBG;
+    } else if (saveTheDateBG.startsWith("blob:")) {
+      base64BG = await blobUrlToBase64(saveTheDateBG);
+    }
   }
-  const PostInvitation = async (save: any, access: string) => {
-  setIsLoading(true); // 👈 bật loading
+
+  if (paymentQrImage) {
+    if (paymentQrImage.startsWith("data:")) {
+      base64QR = paymentQrImage;
+    } else if (paymentQrImage.startsWith("blob:")) {
+      base64QR = await blobUrlToBase64(paymentQrImage);
+    }
+    // URL http/https từ server: không convert lại để tránh lỗi CORS
+  }
+
+  const object = {
+    name: isNewInvitation,
+    layout: isFormData,
+    projectID: projectID,
+    invitationID: isInvitation,
+    saveTheDateBG: base64BG ?? "",
+    qrCode: base64QR ?? "",
+    statusInvi: checkForm === 5 ? 2 : 1,
+  };
+
+  PostInvitation(object, access);
+};
+
+const PostInvitation = async (save: any, access: string) => {
+  setIsLoading(true); 
   try {
     const request = new Request(`${import.meta.env.VITE_API_URL}/api/Invitation`, {
       method: isCheckUpdate ? "PUT" : "POST",
@@ -529,7 +552,7 @@ useEffect(() => {
                       brideName?: string;
                       width?: number;
                       height?: number;
-                       backgroundImage?: string;
+                      backgroundImage?: string;
                     }>, {
                       
                       groomName, brideName, width: 600, height: 650,
@@ -768,7 +791,10 @@ useEffect(() => {
         projectID={projectID}
         mapLink={mapLink}
         setMapLink={setMapLink}
-        onSummit={handleSummit}
+       
+       paymentQrImage={paymentQrImage}
+        setPaymentQrImage={setPaymentQrImage}
+         onSummit={handleSummit}
       />
     )}
     {showModal && checkForm !== 5 && (
@@ -821,6 +847,8 @@ useEffect(() => {
             projectID={projectID}
             mapLink={mapLink}
             setMapLink={setMapLink}
+            paymentQrImage={paymentQrImage}
+            setPaymentQrImage={setPaymentQrImage}
             onSummit={handleSummit} // <-- chắc chắn đây là function
           />
         )}

@@ -133,12 +133,16 @@ const AuthPage: React.FC = () => {
         });
 
         let response = await fetch(request);
-
+        console.log(response.status)
         // ✅ Nếu trả về 201 -> đọc json
         if (response.status === 200) {
           const data = await response.json();
-          if(data.accessToken=== ""){
-             toast.warning("Vui lòng xác thực email");
+          if(data.isConfirmMail === 2){
+             toast.warning("Email chưa tồn tại");
+             return;
+          }
+           if(data.isConfirmMail === 3){
+             toast.warning("Sai mật khẩu");
              return;
           }
          if (rememberMe) {

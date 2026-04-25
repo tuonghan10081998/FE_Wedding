@@ -1,9 +1,11 @@
 // InvitionCardEvent.tsx
+// InvitionCardEvent.tsx
 import React, { useState, useEffect,useRef } from "react";
 import { Html5Qrcode } from "html5-qrcode";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { CheckCircle, Heart, XCircle, Sparkles, ArrowRight } from 'lucide-react';
+import { CheckCircle,Heart, XCircle, Sparkles, Users, Layout, Download, ArrowRight, BarChart3, UserPlus, Utensils, FileDown, X } from 'lucide-react';
+
 
 interface InvitionCardEventProps {
   views: React.ReactNode[];
@@ -123,7 +125,7 @@ const QRScannerModal: React.FC<{
                   d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 3.5V16M4.5 4.5h3v3h-3v-3zM4.5 16.5h3v3h-3v-3zM16.5 4.5h3v3h-3v-3z" />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-white">Check-in tiệc cưới</h2>
+            <h2 className="text-xl font-bold text-white">Check-in sự kiện</h2>
           </div>
           <button onClick={handleClose} className="text-white/80 hover:text-white transition-colors">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -202,7 +204,7 @@ const QRScannerModal: React.FC<{
                 </svg>
                 </div>
             }
-                {checkinResult?.success === true && checkinResult?.message.includes("cưới") && 
+                {checkinResult?.success === true && checkinResult?.message.includes("sự") && 
                         <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg className="w-9 h-9 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
@@ -389,6 +391,7 @@ const InvitionCardEvent: React.FC<InvitionCardEventProps> = ({
   const [isScanning, setIsScanning] = useState(false);
   const [isCheckinLoading, setIsCheckinLoading] = useState(false);
   const [confirmT, setconfirmT] = useState<number>(setConfirm ?? 0);
+  const [isImgQRCode,setImageQRCode] = useState("https://premiumvns.com/wp-content/uploads/2023/12/thanh-toan-techcombank.jpg")
   
   useEffect(() => {
     if (!dataProject) return;
@@ -427,16 +430,19 @@ const InvitionCardEvent: React.FC<InvitionCardEventProps> = ({
     setRsvpMessage("");
     setGiftAmount("");
   };
-     const handleQRScanned = (qrValue: string) => {
+      const handleQRScanned = (qrValue: string) => {
         if (qrValue !== projectid) {
              setCheckinSuccess(true);
-            setCheckinMessage("⚠️ QR Code này không phải của tiệc cưới!");
+            setCheckinMessage("⚠️ QR Code này không phải của sự kiện!");
+             setIsCheckinOpen(true)
            
         } else if(confirmT === 1 || setConfirm === 1) {
             setCheckinSuccess(true);
+             setIsCheckinOpen(true)
             setCheckinMessage("⚠️ Bạn đã  check-in rồi! Vui lòng kh checkin tiếp");
         }else{
                 PostCheckin(guestid ?? "");
+                 setIsCheckinOpen(true)
         }
     }
         const PostCheckin = async (guestid: string) => {
@@ -697,7 +703,7 @@ const InvitionCardEvent: React.FC<InvitionCardEventProps> = ({
               </svg>
             </button>
 
-            {guestid && (
+            {/* {guestid && (
               <button
                 onClick={handleRSVPOpen}
                 className="fixed bottom-8 right-8 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center space-x-2 z-10"
@@ -709,8 +715,44 @@ const InvitionCardEvent: React.FC<InvitionCardEventProps> = ({
                 <span className="font-semibold">Xác nhận</span>
               </button>
             )}
-        
-              <QRScannerModal
+         */}
+           {guestid && (
+                        <>
+                            {/* RSVP Button */}
+                            <button
+                            onClick={handleRSVPOpen}
+                            className="fixed bottom-8 right-8 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center space-x-2 z-10"
+                            >
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path
+                                fillRule="evenodd"
+                                d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                                clipRule="evenodd"
+                                />
+                            </svg>
+                            <span className="font-semibold">Xác nhận</span>
+                            </button>
+
+                            {/* Check-in Button */}
+                            <button
+                            onClick={() => setIsCheckinOpen(true)}
+                            className="fixed bottom-8 left-8 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center space-x-2 z-10"
+                            >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 3.5V16M4.5 4.5h3v3h-3v-3zM4.5 16.5h3v3h-3v-3zM16.5 4.5h3v3h-3v-3z"
+                                />
+                            </svg>
+                            <span className="font-semibold">Check-in</span>
+                            </button>
+                          
+                        </>
+
+                        )}
+                   <QRScannerModal
                             isOpen={isCheckinOpen}
                             onClose={() => {
                                 setIsCheckinOpen(false);
@@ -884,7 +926,7 @@ const InvitionCardEvent: React.FC<InvitionCardEventProps> = ({
                 </div>
 
                 {/* Phần đóng góp */}
-                <div className="border-t pt-6 border-gray-200">
+                <div className="border-t pt-6 border-gray-200 hidden">
                   <div className="text-center mb-5">
                     <h3 className="text-xl font-bold text-gray-800 mb-2 flex items-center justify-center">
                       <svg className="w-6 h-6 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
@@ -944,6 +986,21 @@ const InvitionCardEvent: React.FC<InvitionCardEventProps> = ({
                     </p>
                   </div>
                 </div>
+                <div className="flex flex-col sm:flex-row gap-5 items-center justify-center mb-5">
+                                        {/* QR Code Image */}
+                                        <div className="flex-shrink-0">
+                                            <div className="bg-white p-3 rounded-xl border-2 border-pink-200 shadow-lg">
+                                                <img
+                                                    src={isImgQRCode}
+                                                    alt="QR Code chuyển khoản"
+                                                    className="w-70 h-70 sm:w-70 sm:h-70 object-contain"
+                                                />
+                                                <p className="text-center text-xs font-medium text-pink-600 mt-1">📷 Quét để chuyển tiền</p>
+                                            </div>
+                                        </div>
+
+                                    
+                                    </div>
               </form>
             </div>
 
@@ -960,7 +1017,7 @@ const InvitionCardEvent: React.FC<InvitionCardEventProps> = ({
                 <button
                   type="button"
                   onClick={handleSendGift}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2"
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2 hidden"
                 >
                   <span>Gửi đóng góp</span>
                 </button>

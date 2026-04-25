@@ -459,6 +459,7 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
       const [checkinMessage, setCheckinMessage] = useState("");
       const [isScanning, setIsScanning] = useState(false);
       const [isCheckinLoading, setIsCheckinLoading] = useState(false);
+      const [isImgQRCode,setImageQRCode] = useState("")
     const [saveTheDateBG, setSaveTheDateBG] = useState("");
      useEffect(() => {
         if(!dataProject) return
@@ -535,12 +536,15 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
         if (qrValue !== projectid) {
              setCheckinSuccess(true);
             setCheckinMessage("⚠️ QR Code này không phải của tiệc cưới!");
+            setIsCheckinOpen(true)
            
         } else if(confirmT === 1 || setConfirm === 1) {
             setCheckinSuccess(true);
             setCheckinMessage("⚠️ Bạn đã  check-in rồi! Vui lòng kh checkin tiếp");
+             setIsCheckinOpen(true)
         }else{
                 PostCheckin(guestid ?? "");
+                 setIsCheckinOpen(true)
         }
     }
         const PostCheckin = async (guestid: string) => {
@@ -706,7 +710,6 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
         if (!data) return;
         try {
             const  layoutData = JSON.parse(data[0].layout.toString());
-            console.log(layoutData)
             setProject(layoutData.projectID)
             setUserID(layoutData.userID)
             setGroomName(layoutData.groomName || "");
@@ -731,10 +734,13 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
             setpartyAddress(layoutData.partyAddress || "");
             setCheckNhaHang(layoutData.checkNhaHang ?? true);
             setMapLink(layoutData.mapLink)
-             const bg = data?.[0]?.saveTheDateBG;
-           
+            const bg = data?.[0]?.saveTheDateBG;
+           const qr = data?.[0]?.qrCode;
             setSaveTheDateBG(
                 bg ? `${import.meta.env.VITE_API_URL}/${bg}` : ""
+            );
+             setImageQRCode(
+                qr ? `${import.meta.env.VITE_API_URL}/${qr}` : ""
             );
         }catch{
             resetForm()
@@ -1170,7 +1176,7 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
                                 {/* QR Code Section - Chỉ hiện khi đồng ý tham dự */}
                               
                                     <div className="border-t pt-6 border-gray-200">
-                                        <div className="text-center mb-5">
+                                        <div className="text-center mb-5 hidden">
                                             <h3 className="text-xl font-bold text-gray-800 mb-2 flex items-center justify-center">
                                                 <svg className="w-6 h-6 mr-2 text-pink-600" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
@@ -1179,56 +1185,39 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
                                             </h3>
                                             <p className="text-sm text-gray-600 hidden">Quét mã QR hoặc nhập số tiền bên dưới</p>
                                         </div>
-
+                                        </div>
                                         {/* QR Code và Bank Info */}
-                                        <div className="flex flex-col sm:flex-row gap-5 items-center mb-5 hidden">
-                                            {/* QR Code Image */}
-                                            <div className="flex-shrink-0">
-                                                <div className="bg-white p-3 rounded-xl border-2 border-pink-200 shadow-lg">
-                                                    <img 
-                                                        src="https://via.placeholder.com/150x150/000000/FFFFFF?text=QR+CODE" 
-                                                        alt="QR Code chuyển khoản"
-                                                        className="w-36 h-36 sm:w-40 sm:h-40 object-contain"
-                                                    />
-                                                </div>
-                                            </div>
+                                       <div className="border-t pt-6 border-gray-200">
+                                    <div className="text-center mb-5">
+                                        <h3 className="text-xl font-bold text-gray-800 mb-2 flex items-center justify-center">
+                                            <svg className="w-6 h-6 mr-2 text-pink-600" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                                            </svg>
+                                            Mừng cưới cô dâu chú rể
+                                        </h3>
+                                        <p className="text-sm text-gray-600">Quét mã QR hoặc nhập số tiền bên dưới</p>
 
-                                            {/* Bank Info */}
-                                            <div className="flex-1 w-full bg-gradient-to-br from-pink-50 to-rose-50 p-5 rounded-xl border border-pink-200 shadow-sm">
-                                                <div className="space-y-3">
-                                                    <div className="flex items-start text-sm">
-                                                        <svg className="w-5 h-5 mr-2 text-pink-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path d="M4 4a2 2 0 00-2 2v1a1 1 0 001 1h.01a1 1 0 001-1V6a1 1 0 011-1h1a1 1 0 100-2H4z"/>
-                                                        </svg>
-                                                        <div className="flex-1">
-                                                            <span className="font-semibold text-gray-700">Ngân hàng:</span>
-                                                            <span className="text-gray-800 ml-2">Vietcombank</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-start text-sm">
-                                                        <svg className="w-5 h-5 mr-2 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                                        </svg>
-                                                        <div className="flex-1">
-                                                            <span className="font-semibold text-gray-700">STK:</span>
-                                                            <span className="text-gray-800 font-mono ml-2">1234567890</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-start text-sm">
-                                                        <svg className="w-5 h-5 mr-2 text-purple-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"/>
-                                                        </svg>
-                                                        <div className="flex-1">
-                                                            <span className="font-semibold text-gray-700">Chủ TK:</span>
-                                                            <span className="text-gray-800 ml-2">NGUYEN VAN A</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                    </div>
+
+                                    {/* QR Code và Bank Info */}
+                                    <div className="flex flex-col sm:flex-row gap-5 items-center justify-center mb-5">
+                                        {/* QR Code Image */}
+                                        <div className="flex-shrink-0">
+                                            <div className="bg-white p-3 rounded-xl border-2 border-pink-200 shadow-lg">
+                                                <img
+                                                    src={isImgQRCode}
+                                                    alt="QR Code chuyển khoản"
+                                                    className="w-70 h-70 sm:w-70 sm:h-70 object-contain"
+                                                />
+                                                <p className="text-center text-xs font-medium text-pink-600 mt-1">📷 Quét để chuyển tiền</p>
                                             </div>
                                         </div>
 
+                                    
+                                    </div>
+
                                         {/* Form nhập tiền mừng */}
-                                        <div className="bg-gradient-to-br from-amber-50 to-pink-50 p-5 rounded-xl border-2 border-amber-200 shadow-sm">
+                                        <div className="bg-gradient-to-br from-amber-50 to-pink-50 p-5 rounded-xl border-2 border-amber-200 shadow-sm hidden">
                                             <div className="flex items-center justify-center mb-4">
                                                 <svg className="w-6 h-6 text-amber-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                                     <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
@@ -1303,7 +1292,7 @@ const InvitionCard: React.FC<InvitionCardProps> = ({ views, data,checkxttruoc = 
                                  <button
                                         type="button"
                                         onClick={handleSendGift}
-                                        className=" flex-1 px-6 py-3 bg-gradient-to-r from-amber-500 to-pink-500 hover:from-amber-600 hover:to-pink-600 text-white rounded-lg  shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2"
+                                        className=" flex-1 px-6 py-3 bg-gradient-to-r from-amber-500 to-pink-500 hover:from-amber-600 hover:to-pink-600 text-white rounded-lg  shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2 hidden"
                                     >
                                        
                                         <span>Gửi tiền mừng</span>

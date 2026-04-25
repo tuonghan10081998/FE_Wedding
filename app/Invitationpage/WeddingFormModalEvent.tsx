@@ -1,9 +1,11 @@
 // WeddingFormModalEvent.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+
 import Select from "react-select";
 import type { SingleValue } from "react-select";
 import type { Project } from "~/layoutEven/layoutEven";
 import type DatePicker from "react-datepicker";
+import { ToastContainer, toast } from "react-toastify";
 
 interface OptionType {
   value: string;
@@ -29,12 +31,14 @@ interface EventFormModalProps {
   projectID: string;
   mapLink: string;
   setMapLink: (v: string) => void;
+   paymentQrImage: string;
+  setPaymentQrImage: (v: string) => void;
   onSummit: (e: React.FormEvent) => void;
 }
 
 const WeddingFormModalEvent: React.FC<EventFormModalProps> = (props) => {
   const [DatePickerComponent, setDatePickerComponent] = useState<typeof DatePicker | null>(null);
-  
+    const qrInputRef = useRef<HTMLInputElement | null>(null);
   useEffect(() => {
     if (typeof window !== 'undefined') {
       import('react-datepicker').then((mod) => {
@@ -60,7 +64,24 @@ const WeddingFormModalEvent: React.FC<EventFormModalProps> = (props) => {
   };
 
   const [eventDate, setEventDate] = useState<Date | null>(null);
-
+  const handlePaymentQrChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+    
+        if (!file.type.startsWith("image/")) {
+          toast.warning("Vui lòng chọn file ảnh");
+          e.target.value = "";
+          return;
+        }
+    
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === "string") {
+            props.setPaymentQrImage(reader.result);
+          }
+        };
+        reader.readAsDataURL(file);
+    };
   const handleEventDateChange = (date: Date | null) => {
     setEventDate(date);
     if (date) {
@@ -92,7 +113,7 @@ const WeddingFormModalEvent: React.FC<EventFormModalProps> = (props) => {
         </div>
       );
     }
-
+   
     return (
       <div className="mb-2">
         <div className="block text-gray-700 font-medium mb-1">
@@ -255,6 +276,38 @@ const WeddingFormModalEvent: React.FC<EventFormModalProps> = (props) => {
               </div>
               <div className="md:col-span-2">
                 {renderInput(props.mapLink, props.setMapLink, "Link Google Maps", "input", 1, false)}
+              </div>
+              <div className="md:pe-3">
+                <div className="mb-2">
+                  <div className="block text-gray-700 font-medium mb-1">
+                    QR thanh toán
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => qrInputRef.current?.click()}
+                    className="px-4 py-2 rounded-md bg-pink-600 text-white hover:bg-pink-700 transition"
+                  >
+                    Lấy QR Thanh toán
+                  </button>
+                  <input
+                    ref={qrInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePaymentQrChange}
+                    className="hidden"
+                  />
+                  <div className="mt-3 w-80 h-70 border border-dashed border-gray-300 rounded-md overflow-hidden bg-gray-50 flex items-center justify-center">
+                    {props.paymentQrImage ? (
+                      <img
+                        src={props.paymentQrImage}
+                        alt="QR thanh toán"
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <span className="text-sm text-gray-400">Chưa chọn ảnh</span>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

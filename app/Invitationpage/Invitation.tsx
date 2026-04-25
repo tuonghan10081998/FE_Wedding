@@ -29,6 +29,7 @@ export interface InvitationProps {
   layout:Project;
   invitationID:string
   saveTheDateBG :string
+  qrCode :string
   statusInvi:number
 }
 const Invitation = () => {

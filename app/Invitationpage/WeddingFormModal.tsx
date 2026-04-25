@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import DateRangeWithPresets from "~/Invitationpage/DateRangeWithPresets";
 import Select from "react-select";
 import type { SingleValue } from "react-select";
@@ -60,11 +60,14 @@ interface WeddingFormModalProps {
   projectID: string;
   mapLink: string;
   setMapLink: (v: string) => void;
+  paymentQrImage: string;
+  setPaymentQrImage: (v: string) => void;
   onSummit: (e: React.FormEvent) => void;
 }
 
 const WeddingFormModal: React.FC<WeddingFormModalProps> = (props) => {
   const [DatePickerComponent, setDatePickerComponent] = useState<typeof DatePicker | null>(null);
+  const qrInputRef = useRef<HTMLInputElement | null>(null);
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -74,6 +77,36 @@ const WeddingFormModal: React.FC<WeddingFormModalProps> = (props) => {
       import('react-datepicker/dist/react-datepicker.css');
     }
   }, []);
+// Parse từ chuỗi dạng: "Ngày 1 Tháng 2 Năm 2026"
+const parseVietnameseDateString = (value?: string): Date | null => {
+  if (!value) return null;
+
+  const match = value.match(/Ngày\s+(\d{1,2})\s+Tháng\s+(\d{1,2})\s+Năm\s+(\d{4})/i);
+  if (!match) return null;
+
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+
+  const date = new Date(year, month - 1, day);
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return date;
+};
+
+useEffect(() => {
+  const weddingParsed = parseVietnameseDateString(props.weddingDateTime);
+  if (weddingParsed) setWeddingDate(weddingParsed);
+
+  const partyParsed = parseVietnameseDateString(props.partyDateTime);
+  if (partyParsed) setPartyDate(partyParsed);
+}, [props.weddingDateTime, props.partyDateTime]);
 
   // Hàm chuyển đổi dương lịch sang âm lịch
   const convertSolarToLunar = (day: number, month: number, year: number): string => {
@@ -416,6 +449,25 @@ const WeddingFormModal: React.FC<WeddingFormModalProps> = (props) => {
     );
   };
 
+  const handlePaymentQrChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.warning("Vui lòng chọn file ảnh");
+      e.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        props.setPaymentQrImage(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] flex flex-col">
@@ -536,6 +588,38 @@ const WeddingFormModal: React.FC<WeddingFormModalProps> = (props) => {
               </div>
               <div className="md:ps-3">
                 {renderInput(props.mapLink, props.setMapLink, "Link gg map", "textarea", 1, false)}
+              </div>
+              <div className="md:pe-3">
+                <div className="mb-2">
+                  <div className="block text-gray-700 font-medium mb-1">
+                    QR thanh toán
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => qrInputRef.current?.click()}
+                    className="px-4 py-2 rounded-md bg-pink-600 text-white hover:bg-pink-700 transition"
+                  >
+                    Lấy QR Thanh toán
+                  </button>
+                  <input
+                    ref={qrInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePaymentQrChange}
+                    className="hidden"
+                  />
+                  <div className="mt-3 w-80 h-70 border border-dashed border-gray-300 rounded-md overflow-hidden bg-gray-50 flex items-center justify-center">
+                    {props.paymentQrImage ? (
+                      <img
+                        src={props.paymentQrImage}
+                        alt="QR thanh toán"
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <span className="text-sm text-gray-400">Chưa chọn ảnh</span>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

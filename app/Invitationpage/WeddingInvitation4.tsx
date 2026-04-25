@@ -37,7 +37,6 @@ const WeddingInvitation4: React.FC<WeddingInvitation1Props> = ({
       window.open(mapLink, '_blank', 'noopener,noreferrer');
     }
   };
-   console.log(backgroundImage)
   return (
    
     <div className="flex items-center justify-center font-[Montserrat]">

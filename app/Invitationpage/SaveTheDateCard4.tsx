@@ -12,7 +12,7 @@ const withDefault = (value: string | undefined, fallback: string) =>
   value && value.trim() !== "" ? value : fallback;
 
 const SaveTheDateCard4: React.FC<SaveTheDateCard1Props> = ({width = 550,height = 650,groomName,brideName,nameCutomer,backgroundImage}) => {
-  console.log(groomName,brideName,nameCutomer,backgroundImage)
+
   return (
     <div
       className="rounded-lg shadow-lg  flex justify-center items-center  text-[#b38b2b]"
